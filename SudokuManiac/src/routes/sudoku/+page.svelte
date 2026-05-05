@@ -21,14 +21,20 @@
 	let boardRef: ReturnType<typeof SudokuBoardComponent> | null = null;
 	let timerRef: ReturnType<typeof GameTimer> | null = null;
 
-	function startGame() {
-		const generated = generatePuzzle(difficulty);
+	function startGame(diff?: Difficulty) {
+		const generated = generatePuzzle(diff ?? difficulty);
 		puzzle = generated.puzzle;
 		solution = generated.solution;
+		if (diff) difficulty = diff;
 		gameStarted = true;
 		gameSolved = false;
 		timerRunning = true;
 		timerRef?.reset();
+	}
+
+	function startRandom() {
+		const random = DIFFICULTIES[Math.floor(Math.random() * DIFFICULTIES.length)];
+		startGame(random);
 	}
 
 	function handleDigit(n: number) {
@@ -65,7 +71,10 @@
 					</button>
 				{/each}
 			</div>
-			<button class="start-btn" onclick={startGame}>Start Game</button>
+			<div class="lobby-actions">
+				<button class="start-btn" onclick={() => startGame()}>Start Game</button>
+				<button class="random-btn" onclick={startRandom}>🎲 Random</button>
+			</div>
 		</section>
 	{:else}
 		<!-- Active game -->
@@ -74,7 +83,8 @@
 				<span class="badge">{difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}</span>
 				<GameTimer bind:this={timerRef} running={timerRunning} />
 				<div class="header-actions">
-					<button class="btn-icon" title="New game" onclick={startGame}>↺ New</button>
+					<button class="btn-icon" title="New game" onclick={() => startGame()}>↺ New</button>
+					<button class="btn-icon" title="Random game" onclick={startRandom}>🎲</button>
 				</div>
 			</div>
 
@@ -162,6 +172,12 @@
 		background: #e0e7ff;
 	}
 
+	.lobby-actions {
+		display: flex;
+		gap: 0.75rem;
+		align-items: center;
+	}
+
 	.start-btn {
 		padding: 0.75rem 2.5rem;
 		background: #2563eb;
@@ -176,6 +192,22 @@
 
 	.start-btn:hover {
 		background: #1d4ed8;
+	}
+
+	.random-btn {
+		padding: 0.75rem 1.5rem;
+		background: #7c3aed;
+		color: white;
+		font-size: 1.1rem;
+		font-weight: 700;
+		border: none;
+		border-radius: 0.6rem;
+		cursor: pointer;
+		transition: background 0.15s;
+	}
+
+	.random-btn:hover {
+		background: #6d28d9;
 	}
 
 	/* Game */
