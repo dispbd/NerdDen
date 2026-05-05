@@ -41,6 +41,7 @@ export class SudokuBoard {
 	private theme: BoardTheme;
 	private cellSize = 0;
 	private padding = 4;
+	private initialized = false;
 
 	private listeners: Map<string, Set<(e: unknown) => void>> = new Map();
 
@@ -50,7 +51,7 @@ export class SudokuBoard {
 	}
 
 	async init(canvas: HTMLCanvasElement): Promise<void> {
-		const size = this.options.size ?? canvas.clientWidth || 540;
+		const size = (this.options.size ?? canvas.clientWidth) || 540;
 
 		await this.app.init({
 			canvas,
@@ -67,6 +68,7 @@ export class SudokuBoard {
 		this.boardContainer.position.set(this.padding, this.padding);
 
 		this.buildGrid();
+		this.initialized = true;
 	}
 
 	// ─── Public API ───────────────────────────────────────────────
@@ -79,7 +81,7 @@ export class SudokuBoard {
 		this.errors.clear();
 		this.selectedRow = -1;
 		this.selectedCol = -1;
-		this.renderAllCells();
+		if (this.initialized) this.renderAllCells();
 	}
 
 	/** Set a digit in the selected cell (0 = erase) */
@@ -190,7 +192,7 @@ export class SudokuBoard {
 	// ─── Rendering ────────────────────────────────────────────────
 
 	private renderAllCells(): void {
-		if (!this.puzzle.length) return;
+		if (!this.initialized || !this.puzzle.length) return;
 		for (let r = 0; r < 9; r++) {
 			for (let c = 0; c < 9; c++) {
 				this.renderCell(r, c);
