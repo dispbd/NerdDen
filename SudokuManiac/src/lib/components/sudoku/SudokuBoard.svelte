@@ -33,7 +33,6 @@
 		await board.init(canvas);
 		// Load puzzle that may have been set before init completed
 		if (puzzle.length) board.loadPuzzle(puzzle, solution);
-		board.loadPuzzle(puzzle, solution);
 
 		board.on('cellSelect', ({ row, col }) => {
 			onCellSelect?.(row, col);
@@ -65,6 +64,11 @@
 	// Expose setDigit for external use (keyboard / numpad)
 	export function placeDigit(num: number) {
 		board?.setDigit(num);
+	}
+
+	/** Returns a snapshot of the current player grid for session saving */
+	export function getCurrentGrid(): Grid | null {
+		return board?.getPlayerGrid() ?? null;
 	}
 </script>
 

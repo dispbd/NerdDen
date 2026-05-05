@@ -140,6 +140,11 @@ export class SudokuBoard {
 		this.app.destroy();
 	}
 
+	/** Returns a deep copy of the current player grid for persistence */
+	getPlayerGrid(): Grid {
+		return this.playerGrid.map((row) => [...row]);
+	}
+
 	// ─── Build ────────────────────────────────────────────────────
 
 	private buildGrid(): void {

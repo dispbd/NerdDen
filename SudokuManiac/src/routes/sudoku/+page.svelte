@@ -1,6 +1,7 @@
 <!--
   /sudoku page — main game screen.
   Difficulty picker, PixiJS board, numpad, timer, controls.
+  Authenticated users have their sessions saved/resumed automatically.
 -->
 <script lang="ts">
 	import SudokuBoardComponent from '$lib/components/sudoku/SudokuBoard.svelte';
@@ -8,6 +9,8 @@
 	import GameTimer from '$lib/components/sudoku/GameTimer.svelte';
 	import { generatePuzzle } from '$lib/server/games/sudoku/generator.js';
 	import type { Difficulty, Grid } from '$lib/server/games/sudoku/generator.js';
+
+	let { data } = $props();
 
 	const DIFFICULTIES: Difficulty[] = ['beginner', 'easy', 'medium', 'hard', 'expert', 'extreme'];
 
@@ -20,7 +23,46 @@
 	let boardRef: ReturnType<typeof SudokuBoardComponent> | null = null;
 	let timerRef: ReturnType<typeof GameTimer> | null = null;
 
-	function startGame(diff?: Difficulty) {
+	/** ID of the current game_sessions row (null for guests) */
+	let sessionId = $state<string | null>(null);
+	/** Auto-save interval handle */
+	let saveInterval: ReturnType<typeof setInterval> | null = null;
+
+	// Resume active session if one exists
+	$effect(() => {
+		const active = data.activeSession;
+		if (active) {
+			puzzle = active.gridState as Grid;
+			solution = active.solution as Grid;
+			difficulty = active.difficulty as Difficulty;
+			sessionId = active.id;
+			gameStarted = true;
+			timerRunning = true;
+			timerRef?.reset();
+			if (active.timeSpent > 0) {
+				// restore elapsed time via internal timer offset
+				void restoreTimerOffset(active.timeSpent);
+			}
+		}
+	});
+
+	async function restoreTimerOffset(seconds: number) {
+		// Wait a tick for timerRef to mount, then apply offset
+		await Promise.resolve();
+		timerRef?.addOffset(seconds);
+	}
+
+	async function startGame(diff?: Difficulty) {
+		// Abandon previous in-progress session
+		if (sessionId) {
+			await fetch(`/api/sudoku/sessions/${sessionId}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ action: 'abandon', timeSpent: timerRef?.getElapsed() ?? 0 })
+			});
+			sessionId = null;
+		}
+
 		const generated = generatePuzzle(diff ?? difficulty);
 		puzzle = generated.puzzle;
 		solution = generated.solution;
@@ -29,11 +71,60 @@
 		gameSolved = false;
 		timerRunning = true;
 		timerRef?.reset();
+
+		// Create new session
+		const res = await fetch('/api/sudoku/sessions', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ difficulty: diff ?? difficulty, gridState: generated.puzzle, solution: generated.solution })
+		});
+		if (res.ok) {
+			const newSession = await res.json();
+			sessionId = newSession.id ?? null;
+			startAutoSave();
+		}
+	}
+
+	function startAutoSave() {
+		stopAutoSave();
+		saveInterval = setInterval(() => void autoSave(), 30_000);
+	}
+
+	function stopAutoSave() {
+		if (saveInterval != null) {
+			clearInterval(saveInterval);
+			saveInterval = null;
+		}
+	}
+
+	async function autoSave() {
+		if (!sessionId || gameSolved) return;
+		const currentGrid = boardRef?.getCurrentGrid?.() ?? puzzle;
+		await fetch(`/api/sudoku/sessions/${sessionId}`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ gridState: currentGrid, timeSpent: timerRef?.getElapsed() ?? 0 })
+		});
+	}
+
+	async function handleSolved() {
+		gameSolved = true;
+		timerRunning = false;
+		stopAutoSave();
+
+		if (sessionId) {
+			await fetch(`/api/sudoku/sessions/${sessionId}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ action: 'complete', timeSpent: timerRef?.getElapsed() ?? 0, hintsUsed: 0 })
+			});
+			sessionId = null;
+		}
 	}
 
 	function startRandom() {
 		const random = DIFFICULTIES[Math.floor(Math.random() * DIFFICULTIES.length)];
-		startGame(random);
+		void startGame(random);
 	}
 
 	function handleDigit(n: number) {
@@ -76,7 +167,7 @@
 			<lobby-actions class="flex gap-3 items-center">
 				<button
 					class="px-10 py-3 bg-blue-600 text-white text-lg font-bold rounded-xl border-0 cursor-pointer hover:bg-blue-700 transition-colors"
-					onclick={() => startGame()}
+					onclick={() => void startGame()}
 				>
 					Start Game
 				</button>
@@ -101,7 +192,7 @@
 					<button
 						class="px-3 py-1.5 rounded-md border border-gray-300 bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
 						title="New game"
-						onclick={() => startGame()}
+						onclick={() => void startGame()}
 					>↺ New</button>
 					<button
 						class="px-3 py-1.5 rounded-md border border-gray-300 bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
@@ -123,10 +214,7 @@
 					{puzzle}
 					{solution}
 					size={Math.min(540, 90 * 9)}
-					onSolved={() => {
-						gameSolved = true;
-						timerRunning = false;
-					}}
+					onSolved={() => void handleSolved()}
 				/>
 			</board-wrap>
 
@@ -135,7 +223,16 @@
 			<game-footer class="flex gap-3">
 				<button
 					class="px-5 py-2 border border-gray-300 rounded-lg bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
-					onclick={() => {
+					onclick={async () => {
+						if (sessionId && !gameSolved) {
+							await fetch(`/api/sudoku/sessions/${sessionId}`, {
+								method: 'PATCH',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({ action: 'abandon', timeSpent: timerRef?.getElapsed() ?? 0 })
+							});
+							sessionId = null;
+						}
+						stopAutoSave();
 						gameStarted = false;
 						timerRunning = false;
 					}}

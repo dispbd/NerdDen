@@ -26,6 +26,15 @@
 		seconds = 0;
 	}
 
+	export function addOffset(offsetSeconds: number) {
+		seconds += offsetSeconds;
+	}
+
+	/** Returns the current elapsed seconds */
+	export function getElapsed(): number {
+		return seconds;
+	}
+
 	function pad(n: number) {
 		return String(n).padStart(2, '0');
 	}
