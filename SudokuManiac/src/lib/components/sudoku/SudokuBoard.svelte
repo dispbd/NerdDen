@@ -70,6 +70,11 @@
 	export function getCurrentGrid(): Grid | null {
 		return board?.getPlayerGrid() ?? null;
 	}
+
+	/** Reveal a hint — fills one empty selected cell (or the first empty one) */
+	export function revealHint(): void {
+		board?.revealHint();
+	}
 </script>
 
 <canvas

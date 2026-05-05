@@ -145,6 +145,44 @@ export class SudokuBoard {
 		return this.playerGrid.map((row) => [...row]);
 	}
 
+	/**
+	 * Reveal hint — places the correct digit in the selected cell,
+	 * or the first empty cell if nothing is selected.
+	 */
+	revealHint(): void {
+		if (!this.initialized || !this.puzzle.length) return;
+
+		let targetRow = this.selectedRow;
+		let targetCol = this.selectedCol;
+
+		// If selected cell is already filled or nothing selected, find first empty
+		if (targetRow < 0 || targetCol < 0 || this.playerGrid[targetRow][targetCol] !== 0) {
+			outer: for (let r = 0; r < 9; r++) {
+				for (let c = 0; c < 9; c++) {
+					if (this.playerGrid[r][c] === 0) {
+						targetRow = r;
+						targetCol = c;
+						break outer;
+					}
+				}
+			}
+		}
+
+		if (targetRow < 0 || targetCol < 0) return; // board is full
+
+		this.playerGrid[targetRow][targetCol] = this.solution[targetRow][targetCol];
+		this.updateCellDisplay(targetRow, targetCol);
+		this.updateErrors();
+		this.renderHighlights();
+		flashCell(
+			this.app,
+			this.boardContainer.x + targetCol * this.cellSize,
+			this.boardContainer.y + targetRow * this.cellSize,
+			this.cellSize,
+			0x22c55e // green
+		);
+	}
+
 	// ─── Build ────────────────────────────────────────────────────
 
 	private buildGrid(): void {

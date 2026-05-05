@@ -27,6 +27,8 @@
 	let sessionId = $state<string | null>(null);
 	/** Auto-save interval handle */
 	let saveInterval: ReturnType<typeof setInterval> | null = null;
+	/** Number of hints used in the current game */
+	let hintsUsed = $state(0);
 
 	// Resume active session if one exists
 	$effect(() => {
@@ -69,6 +71,7 @@
 		if (diff) difficulty = diff;
 		gameStarted = true;
 		gameSolved = false;
+		hintsUsed = 0;
 		timerRunning = true;
 		timerRef?.reset();
 
@@ -107,18 +110,58 @@
 		});
 	}
 
+	/** Hints available for current user (null = guest) */
+	let hintsAvailable = $state<number | null>(
+		data.activeSession ? null : null
+	);
+
+	/** Toast notifications for achievements / level-up */
+	interface Toast {
+		id: number;
+		icon: string;
+		text: string;
+	}
+	let toasts = $state<Toast[]>([]);
+	let toastSeq = 0;
+
+	function showToast(icon: string, text: string) {
+		const id = ++toastSeq;
+		toasts = [...toasts, { id, icon, text }];
+		setTimeout(() => {
+			toasts = toasts.filter((t) => t.id !== id);
+		}, 4000);
+	}
+
 	async function handleSolved() {
 		gameSolved = true;
 		timerRunning = false;
 		stopAutoSave();
 
 		if (sessionId) {
-			await fetch(`/api/sudoku/sessions/${sessionId}`, {
+			const res = await fetch(`/api/sudoku/sessions/${sessionId}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ action: 'complete', timeSpent: timerRef?.getElapsed() ?? 0, hintsUsed: 0 })
+				body: JSON.stringify({
+					action: 'complete',
+					timeSpent: timerRef?.getElapsed() ?? 0,
+					hintsUsed: hintsUsed,
+					difficulty
+				})
 			});
 			sessionId = null;
+
+			if (res.ok) {
+				const result = await res.json();
+				if (result?.xpGained) showToast('⭐', `+${result.xpGained} XP`);
+				if (result?.levelUp) showToast('🎉', `Level up! Now Level ${result.newLevel}`);
+				if (result?.hintsReplenished) {
+					hintsAvailable = (hintsAvailable ?? 0) + result.hintsReplenished;
+					showToast('💡', `+${result.hintsReplenished} hint`);
+				}
+				for (const ach of result?.newAchievements ?? []) {
+					showToast(ach.icon, `Achievement: ${ach.title}`);
+				}
+			}
 		}
 	}
 
@@ -220,7 +263,24 @@
 
 			<Numpad onDigit={handleDigit} />
 
-			<game-footer class="flex gap-3">
+			<game-footer class="flex gap-3 flex-wrap justify-center">
+				{#if hintsAvailable !== null && hintsAvailable > 0 && !gameSolved}
+					<button
+						class="px-5 py-2 border border-amber-400 bg-amber-50 text-amber-700 rounded-lg font-semibold cursor-pointer hover:bg-amber-100 transition-colors"
+						onclick={async () => {
+							if (!sessionId) return;
+							const res = await fetch('/api/sudoku/hints', { method: 'POST' });
+							if (res.ok) {
+								const data = await res.json();
+								hintsAvailable = data.hintsAvailable;
+								hintsUsed++;
+								boardRef?.revealHint();
+							}
+						}}
+					>
+						💡 Hint ({hintsAvailable})
+					</button>
+				{/if}
 				<button
 					class="px-5 py-2 border border-gray-300 rounded-lg bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
 					onclick={async () => {
@@ -243,3 +303,15 @@
 		</game-screen>
 	{/if}
 </sudoku-page>
+
+<!-- Toast notifications -->
+{#if toasts.length > 0}
+	<toast-container class="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
+		{#each toasts as toast (toast.id)}
+			<toast-item class="flex items-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-xl shadow-lg text-sm font-semibold animate-bounce-in">
+				<span>{toast.icon}</span>
+				<span>{toast.text}</span>
+			</toast-item>
+		{/each}
+	</toast-container>
+{/if}
