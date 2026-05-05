@@ -71,6 +71,8 @@
 		"vitest-browser-svelte": "^2.1.0"
 	},
 	"dependencies": {
+		"@ai-sdk/openai": "^3.0.61",
+		"ai": "^6.0.175",
 		"pixi.js": "^8.18.1"
 	}
 }
