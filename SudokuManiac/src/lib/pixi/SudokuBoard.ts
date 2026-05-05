@@ -4,13 +4,15 @@
  */
 
 import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
-import type { Grid } from '$lib/server/games/sudoku/generator.js';
+import type { Grid, GridSize } from '$lib/server/games/sudoku/generator.js';
+import { getBoxDim } from '$lib/server/games/sudoku/generator.js';
 import { type BoardTheme, lightTheme } from './themes.js';
 import { flashCell, pulseScale, playVictoryAnimation } from './animations.js';
 
 export interface BoardOptions {
 	size?: number; // canvas size in px (square)
 	theme?: BoardTheme;
+	gridSize?: GridSize;
 }
 
 export interface CellSelectEvent {
@@ -43,10 +45,18 @@ export class SudokuBoard {
 	private padding = 4;
 	private initialized = false;
 
+	private gridSize: GridSize;
+	private boxRows: number;
+	private boxCols: number;
+
 	private listeners: Map<string, Set<(e: unknown) => void>> = new Map();
 
 	constructor(private options: BoardOptions = {}) {
 		this.theme = options.theme ?? lightTheme;
+		this.gridSize = options.gridSize ?? 9;
+		const dim = getBoxDim(this.gridSize);
+		this.boxRows = dim.rows;
+		this.boxCols = dim.cols;
 		this.app = new Application();
 	}
 
@@ -63,7 +73,7 @@ export class SudokuBoard {
 			autoDensity: true
 		});
 
-		this.cellSize = (size - this.padding * 2) / 9;
+		this.cellSize = (size - this.padding * 2) / this.gridSize;
 		this.app.stage.addChild(this.boardContainer);
 		this.boardContainer.position.set(this.padding, this.padding);
 
@@ -122,7 +132,7 @@ export class SudokuBoard {
 	/** Resize the board canvas */
 	resize(size: number): void {
 		this.app.renderer.resize(size, size);
-		this.cellSize = (size - this.padding * 2) / 9;
+		this.cellSize = (size - this.padding * 2) / this.gridSize;
 		this.buildGrid();
 		this.renderAllCells();
 	}
@@ -157,8 +167,8 @@ export class SudokuBoard {
 
 		// If selected cell is already filled or nothing selected, find first empty
 		if (targetRow < 0 || targetCol < 0 || this.playerGrid[targetRow][targetCol] !== 0) {
-			outer: for (let r = 0; r < 9; r++) {
-				for (let c = 0; c < 9; c++) {
+			outer: for (let r = 0; r < this.gridSize; r++) {
+				for (let c = 0; c < this.gridSize; c++) {
 					if (this.playerGrid[r][c] === 0) {
 						targetRow = r;
 						targetCol = c;
@@ -191,12 +201,12 @@ export class SudokuBoard {
 		this.digitTexts = [];
 		this.candidateContainers = [];
 
-		for (let r = 0; r < 9; r++) {
+		for (let r = 0; r < this.gridSize; r++) {
 			this.cellBgs[r] = [];
 			this.digitTexts[r] = [];
 			this.candidateContainers[r] = [];
 
-			for (let c = 0; c < 9; c++) {
+			for (let c = 0; c < this.gridSize; c++) {
 				// Cell background
 				const bg = new Graphics();
 				bg.eventMode = 'static';
@@ -216,17 +226,24 @@ export class SudokuBoard {
 
 	private drawGridLines(): void {
 		const lines = new Graphics();
-		const totalSize = this.cellSize * 9;
+		const totalSize = this.cellSize * this.gridSize;
 
-		for (let i = 0; i <= 9; i++) {
-			const isBoxBorder = i % 3 === 0;
-			const lineWidth = isBoxBorder ? 2.5 : 1;
-			const color = isBoxBorder ? this.theme.gridLineThick : this.theme.gridLine;
+		for (let i = 0; i <= this.gridSize; i++) {
+			const isHorizBoxBorder = i % this.boxRows === 0;
+			const isVertBoxBorder = i % this.boxCols === 0;
 			const pos = i * this.cellSize;
 
+			// Vertical lines (separate columns)
+			const vWidth = isVertBoxBorder ? 2.5 : 1;
+			const vColor = isVertBoxBorder ? this.theme.gridLineThick : this.theme.gridLine;
 			lines.moveTo(pos, 0).lineTo(pos, totalSize);
+			lines.stroke({ color: vColor, width: vWidth });
+
+			// Horizontal lines (separate rows)
+			const hWidth = isHorizBoxBorder ? 2.5 : 1;
+			const hColor = isHorizBoxBorder ? this.theme.gridLineThick : this.theme.gridLine;
 			lines.moveTo(0, pos).lineTo(totalSize, pos);
-			lines.stroke({ color, width: lineWidth });
+			lines.stroke({ color: hColor, width: hWidth });
 		}
 
 		this.boardContainer.addChild(lines);
@@ -236,8 +253,8 @@ export class SudokuBoard {
 
 	private renderAllCells(): void {
 		if (!this.initialized || !this.puzzle.length) return;
-		for (let r = 0; r < 9; r++) {
-			for (let c = 0; c < 9; c++) {
+		for (let r = 0; r < this.gridSize; r++) {
+			for (let c = 0; c < this.gridSize; c++) {
 				this.renderCell(r, c);
 			}
 		}
@@ -261,8 +278,8 @@ export class SudokuBoard {
 	}
 
 	private renderHighlights(): void {
-		for (let r = 0; r < 9; r++) {
-			for (let c = 0; c < 9; c++) {
+		for (let r = 0; r < this.gridSize; r++) {
+			for (let c = 0; c < this.gridSize; c++) {
 				this.updateCellBackground(r, c);
 			}
 		}
@@ -274,7 +291,8 @@ export class SudokuBoard {
 		if (this.isHighlighted(r, c)) return this.theme.cellHighlighted;
 		if (this.errors.has(key)) return this.theme.cellError;
 		if (this.puzzle.length && this.puzzle[r][c] !== 0) return this.theme.cellGiven;
-		const boxIndex = Math.floor(r / 3) * 3 + Math.floor(c / 3);
+		const boxCols = this.gridSize / this.boxCols;
+		const boxIndex = Math.floor(r / this.boxRows) * boxCols + Math.floor(c / this.boxCols);
 		return boxIndex % 2 === 0 ? this.theme.cellBackground : this.theme.cellBackgroundAlt;
 	}
 
@@ -283,8 +301,8 @@ export class SudokuBoard {
 		return (
 			r === this.selectedRow ||
 			c === this.selectedCol ||
-			(Math.floor(r / 3) === Math.floor(this.selectedRow / 3) &&
-				Math.floor(c / 3) === Math.floor(this.selectedCol / 3))
+			(Math.floor(r / this.boxRows) === Math.floor(this.selectedRow / this.boxRows) &&
+				Math.floor(c / this.boxCols) === Math.floor(this.selectedCol / this.boxCols))
 		);
 	}
 
@@ -343,8 +361,8 @@ export class SudokuBoard {
 		const prevErrors = new Set(this.errors);
 		const newErrors = new Set<string>();
 		if (!this.solution.length) return;
-		for (let r = 0; r < 9; r++) {
-			for (let c = 0; c < 9; c++) {
+		for (let r = 0; r < this.gridSize; r++) {
+			for (let c = 0; c < this.gridSize; c++) {
 				const v = this.playerGrid[r][c];
 				if (v !== 0 && v !== this.solution[r][c]) {
 					newErrors.add(`${r},${c}`);
@@ -374,8 +392,8 @@ export class SudokuBoard {
 	}
 
 	private isBoardComplete(): boolean {
-		for (let r = 0; r < 9; r++) {
-			for (let c = 0; c < 9; c++) {
+		for (let r = 0; r < this.gridSize; r++) {
+			for (let c = 0; c < this.gridSize; c++) {
 				if (this.playerGrid[r][c] === 0) return false;
 			}
 		}

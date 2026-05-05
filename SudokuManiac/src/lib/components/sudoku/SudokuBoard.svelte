@@ -2,15 +2,16 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { SudokuBoard } from '$lib/pixi/SudokuBoard.js';
 	import { darkTheme, lightTheme } from '$lib/pixi/themes.js';
-	import type { Grid } from '$lib/server/games/sudoku/generator.js';
+	import type { Grid, GridSize } from '$lib/server/games/sudoku/generator.js';
 
 	interface Props {
 		puzzle: Grid;
 		solution: Grid;
-		/** Currently selected digit (1-9) to place, or 0 for erase */
+		/** Currently selected digit (1-N) to place, or 0 for erase */
 		activeDigit?: number;
 		theme?: 'light' | 'dark';
 		size?: number;
+		gridSize?: GridSize;
 		onCellSelect?: (row: number, col: number) => void;
 		onSolved?: () => void;
 	}
@@ -21,6 +22,7 @@
 		activeDigit = $bindable(0),
 		theme = 'light',
 		size = 540,
+		gridSize = 9,
 		onCellSelect,
 		onSolved
 	}: Props = $props();
@@ -29,7 +31,7 @@
 	let board: SudokuBoard | null = null;
 
 	onMount(async () => {
-		board = new SudokuBoard({ size, theme: theme === 'dark' ? darkTheme : lightTheme });
+		board = new SudokuBoard({ size, theme: theme === 'dark' ? darkTheme : lightTheme, gridSize });
 		await board.init(canvas);
 		// Load puzzle that may have been set before init completed
 		if (puzzle.length) board.loadPuzzle(puzzle, solution);

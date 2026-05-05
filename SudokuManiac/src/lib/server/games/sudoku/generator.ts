@@ -1,48 +1,63 @@
 /**
  * Sudoku puzzle generator.
+ * Supports 4×4, 6×6, and 9×9 grids.
  * Algorithm: fill a solved board with backtracking, then remove cells
  * ensuring a unique solution remains (for higher difficulties).
  */
 
-export type Grid = number[][]; // 9x9, 0 = empty
-
+export type Grid = number[][];
 export type Difficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert' | 'extreme';
 
-/** Number of cells to remove per difficulty */
-const REMOVE_COUNTS: Record<Difficulty, number> = {
-	beginner: 20,
-	easy: 30,
-	medium: 40,
-	hard: 46,
-	expert: 52,
-	extreme: 58
+/** Supported grid sizes */
+export type GridSize = 4 | 6 | 9;
+
+/** Box dimensions per grid size */
+interface BoxDim {
+	rows: number;
+	cols: number;
+}
+
+const BOX_DIMS: Record<GridSize, BoxDim> = {
+	4: { rows: 2, cols: 2 },
+	6: { rows: 2, cols: 3 },
+	9: { rows: 3, cols: 3 }
 };
 
-/** Create an empty 9x9 grid */
-function emptyGrid(): Grid {
-	return Array.from({ length: 9 }, () => Array(9).fill(0));
-}
+/**
+ * Fraction of cells to remove per difficulty.
+ * Applied to total cell count so it works for any grid size.
+ */
+const REMOVE_FRACTIONS: Record<Difficulty, number> = {
+	beginner: 0.27,
+	easy: 0.37,
+	medium: 0.49,
+	hard: 0.57,
+	expert: 0.64,
+	extreme: 0.72
+};
 
 /** Deep-clone a grid */
 export function cloneGrid(grid: Grid): Grid {
 	return grid.map((row) => [...row]);
 }
 
-/** Check whether placing `num` at (row, col) is valid */
-function isValid(grid: Grid, row: number, col: number, num: number): boolean {
+/** Check whether placing `num` at (row, col) is valid in a grid of given size */
+function isValid(grid: Grid, row: number, col: number, num: number, size: GridSize): boolean {
+	const { rows: bRows, cols: bCols } = BOX_DIMS[size];
+
 	// Row
 	if (grid[row].includes(num)) return false;
 
 	// Column
-	for (let r = 0; r < 9; r++) {
+	for (let r = 0; r < size; r++) {
 		if (grid[r][col] === num) return false;
 	}
 
-	// 3×3 box
-	const boxRow = Math.floor(row / 3) * 3;
-	const boxCol = Math.floor(col / 3) * 3;
-	for (let r = boxRow; r < boxRow + 3; r++) {
-		for (let c = boxCol; c < boxCol + 3; c++) {
+	// Box
+	const boxRow = Math.floor(row / bRows) * bRows;
+	const boxCol = Math.floor(col / bCols) * bCols;
+	for (let r = boxRow; r < boxRow + bRows; r++) {
+		for (let c = boxCol; c < boxCol + bCols; c++) {
 			if (grid[r][c] === num) return false;
 		}
 	}
@@ -60,15 +75,18 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 /** Fill grid with a valid complete solution using backtracking */
-function fillGrid(grid: Grid): boolean {
-	for (let row = 0; row < 9; row++) {
-		for (let col = 0; col < 9; col++) {
+function fillGrid(grid: Grid, size: GridSize): boolean {
+	const digits = shuffle(Array.from({ length: size }, (_, i) => i + 1));
+
+	for (let row = 0; row < size; row++) {
+		for (let col = 0; col < size; col++) {
 			if (grid[row][col] === 0) {
-				const nums = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+				const nums = [...digits];
+				shuffle(nums);
 				for (const num of nums) {
-					if (isValid(grid, row, col, num)) {
+					if (isValid(grid, row, col, num, size)) {
 						grid[row][col] = num;
-						if (fillGrid(grid)) return true;
+						if (fillGrid(grid, size)) return true;
 						grid[row][col] = 0;
 					}
 				}
@@ -83,15 +101,15 @@ function fillGrid(grid: Grid): boolean {
  * Count solutions (stops at 2 to detect uniqueness efficiently).
  * Returns 0, 1, or 2 (meaning "2 or more").
  */
-function countSolutions(grid: Grid, limit = 2): number {
-	for (let row = 0; row < 9; row++) {
-		for (let col = 0; col < 9; col++) {
+function countSolutions(grid: Grid, size: GridSize, limit = 2): number {
+	for (let row = 0; row < size; row++) {
+		for (let col = 0; col < size; col++) {
 			if (grid[row][col] === 0) {
 				let count = 0;
-				for (let num = 1; num <= 9; num++) {
-					if (isValid(grid, row, col, num)) {
+				for (let num = 1; num <= size; num++) {
+					if (isValid(grid, row, col, num, size)) {
 						grid[row][col] = num;
-						count += countSolutions(grid, limit - count);
+						count += countSolutions(grid, size, limit - count);
 						grid[row][col] = 0;
 						if (count >= limit) return count;
 					}
@@ -100,13 +118,14 @@ function countSolutions(grid: Grid, limit = 2): number {
 			}
 		}
 	}
-	return 1; // All cells filled → one solution found
+	return 1;
 }
 
-/** Remove `count` cells while keeping a unique solution */
-function removeCells(grid: Grid, count: number, uniqueness: boolean): void {
+/** Remove cells while keeping a unique solution */
+function removeCells(grid: Grid, count: number, size: GridSize, uniqueness: boolean): void {
+	const total = size * size;
 	const cells = shuffle(
-		Array.from({ length: 81 }, (_, i) => [Math.floor(i / 9), i % 9] as [number, number])
+		Array.from({ length: total }, (_, i) => [Math.floor(i / size), i % size] as [number, number])
 	);
 
 	let removed = 0;
@@ -117,8 +136,8 @@ function removeCells(grid: Grid, count: number, uniqueness: boolean): void {
 
 		if (uniqueness) {
 			const copy = cloneGrid(grid);
-			if (countSolutions(copy) !== 1) {
-				grid[row][col] = backup; // restore — no unique solution
+			if (countSolutions(copy, size) !== 1) {
+				grid[row][col] = backup;
 				continue;
 			}
 		}
@@ -133,21 +152,28 @@ export interface GeneratedPuzzle {
 	/** Complete solution */
 	solution: Grid;
 	difficulty: Difficulty;
+	gridSize: GridSize;
 }
 
 /**
- * Generate a Sudoku puzzle for the given difficulty.
+ * Generate a Sudoku puzzle for the given difficulty and grid size.
  * For beginner/easy the uniqueness check is skipped for speed.
  */
-export function generatePuzzle(difficulty: Difficulty = 'medium'): GeneratedPuzzle {
-	const solution = emptyGrid();
-	fillGrid(solution);
+export function generatePuzzle(difficulty: Difficulty = 'medium', gridSize: GridSize = 9): GeneratedPuzzle {
+	const solution: Grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(0));
+	fillGrid(solution, gridSize);
 
 	const puzzle = cloneGrid(solution);
-	const removeCount = REMOVE_COUNTS[difficulty];
+	const total = gridSize * gridSize;
+	const removeCount = Math.round(total * REMOVE_FRACTIONS[difficulty]);
 	const checkUniqueness = difficulty !== 'beginner' && difficulty !== 'easy';
 
-	removeCells(puzzle, removeCount, checkUniqueness);
+	removeCells(puzzle, removeCount, gridSize, checkUniqueness);
 
-	return { puzzle, solution, difficulty };
+	return { puzzle, solution, difficulty, gridSize };
+}
+
+/** Get box dimensions for a given grid size */
+export function getBoxDim(gridSize: GridSize): BoxDim {
+	return BOX_DIMS[gridSize];
 }

@@ -8,13 +8,15 @@
 	import Numpad from '$lib/components/sudoku/Numpad.svelte';
 	import GameTimer from '$lib/components/sudoku/GameTimer.svelte';
 	import { generatePuzzle } from '$lib/server/games/sudoku/generator.js';
-	import type { Difficulty, Grid } from '$lib/server/games/sudoku/generator.js';
+	import type { Difficulty, Grid, GridSize } from '$lib/server/games/sudoku/generator.js';
 
 	let { data } = $props();
 
 	const DIFFICULTIES: Difficulty[] = ['beginner', 'easy', 'medium', 'hard', 'expert', 'extreme'];
+	const GRID_SIZES: GridSize[] = [4, 6, 9];
 
 	let difficulty = $state<Difficulty>('medium');
+	let gridSize = $state<GridSize>(9);
 	let puzzle = $state<Grid>([]);
 	let solution = $state<Grid>([]);
 	let gameStarted = $state(false);
@@ -65,7 +67,7 @@
 			sessionId = null;
 		}
 
-		const generated = generatePuzzle(diff ?? difficulty);
+		const generated = generatePuzzle(diff ?? difficulty, gridSize);
 		puzzle = generated.puzzle;
 		solution = generated.solution;
 		if (diff) difficulty = diff;
@@ -79,7 +81,7 @@
 		const res = await fetch('/api/sudoku/sessions', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ difficulty: diff ?? difficulty, gridState: generated.puzzle, solution: generated.solution })
+			body: JSON.stringify({ difficulty: diff ?? difficulty, gridState: generated.puzzle, solution: generated.solution, gridSize })
 		});
 		if (res.ok) {
 			const newSession = await res.json();
@@ -207,6 +209,21 @@
 				{/each}
 			</difficulty-grid>
 
+			<settings-row class="flex flex-col items-center gap-2">
+				<span class="text-sm font-semibold text-gray-600">Grid Size</span>
+				<size-selector class="flex gap-2">
+					{#each GRID_SIZES as s (s)}
+						<button
+							class="px-4 py-2 rounded-lg border-2 font-semibold cursor-pointer transition-all
+								{gridSize === s
+								? 'border-blue-600 bg-blue-100 text-blue-700'
+								: 'border-transparent bg-blue-50 hover:bg-blue-100'}"
+							onclick={() => (gridSize = s)}
+						>{s}×{s}</button>
+					{/each}
+				</size-selector>
+			</settings-row>
+
 			<lobby-actions class="flex gap-3 items-center">
 				<button
 					class="px-10 py-3 bg-blue-600 text-white text-lg font-bold rounded-xl border-0 cursor-pointer hover:bg-blue-700 transition-colors"
@@ -256,12 +273,13 @@
 					bind:this={boardRef}
 					{puzzle}
 					{solution}
+					{gridSize}
 					size={Math.min(540, 90 * 9)}
 					onSolved={() => void handleSolved()}
 				/>
 			</board-wrap>
 
-			<Numpad onDigit={handleDigit} />
+			<Numpad onDigit={handleDigit} {gridSize} />
 
 			<game-footer class="flex gap-3 flex-wrap justify-center">
 				{#if hintsAvailable !== null && hintsAvailable > 0 && !gameSolved}
