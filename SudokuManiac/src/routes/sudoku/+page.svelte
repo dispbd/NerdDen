@@ -7,7 +7,7 @@
 	import SudokuBoardComponent from '$lib/components/sudoku/SudokuBoard.svelte';
 	import Numpad from '$lib/components/sudoku/Numpad.svelte';
 	import GameTimer from '$lib/components/sudoku/GameTimer.svelte';
-	import type { Difficulty, Grid, GridSize } from '$lib/server/games/sudoku/generator.js';
+	import type { Difficulty, Grid, GridSize } from '$lib/games/sudoku/shared.js';
 
 	let { data } = $props();
 

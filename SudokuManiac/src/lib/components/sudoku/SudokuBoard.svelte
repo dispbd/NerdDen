@@ -2,7 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { SudokuBoard } from '$lib/pixi/SudokuBoard.js';
 	import { darkTheme, lightTheme } from '$lib/pixi/themes.js';
-	import type { Grid, GridSize } from '$lib/server/games/sudoku/generator.js';
+	import type { Grid, GridSize } from '$lib/games/sudoku/shared.js';
 
 	interface Props {
 		puzzle: Grid;

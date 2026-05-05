@@ -5,23 +5,10 @@
  * ensuring a unique solution remains (for higher difficulties).
  */
 
-export type Grid = number[][];
-export type Difficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert' | 'extreme';
-
-/** Supported grid sizes */
-export type GridSize = 4 | 6 | 9;
-
-/** Box dimensions per grid size */
-interface BoxDim {
-	rows: number;
-	cols: number;
-}
-
-const BOX_DIMS: Record<GridSize, BoxDim> = {
-	4: { rows: 2, cols: 2 },
-	6: { rows: 2, cols: 3 },
-	9: { rows: 3, cols: 3 }
-};
+export type { Grid, Difficulty, GridSize, BoxDim } from '$lib/games/sudoku/shared.js';
+export { getBoxDim } from '$lib/games/sudoku/shared.js';
+import type { Grid, Difficulty, GridSize, BoxDim } from '$lib/games/sudoku/shared.js';
+import { getBoxDim } from '$lib/games/sudoku/shared.js';
 
 /**
  * Fraction of cells to remove per difficulty.
@@ -43,7 +30,7 @@ export function cloneGrid(grid: Grid): Grid {
 
 /** Check whether placing `num` at (row, col) is valid in a grid of given size */
 function isValid(grid: Grid, row: number, col: number, num: number, size: GridSize): boolean {
-	const { rows: bRows, cols: bCols } = BOX_DIMS[size];
+	const { rows: bRows, cols: bCols } = getBoxDim(size);
 
 	// Row
 	if (grid[row].includes(num)) return false;
@@ -173,7 +160,4 @@ export function generatePuzzle(difficulty: Difficulty = 'medium', gridSize: Grid
 	return { puzzle, solution, difficulty, gridSize };
 }
 
-/** Get box dimensions for a given grid size */
-export function getBoxDim(gridSize: GridSize): BoxDim {
-	return BOX_DIMS[gridSize];
-}
+

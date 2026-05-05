@@ -4,8 +4,8 @@
  */
 
 import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
-import type { Grid, GridSize } from '$lib/server/games/sudoku/generator.js';
-import { getBoxDim } from '$lib/server/games/sudoku/generator.js';
+import type { Grid, GridSize } from '$lib/games/sudoku/shared.js';
+import { getBoxDim } from '$lib/games/sudoku/shared.js';
 import { type BoardTheme, lightTheme } from './themes.js';
 import { flashCell, pulseScale, playVictoryAnimation } from './animations.js';
 

@@ -2,7 +2,7 @@
   Numpad component: digits 1-N + Erase button, where N matches the grid size.
 -->
 <script lang="ts">
-	import type { GridSize } from '$lib/server/games/sudoku/generator.js';
+	import type { GridSize } from '$lib/games/sudoku/shared.js';
 
 	interface Props {
 		onDigit: (n: number) => void;
