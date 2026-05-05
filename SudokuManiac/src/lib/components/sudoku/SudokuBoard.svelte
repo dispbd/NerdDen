@@ -70,5 +70,6 @@
 	bind:this={canvas}
 	width={size}
 	height={size}
-	style="display:block; width:{size}px; height:{size}px; touch-action:none;"
+	class="block touch-none"
+	style="width:{size}px; height:{size}px;"
 ></canvas>

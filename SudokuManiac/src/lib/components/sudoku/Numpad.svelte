@@ -9,43 +9,15 @@
 	let { onDigit }: Props = $props();
 </script>
 
-<div class="numpad">
+<num-pad class="grid grid-cols-5 gap-1.5">
 	{#each [1, 2, 3, 4, 5, 6, 7, 8, 9] as n (n)}
-		<button class="num-btn" onclick={() => onDigit(n)}>{n}</button>
+		<button
+			class="aspect-square text-xl font-semibold rounded-lg bg-blue-50 border border-gray-300 cursor-pointer transition-colors hover:bg-blue-200"
+			onclick={() => onDigit(n)}
+		>{n}</button>
 	{/each}
-	<button class="num-btn erase-btn" onclick={() => onDigit(0)}>✕</button>
-</div>
-
-<style>
-	.numpad {
-		display: grid;
-		grid-template-columns: repeat(5, 1fr);
-		gap: 0.4rem;
-	}
-
-	.num-btn {
-		aspect-ratio: 1;
-		font-size: 1.25rem;
-		font-weight: 600;
-		border-radius: 0.5rem;
-		background: var(--color-bg-2, #f0f4ff);
-		border: 1.5px solid var(--color-border, #b0b8cc);
-		cursor: pointer;
-		transition: background 0.1s;
-	}
-
-	.num-btn:hover {
-		background: var(--color-accent-light, #bbd6fb);
-	}
-
-	.erase-btn {
-		grid-column: span 1;
-		color: #dc2626;
-		border-color: #fca5a5;
-		background: #fff5f5;
-	}
-
-	.erase-btn:hover {
-		background: #fee2e2;
-	}
-</style>
+	<button
+		class="aspect-square text-xl font-semibold rounded-lg bg-red-50 border border-red-300 text-red-600 cursor-pointer transition-colors hover:bg-red-100"
+		onclick={() => onDigit(0)}
+	>✕</button>
+</num-pad>

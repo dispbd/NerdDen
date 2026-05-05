@@ -3,7 +3,6 @@
   Difficulty picker, PixiJS board, numpad, timer, controls.
 -->
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import SudokuBoardComponent from '$lib/components/sudoku/SudokuBoard.svelte';
 	import Numpad from '$lib/components/sudoku/Numpad.svelte';
 	import GameTimer from '$lib/components/sudoku/GameTimer.svelte';
@@ -53,244 +52,97 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="page">
-	<h1 class="title">SudokuManiac</h1>
+<sudoku-page class="flex flex-col items-center max-w-2xl mx-auto px-4 py-6 gap-6">
+	<h1 class="text-4xl font-extrabold m-0">SudokuManiac</h1>
 
 	{#if !gameStarted}
-		<!-- Lobby / start screen -->
-		<section class="lobby">
-			<h2>Select Difficulty</h2>
-			<div class="difficulty-grid">
+		<game-lobby class="flex flex-col items-center gap-5 w-full">
+			<h2 class="m-0 text-xl font-semibold">Select Difficulty</h2>
+
+			<difficulty-grid class="grid grid-cols-3 gap-2 w-full max-w-sm">
 				{#each DIFFICULTIES as d (d)}
 					<button
-						class="diff-btn"
-						class:selected={difficulty === d}
+						class="px-2 py-2.5 rounded-lg border-2 font-semibold cursor-pointer transition-all
+							{difficulty === d
+							? 'border-blue-600 bg-blue-100 text-blue-700'
+							: 'border-transparent bg-blue-50 hover:bg-blue-100'}"
 						onclick={() => (difficulty = d)}
 					>
 						{d.charAt(0).toUpperCase() + d.slice(1)}
 					</button>
 				{/each}
-			</div>
-			<div class="lobby-actions">
-				<button class="start-btn" onclick={() => startGame()}>Start Game</button>
-				<button class="random-btn" onclick={startRandom}>🎲 Random</button>
-			</div>
-		</section>
+			</difficulty-grid>
+
+			<lobby-actions class="flex gap-3 items-center">
+				<button
+					class="px-10 py-3 bg-blue-600 text-white text-lg font-bold rounded-xl border-0 cursor-pointer hover:bg-blue-700 transition-colors"
+					onclick={() => startGame()}
+				>
+					Start Game
+				</button>
+				<button
+					class="px-6 py-3 bg-violet-600 text-white text-lg font-bold rounded-xl border-0 cursor-pointer hover:bg-violet-700 transition-colors"
+					onclick={startRandom}
+				>
+					🎲 Random
+				</button>
+			</lobby-actions>
+		</game-lobby>
 	{:else}
-		<!-- Active game -->
-		<section class="game">
-			<div class="game-header">
-				<span class="badge">{difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}</span>
+		<game-screen class="flex flex-col items-center gap-4 w-full">
+			<game-header class="flex items-center justify-between w-full max-w-135">
+				<difficulty-badge class="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-bold text-sm">
+					{difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+				</difficulty-badge>
+
 				<GameTimer bind:this={timerRef} running={timerRunning} />
-				<div class="header-actions">
-					<button class="btn-icon" title="New game" onclick={() => startGame()}>↺ New</button>
-					<button class="btn-icon" title="Random game" onclick={startRandom}>🎲</button>
-				</div>
-			</div>
+
+				<header-actions class="flex gap-2">
+					<button
+						class="px-3 py-1.5 rounded-md border border-gray-300 bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
+						title="New game"
+						onclick={() => startGame()}
+					>↺ New</button>
+					<button
+						class="px-3 py-1.5 rounded-md border border-gray-300 bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
+						title="Random game"
+						onclick={startRandom}
+					>🎲</button>
+				</header-actions>
+			</game-header>
 
 			{#if gameSolved}
-				<div class="solved-banner">🎉 Solved!</div>
+				<solved-banner class="block w-full max-w-135 text-center py-2.5 bg-green-100 text-green-800 rounded-lg font-bold text-lg">
+					🎉 Solved!
+				</solved-banner>
 			{/if}
 
-			<div class="board-wrap">
+			<board-wrap class="block w-full max-w-135 aspect-square overflow-hidden rounded-lg shadow-lg">
 				<SudokuBoardComponent
 					bind:this={boardRef}
 					{puzzle}
 					{solution}
 					size={Math.min(540, 90 * 9)}
-					onSolved={() => { gameSolved = true; timerRunning = false; }}
+					onSolved={() => {
+						gameSolved = true;
+						timerRunning = false;
+					}}
 				/>
-			</div>
+			</board-wrap>
 
 			<Numpad onDigit={handleDigit} />
 
-			<div class="footer-actions">
-				<button class="btn-secondary" onclick={() => { gameStarted = false; timerRunning = false; }}>
+			<game-footer class="flex gap-3">
+				<button
+					class="px-5 py-2 border border-gray-300 rounded-lg bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
+					onclick={() => {
+						gameStarted = false;
+						timerRunning = false;
+					}}
+				>
 					Back to Menu
 				</button>
-			</div>
-		</section>
+			</game-footer>
+		</game-screen>
 	{/if}
-</div>
-
-<style>
-	.page {
-		max-width: 600px;
-		margin: 0 auto;
-		padding: 1.5rem 1rem;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 1.5rem;
-	}
-
-	.title {
-		font-size: 2rem;
-		font-weight: 800;
-		margin: 0;
-	}
-
-	/* Lobby */
-	.lobby {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 1.25rem;
-		width: 100%;
-	}
-
-	.lobby h2 {
-		margin: 0;
-		font-size: 1.25rem;
-	}
-
-	.difficulty-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 0.5rem;
-		width: 100%;
-		max-width: 360px;
-	}
-
-	.diff-btn {
-		padding: 0.6rem 0.5rem;
-		border-radius: 0.5rem;
-		border: 2px solid transparent;
-		background: #f0f4ff;
-		font-weight: 600;
-		cursor: pointer;
-		transition: all 0.15s;
-	}
-
-	.diff-btn.selected {
-		border-color: #2563eb;
-		background: #dbeafe;
-		color: #1d4ed8;
-	}
-
-	.diff-btn:hover:not(.selected) {
-		background: #e0e7ff;
-	}
-
-	.lobby-actions {
-		display: flex;
-		gap: 0.75rem;
-		align-items: center;
-	}
-
-	.start-btn {
-		padding: 0.75rem 2.5rem;
-		background: #2563eb;
-		color: white;
-		font-size: 1.1rem;
-		font-weight: 700;
-		border: none;
-		border-radius: 0.6rem;
-		cursor: pointer;
-		transition: background 0.15s;
-	}
-
-	.start-btn:hover {
-		background: #1d4ed8;
-	}
-
-	.random-btn {
-		padding: 0.75rem 1.5rem;
-		background: #7c3aed;
-		color: white;
-		font-size: 1.1rem;
-		font-weight: 700;
-		border: none;
-		border-radius: 0.6rem;
-		cursor: pointer;
-		transition: background 0.15s;
-	}
-
-	.random-btn:hover {
-		background: #6d28d9;
-	}
-
-	/* Game */
-	.game {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 1rem;
-		width: 100%;
-	}
-
-	.game-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		width: 100%;
-		max-width: 540px;
-	}
-
-	.badge {
-		display: inline-block;
-		padding: 0.2rem 0.75rem;
-		border-radius: 999px;
-		background: #dbeafe;
-		color: #1d4ed8;
-		font-weight: 700;
-		font-size: 0.85rem;
-	}
-
-	.header-actions {
-		display: flex;
-		gap: 0.5rem;
-	}
-
-	.btn-icon {
-		padding: 0.3rem 0.75rem;
-		border-radius: 0.4rem;
-		border: 1.5px solid #b0b8cc;
-		background: white;
-		cursor: pointer;
-		font-weight: 600;
-	}
-
-	.btn-icon:hover {
-		background: #f0f4ff;
-	}
-
-	.solved-banner {
-		width: 100%;
-		max-width: 540px;
-		text-align: center;
-		padding: 0.6rem;
-		background: #d1fae5;
-		color: #065f46;
-		border-radius: 0.5rem;
-		font-weight: 700;
-		font-size: 1.1rem;
-	}
-
-	.board-wrap {
-		width: 100%;
-		max-width: 540px;
-		aspect-ratio: 1;
-		overflow: hidden;
-		border-radius: 0.5rem;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-	}
-
-	.footer-actions {
-		display: flex;
-		gap: 0.75rem;
-	}
-
-	.btn-secondary {
-		padding: 0.5rem 1.25rem;
-		border: 1.5px solid #b0b8cc;
-		border-radius: 0.5rem;
-		background: white;
-		font-weight: 600;
-		cursor: pointer;
-	}
-
-	.btn-secondary:hover {
-		background: #f0f4ff;
-	}
-</style>
+</sudoku-page>
