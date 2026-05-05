@@ -7,7 +7,6 @@
 	import SudokuBoardComponent from '$lib/components/sudoku/SudokuBoard.svelte';
 	import Numpad from '$lib/components/sudoku/Numpad.svelte';
 	import GameTimer from '$lib/components/sudoku/GameTimer.svelte';
-	import { generatePuzzle } from '$lib/server/games/sudoku/generator.js';
 	import type { Difficulty, Grid, GridSize } from '$lib/server/games/sudoku/generator.js';
 
 	let { data } = $props();
@@ -22,8 +21,8 @@
 	let gameStarted = $state(false);
 	let gameSolved = $state(false);
 	let timerRunning = $state(false);
-	let boardRef: ReturnType<typeof SudokuBoardComponent> | null = null;
-	let timerRef: ReturnType<typeof GameTimer> | null = null;
+	let boardRef = $state<ReturnType<typeof SudokuBoardComponent> | null>(null);
+	let timerRef = $state<ReturnType<typeof GameTimer> | null>(null);
 
 	/** ID of the current game_sessions row (null for guests) */
 	let sessionId = $state<string | null>(null);
@@ -67,7 +66,10 @@
 			sessionId = null;
 		}
 
-		const generated = generatePuzzle(diff ?? difficulty, gridSize);
+		const genRes = await fetch(
+			`/api/sudoku/generate?difficulty=${diff ?? difficulty}&gridSize=${gridSize}`
+		);
+		const generated = await genRes.json() as { puzzle: Grid; solution: Grid };
 		puzzle = generated.puzzle;
 		solution = generated.solution;
 		if (diff) difficulty = diff;
@@ -112,10 +114,7 @@
 		});
 	}
 
-	/** Hints available for current user (null = guest) */
-	let hintsAvailable = $state<number | null>(
-		data.activeSession ? null : null
-	);
+	let hintsAvailable = $state<number | null>(null);
 
 	/** Toast notifications for achievements / level-up */
 	interface Toast {
