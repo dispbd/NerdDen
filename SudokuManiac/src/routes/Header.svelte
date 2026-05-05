@@ -6,6 +6,7 @@
 	const NAV_LINKS = [
 		{ href: resolve('/'), label: 'Home' },
 		{ href: resolve('/sudoku'), label: 'Sudoku' },
+		{ href: resolve('/sudoku/story'), label: 'Story' },
 		{ href: resolve('/leaderboard'), label: 'Leaderboard' }
 	] as const;
 
