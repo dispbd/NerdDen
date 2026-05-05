@@ -12,6 +12,7 @@
 		theme?: 'light' | 'dark';
 		size?: number;
 		onCellSelect?: (row: number, col: number) => void;
+		onSolved?: () => void;
 	}
 
 	let {
@@ -20,7 +21,8 @@
 		activeDigit = $bindable(0),
 		theme = 'light',
 		size = 540,
-		onCellSelect
+		onCellSelect,
+		onSolved
 	}: Props = $props();
 
 	let canvas: HTMLCanvasElement;
@@ -36,6 +38,10 @@
 			if (activeDigit > 0) {
 				board?.setDigit(activeDigit);
 			}
+		});
+
+		board.on('solved', () => {
+			onSolved?.();
 		});
 	});
 

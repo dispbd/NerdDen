@@ -88,6 +88,7 @@
 					{puzzle}
 					{solution}
 					size={Math.min(540, 90 * 9)}
+					onSolved={() => { gameSolved = true; timerRunning = false; }}
 				/>
 			</div>
 

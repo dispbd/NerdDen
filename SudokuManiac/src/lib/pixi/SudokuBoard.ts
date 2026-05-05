@@ -6,6 +6,7 @@
 import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
 import type { Grid } from '$lib/server/games/sudoku/generator.js';
 import { type BoardTheme, lightTheme } from './themes.js';
+import { flashCell, pulseScale, playVictoryAnimation } from './animations.js';
 
 export interface BoardOptions {
 	size?: number; // canvas size in px (square)
@@ -19,6 +20,7 @@ export interface CellSelectEvent {
 
 export type BoardEventMap = {
 	cellSelect: CellSelectEvent;
+	solved: Record<string, never>;
 };
 
 export class SudokuBoard {
@@ -286,10 +288,14 @@ export class SudokuBoard {
 
 		this.boardContainer.addChild(text);
 		this.digitTexts[r][c] = text;
+
+		if (!isGiven) {
+			pulseScale(this.app, text);
+		}
 	}
 
 	private updateErrors(): void {
-		// Simple per-cell check against solution
+		const prevErrors = new Set(this.errors);
 		const newErrors = new Set<string>();
 		if (!this.solution.length) return;
 		for (let r = 0; r < 9; r++) {
@@ -301,6 +307,40 @@ export class SudokuBoard {
 			}
 		}
 		this.errors = newErrors;
+
+		// Flash newly errored cells
+		for (const key of newErrors) {
+			if (!prevErrors.has(key)) {
+				const [r, c] = key.split(',').map(Number);
+				flashCell(
+					this.app,
+					this.boardContainer.x + c * this.cellSize,
+					this.boardContainer.y + r * this.cellSize,
+					this.cellSize,
+					0xff4444
+				);
+			}
+		}
+
+		// Check for victory
+		if (newErrors.size === 0 && this.isBoardComplete()) {
+			this.onSolved();
+		}
+	}
+
+	private isBoardComplete(): boolean {
+		for (let r = 0; r < 9; r++) {
+			for (let c = 0; c < 9; c++) {
+				if (this.playerGrid[r][c] === 0) return false;
+			}
+		}
+		return true;
+	}
+
+	private onSolved(): void {
+		playVictoryAnimation(this.app, this.boardContainer, this.cellSize, () => {
+			this.emit('solved', {});
+		});
 	}
 
 	// ─── Events ───────────────────────────────────────────────────
