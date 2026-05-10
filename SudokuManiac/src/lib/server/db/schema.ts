@@ -188,6 +188,63 @@ export const userStoryProgress = pgTable(
 	]
 );
 
+// ─── Competitive Mode ─────────────────────────────────────────────────────────
+
+export const competitiveRooms = pgTable('competitive_rooms', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	/** Short human-readable code used to join the room (e.g. "ABC123") */
+	code: text('code').notNull().unique(),
+	/** User who created the room */
+	hostId: text('host_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	status: text('status', { enum: ['waiting', 'in_progress', 'finished'] })
+		.notNull()
+		.default('waiting'),
+	difficulty: text('difficulty', {
+		enum: ['beginner', 'easy', 'medium', 'hard', 'expert', 'extreme']
+	}).notNull(),
+	gridSize: integer('grid_size').notNull().default(9),
+	/** Puzzle given to all participants — hidden until room starts */
+	puzzle: jsonb('puzzle'),
+	/** Full solution — never sent to clients */
+	solution: jsonb('solution'),
+	/** Max participants (default 2 for 1v1) */
+	maxPlayers: integer('max_players').notNull().default(2),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	startedAt: timestamp('started_at'),
+	finishedAt: timestamp('finished_at')
+});
+
+export const roomParticipants = pgTable(
+	'room_participants',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		roomId: uuid('room_id')
+			.notNull()
+			.references(() => competitiveRooms.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		/** Snapshot of player grid progress — updated as player types */
+		gridState: jsonb('grid_state'),
+		/** Seconds elapsed when finished; null = still playing */
+		timeSpent: integer('time_spent'),
+		hintsUsed: integer('hints_used').notNull().default(0),
+		/** Position: 1 = first to finish, null = not yet finished */
+		finishPosition: integer('finish_position'),
+		/** ELO delta earned in this match (+/-) */
+		eloDelta: integer('elo_delta'),
+		joinedAt: timestamp('joined_at').defaultNow().notNull(),
+		finishedAt: timestamp('finished_at')
+	},
+	(table) => [
+		unique('room_participants_unique').on(table.roomId, table.userId),
+		index('room_participants_roomId_idx').on(table.roomId),
+		index('room_participants_userId_idx').on(table.userId)
+	]
+);
+
 // ─── Relations ────────────────────────────────────────────────────────────────
 
 export const userStatsRelations = relations(userStats, ({ one }) => ({
@@ -231,4 +288,17 @@ export const storyPuzzlesRelations = relations(storyPuzzles, ({ one, many }) => 
 export const userStoryProgressRelations = relations(userStoryProgress, ({ one }) => ({
 	user: one(user, { fields: [userStoryProgress.userId], references: [user.id] }),
 	puzzle: one(storyPuzzles, { fields: [userStoryProgress.puzzleId], references: [storyPuzzles.id] })
+}));
+
+export const competitiveRoomsRelations = relations(competitiveRooms, ({ one, many }) => ({
+	host: one(user, { fields: [competitiveRooms.hostId], references: [user.id] }),
+	participants: many(roomParticipants)
+}));
+
+export const roomParticipantsRelations = relations(roomParticipants, ({ one }) => ({
+	room: one(competitiveRooms, {
+		fields: [roomParticipants.roomId],
+		references: [competitiveRooms.id]
+	}),
+	user: one(user, { fields: [roomParticipants.userId], references: [user.id] })
 }));
