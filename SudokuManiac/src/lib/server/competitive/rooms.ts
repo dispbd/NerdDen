@@ -258,7 +258,7 @@ export async function finishRoom(roomId: string) {
 	});
 
 	// Apply ELO for 1v1 (winner = 1st, loser = 2nd or DNF)
-	let eloMap: Record<string, { delta: number; newRating: number }> = {};
+	const eloMap: Record<string, { delta: number; newRating: number }> = {};
 	if (sorted.length === 2) {
 		const winnerId = sorted[0].participant.userId;
 		const loserId = sorted[1].participant.userId;

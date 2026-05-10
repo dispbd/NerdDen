@@ -74,6 +74,7 @@
 	function sendProgress() {
 		if (!room.roomId || !boardRef) return;
 		const grid = boardRef.getCurrentGrid();
+		if (!grid) return;
 		const filled = grid.flat().filter((v) => v !== 0).length;
 		conn.sendProgress(room.roomId, grid, filled);
 	}
@@ -151,6 +152,7 @@
 	function handleSolved() {
 		if (!room.roomId || !boardRef) return;
 		const grid = boardRef.getCurrentGrid();
+		if (!grid) return;
 		const elapsed = timerRef?.getElapsed() ?? 0;
 		conn.sendSolveAttempt(room.roomId, grid, elapsed, hintsUsed);
 	}
@@ -191,7 +193,7 @@
 		<fieldset class="flex flex-col gap-2">
 			<legend class="label-text font-medium">Difficulty</legend>
 			<div class="flex flex-wrap gap-2">
-				{#each DIFFICULTIES as d}
+				{#each DIFFICULTIES as d (d)}
 				<button
 					class="btn btn-sm {selectedDifficulty === d ? 'btn-primary' : 'btn-outline'}"
 					onclick={() => (selectedDifficulty = d)}>{d}</button>
@@ -202,7 +204,7 @@
 		<fieldset class="flex flex-col gap-2">
 			<legend class="label-text font-medium">Grid size</legend>
 			<div class="flex gap-2">
-				{#each GRID_SIZES as s}
+				{#each GRID_SIZES as s (s)}
 				<button
 					class="btn btn-sm {selectedGridSize === s ? 'btn-primary' : 'btn-outline'}"
 					onclick={() => (selectedGridSize = s)}>{s}×{s}</button>
@@ -231,7 +233,7 @@
 	{#if openRooms.length > 0}
 	<section class="card bg-base-100 shadow-md w-full max-w-md p-6 flex flex-col gap-3">
 		<h2 class="text-xl font-semibold">Open Rooms</h2>
-		{#each openRooms as r}
+		{#each openRooms as r (r.id)}
 		<div class="flex items-center justify-between border-b border-base-300 pb-2 last:border-0 last:pb-0">
 			<span class="font-mono text-sm">{r.code}</span>
 			<span class="text-sm text-base-content/60">{r.difficulty} · {r.gridSize}×{r.gridSize}</span>
@@ -259,7 +261,7 @@
 		</div>
 
 		<ul class="flex flex-col gap-2">
-			{#each room.players as p}
+			{#each room.players as p (p.userId)}
 			<li class="flex items-center gap-3">
 				<span class="flex-1 font-medium">{p.eloRating} ELO</span>
 				{#if room.hostId === p.userId}<span class="badge badge-primary badge-sm">Host</span>{/if}
@@ -286,7 +288,7 @@
 {:else if view === 'game'}
 <main class="min-h-screen bg-base-200 flex flex-col items-center gap-4 py-6 px-2">
 	<!-- Opponent progress bar -->
-	{#each room.players.filter(p => p.userId !== data.user.id) as opponent}
+	{#each room.players.filter(p => p.userId !== data.user.id) as opponent (opponent.userId)}
 	<section class="w-full max-w-lg flex items-center gap-3">
 		<span class="text-sm font-medium w-24 truncate">{opponent.eloRating} ELO</span>
 		<progress class="progress progress-secondary flex-1" value={opponent.progress} max="100"></progress>
@@ -335,7 +337,7 @@
 				<tr><th>#</th><th>Player</th><th>Time</th><th>ELO</th></tr>
 			</thead>
 			<tbody>
-				{#each room.finalStandings as s, i}
+				{#each room.finalStandings as s (s.userId)}
 				<tr class={s.userId === data.user.id ? 'font-bold' : ''}>
 					<td>{s.finishPosition ?? '—'}</td>
 					<td>{s.name}</td>

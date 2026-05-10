@@ -23,9 +23,7 @@ export interface RoomState {
 	maxPlayers: number;
 	players: PlayerInfo[];
 	/** null while game running, set when game_finished received */
-	finalStandings: ServerMessage extends { type: 'game_finished' }
-		? Extract<ServerMessage, { type: 'game_finished' }>['standings'] | null
-		: null;
+	finalStandings: Extract<ServerMessage, { type: 'game_finished' }>['standings'] | null;
 	error: string | null;
 }
 
@@ -39,7 +37,7 @@ export type RoomEventHandlers = {
 export function createRoomConnection(handlers: RoomEventHandlers = {}) {
 	let ws: WebSocket | null = null;
 
-	let state = $state<RoomState>({
+	const state = $state<RoomState>({
 		connected: false,
 		roomId: null,
 		hostId: null,
