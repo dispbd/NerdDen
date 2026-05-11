@@ -5,7 +5,10 @@
 <script lang="ts">
 	let { data } = $props();
 
-	const { profile, stats, history, isOwn } = data;
+	const profile = $derived(data.profile);
+	const stats = $derived(data.stats);
+	const history = $derived(data.history);
+	const isOwn = $derived(data.isOwn);
 
 	function formatTime(seconds: number): string {
 		const h = Math.floor(seconds / 3600);

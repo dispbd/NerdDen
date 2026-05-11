@@ -26,7 +26,7 @@
 	let currentTeamId = $state<string | null>(null);
 	let wordsRemaining = $state(0);
 	let turnTimeLeft = $state(0);
-	let turnDuration = $state(data.room.turnDuration);
+	let turnDuration = $derived(data.room.turnDuration);
 	let timerHandle: ReturnType<typeof setInterval> | null = null;
 	let lastTurnResults = $state<{ teamId: string; wordsGuessed: number; scores: { teamId: string; score: number }[] } | null>(null);
 	let standings = $state<{ teamId: string; name: string; score: number }[]>([]);
