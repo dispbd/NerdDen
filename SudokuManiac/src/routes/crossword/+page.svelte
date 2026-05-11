@@ -77,7 +77,7 @@
 						bind:value={language}
 						class="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
 					>
-						{#each LANGUAGES as lang}
+						{#each LANGUAGES as lang (lang.value)}
 							<option value={lang.value}>{lang.label}</option>
 						{/each}
 					</select>
@@ -89,7 +89,7 @@
 						bind:value={difficulty}
 						class="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
 					>
-						{#each DIFFICULTIES as d}
+						{#each DIFFICULTIES as d (d)}
 							<option value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
 						{/each}
 					</select>
@@ -115,7 +115,7 @@
 		<section>
 			<h2 class="text-xl font-semibold mb-4">Recent puzzles</h2>
 			<crossword-grid class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-				{#each data.recentCrosswords as cw}
+				{#each data.recentCrosswords as cw (cw.id)}
 					<a
 						href="/crossword/{cw.id}"
 						class="block bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow"

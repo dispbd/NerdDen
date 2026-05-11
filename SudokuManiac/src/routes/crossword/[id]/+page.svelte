@@ -40,16 +40,17 @@
 
 	// ─── Lifecycle ─────────────────────────────────────────────────────────────
 
-	onMount(async () => {
+	onMount(() => {
 		// Start session
-		const res = await fetch(`/api/crossword/${data.id}/sessions`, { method: 'POST' });
-		if (res.ok) {
-			const s = await res.json();
-			sessionId = s.id;
-			if (s.playerGrid && Object.keys(s.playerGrid as object).length > 0) {
-				playerGrid = s.playerGrid as Record<string, string>;
+		fetch(`/api/crossword/${data.id}/sessions`, { method: 'POST' }).then(async (res) => {
+			if (res.ok) {
+				const s = await res.json();
+				sessionId = s.id;
+				if (s.playerGrid && Object.keys(s.playerGrid as object).length > 0) {
+					playerGrid = s.playerGrid as Record<string, string>;
+				}
 			}
-		}
+		});
 
 		// Start timer
 		timerHandle = setInterval(() => {

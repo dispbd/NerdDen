@@ -31,6 +31,7 @@
 	let canvas: HTMLCanvasElement;
 	let board: CrosswordBoard | null = null;
 	let container: HTMLElement;
+	let ro: ResizeObserver | null = null;
 
 	onMount(async () => {
 		board = new CrosswordBoard();
@@ -43,16 +44,15 @@
 			board.setSelectedCell(selectedRow, selectedCol, selectedDirection);
 		}
 
-		const ro = new ResizeObserver((entries) => {
+		ro = new ResizeObserver((entries) => {
 			const { width: w, height: h } = entries[0].contentRect;
 			board?.resize(w, h);
 		});
 		ro.observe(container);
-
-		return () => ro.disconnect();
 	});
 
 	onDestroy(() => {
+		ro?.disconnect();
 		board?.destroy();
 	});
 
