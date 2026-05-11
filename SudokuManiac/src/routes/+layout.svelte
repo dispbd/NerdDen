@@ -9,58 +9,21 @@
 	let { children } = $props();
 </script>
 
-<div class="app">
+<nerd-den-app class="flex min-h-screen flex-col">
 	<Header />
-	<main>{@render children()}</main>
+	<main class="m-auto my-0 box-border flex w-full max-w-5xl flex-1 flex-col p-4">
+		{@render children()}
+	</main>
 
-	<footer>
-		<p>
-			visit
-			<a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a>
-			to learn about SvelteKit
+	<footer class="flex flex-col items-center justify-center p-3 sm:px-0">
+		<p class="text-sm text-gray-500">
+			Made with ❤️ by <a class="font-bold" href="https://svelte.dev">Svelte</a>
 		</p>
 	</footer>
-</div>
+</nerd-den-app>
 
 <div style="display:none">
 	{#each locales as locale (locale)}
 		<a href={resolve(localizeHref(page.url.pathname, { locale }) as Pathname)}>{locale}</a>
 	{/each}
 </div>
-
-<style>
-	.app {
-		display: flex;
-		flex-direction: column;
-		min-height: 100vh;
-	}
-
-	main {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		padding: 1rem;
-		width: 100%;
-		max-width: 64rem;
-		margin: 0 auto;
-		box-sizing: border-box;
-	}
-
-	footer {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		padding: 12px;
-	}
-
-	footer a {
-		font-weight: bold;
-	}
-
-	@media (min-width: 480px) {
-		footer {
-			padding: 12px 0;
-		}
-	}
-</style>
