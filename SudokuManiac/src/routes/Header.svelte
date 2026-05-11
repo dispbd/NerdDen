@@ -47,7 +47,7 @@
 
 <header class="relative flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white/90 backdrop-blur-sm z-30">
 	<a href={resolve('/')} class="text-xl font-extrabold text-blue-700 no-underline hover:text-blue-800 transition-colors">
-		NerdDen
+		NerdDen <img src="/sudoku-maniac.webp" alt="SudokuManiac" class="inline-block size-7 -mt-1">
 	</a>
 
 	<!-- Desktop nav -->

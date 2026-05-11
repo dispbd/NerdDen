@@ -330,7 +330,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <sudoku-page class="flex flex-col items-center w-full max-w-lg mx-auto px-3 py-4 gap-4 sm:px-4 sm:py-6 sm:gap-6">
-	<h1 class="text-4xl font-extrabold m-0">SudokuManiac</h1>
+	<h1 class="text-4xl font-extrabold m-0">SudokuManiac <img src="/sudoku-maniac.webp" alt="SudokuManiac" class="inline-block size-7 -mt-1"></h1>
 
 	{#if !gameStarted}
 		<game-lobby class="flex flex-col items-center gap-6 w-full">
