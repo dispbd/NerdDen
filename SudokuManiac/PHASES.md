@@ -15,7 +15,7 @@ These phases concentrate on polishing the Sudoku experience before returning to 
 ---
 
 ## Phase 8-B — Sudoku Sub-Navigation (Story & Competitive)
-**Status: 🔜 Next**
+**Status: ✅ Done**
 
 - Remove **Story** and **Competitive** from the global Header nav.
 - Add **Story** and **Competitive** as mode cards / links inside the Sudoku page (`/sudoku`) alongside existing difficulty-based play.

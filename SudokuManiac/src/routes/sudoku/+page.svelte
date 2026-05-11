@@ -191,8 +191,32 @@
 	<h1 class="text-4xl font-extrabold m-0">SudokuManiac</h1>
 
 	{#if !gameStarted}
-		<game-lobby class="flex flex-col items-center gap-5 w-full">
-			<h2 class="m-0 text-xl font-semibold">Select Difficulty</h2>
+		<game-lobby class="flex flex-col items-center gap-6 w-full">
+
+			<!-- Other game modes -->
+			<other-modes class="grid grid-cols-2 gap-3 w-full max-w-sm">
+				<a
+					href="/sudoku/story"
+					class="flex flex-col gap-1.5 p-4 rounded-xl border-2 border-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition-colors no-underline"
+				>
+					<span class="text-2xl">📖</span>
+					<span class="font-bold text-indigo-800">Story Mode</span>
+					<span class="text-xs text-indigo-500">Progress through puzzle chains</span>
+				</a>
+				<a
+					href="/sudoku/competitive"
+					class="flex flex-col gap-1.5 p-4 rounded-xl border-2 border-rose-200 bg-rose-50 hover:bg-rose-100 transition-colors no-underline"
+				>
+					<span class="text-2xl">⚡</span>
+					<span class="font-bold text-rose-800">Competitive</span>
+					<span class="text-xs text-rose-500">Race against other players</span>
+				</a>
+			</other-modes>
+
+			<divider class="w-full max-w-sm border-t border-gray-200"></divider>
+
+			<!-- Quick Play -->
+			<h2 class="m-0 text-base font-semibold text-gray-500 uppercase tracking-wide">Quick Play</h2>
 
 			<difficulty-grid class="grid grid-cols-3 gap-2 w-full max-w-sm">
 				{#each DIFFICULTIES as d (d)}
