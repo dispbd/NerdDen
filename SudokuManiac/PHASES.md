@@ -55,7 +55,7 @@ These phases concentrate on polishing the Sudoku experience before returning to 
 ---
 
 ## Phase 8-F — Mobile Optimisation
-**Status: 🔜 Next**
+**Status: ✅ Done**
 
 - Fully responsive layout: Header collapses to a hamburger menu on small screens.
 - Sudoku board scales to fit the viewport without overflow (currently fixed-size canvas).
