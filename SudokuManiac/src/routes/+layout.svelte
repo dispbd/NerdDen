@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { replaceState } from '$app/navigation';
 	import { locales, localizeHref, getLocale, setLocale } from '$lib/paraglide/runtime';
 	import { createAuthClient } from 'better-auth/svelte';
 	import Header from './Header.svelte';
@@ -30,6 +31,20 @@
 			if (res.ok) localStorage.removeItem('sudoku_guest_stats');
 			else localStorage.removeItem(MERGE_KEY); // retry next visit
 		});
+	});
+
+	// ?lang= URL parameter — apply locale and remove param from URL.
+	$effect(() => {
+		const langParam = page.url.searchParams.get('lang');
+		if (!langParam) return;
+		if ((locales as readonly string[]).includes(langParam)) {
+			if (langParam !== getLocale()) {
+				setLocale(langParam as (typeof locales)[number]);
+			}
+			const url = new URL(page.url);
+			url.searchParams.delete('lang');
+			replaceState(url, {});
+		}
 	});
 
 	// First-visit locale auto-detection from browser language preference.
