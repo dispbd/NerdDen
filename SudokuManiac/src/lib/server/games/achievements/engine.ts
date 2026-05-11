@@ -47,10 +47,11 @@ export async function awardAchievements(params: {
 
 	if (toAward.length === 0) return { newAchievements: [], xpGained: 0 };
 
-	// Persist newly earned achievements
-	await db.insert(userAchievements).values(
-		toAward.map((a) => ({ userId, achievementId: a.id }))
-	);
+	// Persist newly earned achievements — ignore duplicates from concurrent requests
+	await db
+		.insert(userAchievements)
+		.values(toAward.map((a) => ({ userId, achievementId: a.id })))
+		.onConflictDoNothing();
 
 	// Grant XP bonus
 	const xpGained = toAward.reduce((sum, a) => sum + a.xpReward, 0);
