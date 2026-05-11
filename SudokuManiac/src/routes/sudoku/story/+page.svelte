@@ -24,8 +24,8 @@
 	let activePuzzle = $state<ActivePuzzle | null>(null);
 	let gameSolved = $state(false);
 	let timerRunning = $state(false);
-	let boardRef: ReturnType<typeof SudokuBoardComponent> | null = null;
-	let timerRef: ReturnType<typeof GameTimer> | null = null;
+	let boardRef: ReturnType<typeof SudokuBoardComponent> | null = $state(null);
+	let timerRef: ReturnType<typeof GameTimer> | null = $state(null);
 
 	interface Toast { id: number; icon: string; text: string }
 	let toasts = $state<Toast[]>([]);
