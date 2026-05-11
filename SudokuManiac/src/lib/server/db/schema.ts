@@ -302,3 +302,77 @@ export const roomParticipantsRelations = relations(roomParticipants, ({ one }) =
 	}),
 	user: one(user, { fields: [roomParticipants.userId], references: [user.id] })
 }));
+
+// ─── Crosswords ───────────────────────────────────────────────────────────────
+
+export const crosswords = pgTable('crosswords', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	/** Human-readable title, e.g. "Space Exploration" */
+	title: text('title').notNull(),
+	/** Topic used for AI generation, e.g. "history", "science", "movies" */
+	topic: text('topic').notNull(),
+	/** Language code: "en" | "ru" | "de" | "es" */
+	language: text('language').notNull().default('en'),
+	/** Difficulty level */
+	difficulty: text('difficulty', {
+		enum: ['beginner', 'easy', 'medium', 'hard', 'expert', 'extreme']
+	})
+		.notNull()
+		.default('medium'),
+	/** Width of the grid in cells */
+	width: integer('width').notNull().default(15),
+	/** Height of the grid in cells */
+	height: integer('height').notNull().default(15),
+	/**
+	 * Full grid layout. Each cell is one of:
+	 *  - '#'   = black (blocked) cell
+	 *  - letter (A-Z) = the answer letter
+	 */
+	grid: jsonb('grid').notNull(),
+	/**
+	 * Clue list. Each entry:
+	 * { number, direction: 'across'|'down', clue, answer, row, col, length }
+	 */
+	clues: jsonb('clues').notNull(),
+	/** True when grid+clues were produced by AI */
+	aiGenerated: boolean('ai_generated').notNull().default(false),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const crosswordSessions = pgTable(
+	'crossword_sessions',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+		crosswordId: uuid('crossword_id')
+			.notNull()
+			.references(() => crosswords.id, { onDelete: 'cascade' }),
+		status: text('status', { enum: ['in_progress', 'completed', 'abandoned'] })
+			.notNull()
+			.default('in_progress'),
+		/** Map of "row,col" → letter entered by the player */
+		playerGrid: jsonb('player_grid').notNull().default({}),
+		/** Seconds elapsed */
+		timeSpent: integer('time_spent').notNull().default(0),
+		/** Number of reveal-cell hints used */
+		hintsUsed: integer('hints_used').notNull().default(0),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		completedAt: timestamp('completed_at')
+	},
+	(table) => [
+		index('crossword_sessions_userId_idx').on(table.userId),
+		index('crossword_sessions_crosswordId_idx').on(table.crosswordId)
+	]
+);
+
+export const crosswordsRelations = relations(crosswords, ({ many }) => ({
+	sessions: many(crosswordSessions)
+}));
+
+export const crosswordSessionsRelations = relations(crosswordSessions, ({ one }) => ({
+	user: one(user, { fields: [crosswordSessions.userId], references: [user.id] }),
+	crossword: one(crosswords, {
+		fields: [crosswordSessions.crosswordId],
+		references: [crosswords.id]
+	})
+}));
