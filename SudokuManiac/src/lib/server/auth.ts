@@ -5,8 +5,12 @@ import { env } from '$env/dynamic/private';
 import { getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
 
+const baseURL =
+	env.ORIGIN ||
+	(process.env['VERCEL_URL'] ? `https://${process.env['VERCEL_URL']}` : undefined);
+
 export const auth = betterAuth({
-	baseURL: env.ORIGIN,
+	baseURL,
 	secret: env.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, { provider: 'pg' }),
 	emailAndPassword: { enabled: true },
