@@ -26,6 +26,7 @@ export async function createGameSession(params: {
 	difficulty: Difficulty;
 	gridState: Grid;
 	solution: Grid;
+	gridSize?: number;
 }) {
 	const [session] = await db
 		.insert(gameSessions)
@@ -34,7 +35,8 @@ export async function createGameSession(params: {
 			gameType: 'sudoku',
 			difficulty: params.difficulty,
 			gridState: params.gridState,
-			solution: params.solution
+			solution: params.solution,
+			gridSize: params.gridSize ?? 9
 		})
 		.returning();
 	return session;
@@ -127,6 +129,18 @@ export async function getActiveSession(userId: string) {
 			eq(gameSessions.status, 'in_progress')
 		),
 		orderBy: desc(gameSessions.createdAt)
+	});
+}
+
+export async function getActiveSessions(userId: string, limit = 3) {
+	return db.query.gameSessions.findMany({
+		where: and(
+			eq(gameSessions.userId, userId),
+			eq(gameSessions.gameType, 'sudoku'),
+			eq(gameSessions.status, 'in_progress')
+		),
+		orderBy: desc(gameSessions.createdAt),
+		limit
 	});
 }
 

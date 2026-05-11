@@ -27,7 +27,7 @@
 
 	<nav>
 		<ul class="flex gap-6 list-none m-0 p-0">
-			{#each NAV_LINKS as link (link.href)}
+			{#each NAV_LINKS as link (link.label)}
 				<li>
 					<a
 						href={link.href}

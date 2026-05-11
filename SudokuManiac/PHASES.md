@@ -24,7 +24,7 @@ These phases concentrate on polishing the Sudoku experience before returning to 
 ---
 
 ## Phase 8-C — Save Slots / Continue Last Session
-**Status: 🔜 Pending**
+**Status: ✅ Done**
 
 - Show a **"Continue"** button on the Sudoku page when an in-progress session exists (currently this already resumes, but it needs an explicit UI entry-point with a visual card: difficulty, time spent, date started).
 - Allow guest users (no auth) to store up to **3 save slots** in `localStorage`.
@@ -34,7 +34,7 @@ These phases concentrate on polishing the Sudoku experience before returning to 
 ---
 
 ## Phase 8-D — Local-First Progress (No Auth Required)
-**Status: 🔜 Pending**
+**Status: 🔜 Next**
 
 - All gameplay features work **without login**: session saves, history, stats, achievements.
 - Guest state lives in `localStorage` (saves, history, achievement flags).

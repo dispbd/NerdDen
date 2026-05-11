@@ -13,10 +13,11 @@ export const GET: RequestHandler = async ({ locals }) => {
 /** POST /api/sudoku/sessions — create a new game session */
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const body = await request.json();
-	const { difficulty, gridState, solution } = body as {
+	const { difficulty, gridState, solution, gridSize } = body as {
 		difficulty: Difficulty;
 		gridState: Grid;
 		solution: Grid;
+		gridSize?: number;
 	};
 
 	if (!difficulty || !gridState || !solution) {
@@ -27,7 +28,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		userId: locals.user?.id ?? null,
 		difficulty,
 		gridState,
-		solution
+		solution,
+		gridSize
 	});
 	return json(session, { status: 201 });
 };

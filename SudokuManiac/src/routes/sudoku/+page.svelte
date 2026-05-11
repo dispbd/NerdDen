@@ -4,10 +4,18 @@
   Authenticated users have their sessions saved/resumed automatically.
 -->
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import SudokuBoardComponent from '$lib/components/sudoku/SudokuBoard.svelte';
 	import Numpad from '$lib/components/sudoku/Numpad.svelte';
 	import GameTimer from '$lib/components/sudoku/GameTimer.svelte';
-	import type { Difficulty, Grid, GridSize } from '$lib/games/sudoku/shared.js';
+	import SaveSlotCard from '$lib/components/sudoku/SaveSlotCard.svelte';
+	import type { Difficulty, Grid, GridSize, SaveSlot } from '$lib/games/sudoku/shared.js';
+	import {
+		loadGuestSaves,
+		createGuestSave,
+		updateGuestSave,
+		deleteGuestSave
+	} from '$lib/games/sudoku/guestSaves.js';
 
 	let { data } = $props();
 
@@ -24,28 +32,31 @@
 	let boardRef = $state<ReturnType<typeof SudokuBoardComponent> | null>(null);
 	let timerRef = $state<ReturnType<typeof GameTimer> | null>(null);
 
-	/** ID of the current game_sessions row (null for guests) */
+	/** ID of the current DB session row (auth users only) */
 	let sessionId = $state<string | null>(null);
+	/** ID of the current localStorage save (guest users only) */
+	let localSessionId = $state<string | null>(null);
 	/** Auto-save interval handle */
 	let saveInterval: ReturnType<typeof setInterval> | null = null;
 	/** Number of hints used in the current game */
 	let hintsUsed = $state(0);
+	/** Unified save slots shown in the lobby */
+	let saves = $state<SaveSlot[]>([]);
 
-	// Resume active session if one exists
-	$effect(() => {
-		const active = data.activeSession;
-		if (active) {
-			puzzle = active.gridState as Grid;
-			solution = active.solution as Grid;
-			difficulty = active.difficulty as Difficulty;
-			sessionId = active.id;
-			gameStarted = true;
-			timerRunning = true;
-			timerRef?.reset();
-			if (active.timeSpent > 0) {
-				// restore elapsed time via internal timer offset
-				void restoreTimerOffset(active.timeSpent);
-			}
+	onMount(() => {
+		if (data.isAuthenticated) {
+			saves = data.activeSessions.map((s) => ({
+				id: s.id,
+				source: 'db' as const,
+				difficulty: s.difficulty as Difficulty,
+				gridSize: (s.gridSize ?? 9) as GridSize,
+				gridState: s.gridState as Grid,
+				solution: s.solution as Grid,
+				timeSpent: s.timeSpent,
+				createdAt: new Date(s.createdAt).toISOString()
+			}));
+		} else {
+			saves = loadGuestSaves().map((s) => ({ ...s, source: 'local' as const }));
 		}
 	});
 
@@ -55,8 +66,42 @@
 		timerRef?.addOffset(seconds);
 	}
 
+	async function continueSession(slot: SaveSlot) {
+		puzzle = slot.gridState;
+		solution = slot.solution;
+		difficulty = slot.difficulty;
+		gridSize = slot.gridSize;
+		gameStarted = true;
+		gameSolved = false;
+		hintsUsed = 0;
+		timerRunning = true;
+		timerRef?.reset();
+		if (slot.timeSpent > 0) void restoreTimerOffset(slot.timeSpent);
+		if (slot.source === 'db') {
+			sessionId = slot.id;
+			localSessionId = null;
+		} else {
+			localSessionId = slot.id;
+			sessionId = null;
+		}
+		startAutoSave();
+	}
+
+	async function deleteSlot(slot: SaveSlot) {
+		if (slot.source === 'db') {
+			await fetch(`/api/sudoku/sessions/${slot.id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ action: 'abandon', timeSpent: 0 })
+			});
+		} else {
+			deleteGuestSave(slot.id);
+		}
+		saves = saves.filter((s) => s.id !== slot.id);
+	}
+
 	async function startGame(diff?: Difficulty) {
-		// Abandon previous in-progress session
+		// Abandon previous sessions
 		if (sessionId) {
 			await fetch(`/api/sudoku/sessions/${sessionId}`, {
 				method: 'PATCH',
@@ -65,11 +110,15 @@
 			});
 			sessionId = null;
 		}
+		if (localSessionId) {
+			deleteGuestSave(localSessionId);
+			localSessionId = null;
+		}
 
 		const genRes = await fetch(
 			`/api/sudoku/generate?difficulty=${diff ?? difficulty}&gridSize=${gridSize}`
 		);
-		const generated = await genRes.json() as { puzzle: Grid; solution: Grid };
+		const generated = (await genRes.json()) as { puzzle: Grid; solution: Grid };
 		puzzle = generated.puzzle;
 		solution = generated.solution;
 		if (diff) difficulty = diff;
@@ -79,15 +128,31 @@
 		timerRunning = true;
 		timerRef?.reset();
 
-		// Create new session
-		const res = await fetch('/api/sudoku/sessions', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ difficulty: diff ?? difficulty, gridState: generated.puzzle, solution: generated.solution, gridSize })
-		});
-		if (res.ok) {
-			const newSession = await res.json();
-			sessionId = newSession.id ?? null;
+		if (data.isAuthenticated) {
+			const res = await fetch('/api/sudoku/sessions', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					difficulty: diff ?? difficulty,
+					gridState: generated.puzzle,
+					solution: generated.solution,
+					gridSize
+				})
+			});
+			if (res.ok) {
+				const newSession = await res.json();
+				sessionId = newSession.id ?? null;
+				startAutoSave();
+			}
+		} else {
+			const save = createGuestSave({
+				difficulty: diff ?? difficulty,
+				gridSize,
+				gridState: generated.puzzle,
+				solution: generated.solution
+			});
+			localSessionId = save.id;
+			saves = loadGuestSaves().map((s) => ({ ...s, source: 'local' as const }));
 			startAutoSave();
 		}
 	}
@@ -105,13 +170,18 @@
 	}
 
 	async function autoSave() {
-		if (!sessionId || gameSolved) return;
+		if (gameSolved) return;
 		const currentGrid = boardRef?.getCurrentGrid?.() ?? puzzle;
-		await fetch(`/api/sudoku/sessions/${sessionId}`, {
-			method: 'PATCH',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ gridState: currentGrid, timeSpent: timerRef?.getElapsed() ?? 0 })
-		});
+		const elapsed = timerRef?.getElapsed() ?? 0;
+		if (sessionId) {
+			await fetch(`/api/sudoku/sessions/${sessionId}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ gridState: currentGrid, timeSpent: elapsed })
+			});
+		} else if (localSessionId) {
+			updateGuestSave(localSessionId, { gridState: currentGrid, timeSpent: elapsed });
+		}
 	}
 
 	let hintsAvailable = $state<number | null>(null);
@@ -163,6 +233,11 @@
 					showToast(ach.icon, `Achievement: ${ach.title}`);
 				}
 			}
+		} else if (localSessionId) {
+			const lsId = localSessionId;
+			localSessionId = null;
+			deleteGuestSave(lsId);
+			saves = saves.filter((s) => s.id !== lsId);
 		}
 	}
 
@@ -192,6 +267,21 @@
 
 	{#if !gameStarted}
 		<game-lobby class="flex flex-col items-center gap-6 w-full">
+
+			<!-- Save slots -->
+			{#if saves.length > 0}
+				<saves-section class="flex flex-col gap-3 w-full max-w-sm">
+					<h2 class="m-0 text-base font-semibold text-gray-500 uppercase tracking-wide">Continue Playing</h2>
+					{#each saves as slot (slot.id)}
+						<SaveSlotCard
+							{slot}
+							onContinue={() => void continueSession(slot)}
+							onDelete={() => void deleteSlot(slot)}
+						/>
+					{/each}
+				</saves-section>
+				<divider class="w-full max-w-sm border-t border-gray-200"></divider>
+			{/if}
 
 			<!-- Other game modes -->
 			<other-modes class="grid grid-cols-2 gap-3 w-full max-w-sm">

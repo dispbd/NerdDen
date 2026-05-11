@@ -6,6 +6,21 @@ export type Difficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert' | 'e
 /** Supported grid sizes */
 export type GridSize = 4 | 6 | 9;
 
+/** A save slot usable in both DB (auth) and localStorage (guest) contexts. */
+export interface SaveSlot {
+	id: string;
+	/** 'db' — stored in PostgreSQL; 'local' — stored in localStorage */
+	source: 'db' | 'local';
+	difficulty: Difficulty;
+	gridSize: GridSize;
+	gridState: Grid;
+	solution: Grid;
+	/** Elapsed time in seconds */
+	timeSpent: number;
+	/** ISO date string */
+	createdAt: string;
+}
+
 /** Box dimensions per grid size */
 export interface BoxDim {
 	rows: number;
