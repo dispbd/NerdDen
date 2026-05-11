@@ -26,6 +26,15 @@
 		seconds = 0;
 	}
 
+	export function addOffset(offsetSeconds: number) {
+		seconds += offsetSeconds;
+	}
+
+	/** Returns the current elapsed seconds */
+	export function getElapsed(): number {
+		return seconds;
+	}
+
 	function pad(n: number) {
 		return String(n).padStart(2, '0');
 	}
@@ -35,13 +44,8 @@
 	);
 </script>
 
-<span class="timer" aria-label="Elapsed time">{display}</span>
-
-<style>
-	.timer {
-		font-variant-numeric: tabular-nums;
-		font-size: 1.5rem;
-		font-weight: 700;
-		letter-spacing: 0.05em;
-	}
-</style>
+<time
+	class="tabular-nums text-2xl font-bold tracking-wide"
+	aria-label="Elapsed time"
+	datetime={display}
+>{display}</time>

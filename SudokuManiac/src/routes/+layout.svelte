@@ -1,66 +1,63 @@
 <script lang="ts">
-	import type { Pathname } from '$app/types';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { locales, localizeHref } from '$lib/paraglide/runtime';
+	import { locales, localizeHref, getLocale, setLocale } from '$lib/paraglide/runtime';
+	import { createAuthClient } from 'better-auth/svelte';
 	import Header from './Header.svelte';
 	import './layout.css';
 
 	let { children } = $props();
+
+	const client = createAuthClient();
+	const session = client.useSession();
+
+	const MERGE_KEY = 'sudoku_guest_merged';
+
+	// When a user signs in, merge any guest progress to the server (once).
+	$effect(() => {
+		const user = $session?.data?.user;
+		if (!user) return;
+		if (localStorage.getItem(MERGE_KEY) === user.id) return;
+		const raw = localStorage.getItem('sudoku_guest_stats');
+		if (!raw) return;
+		// Fire-and-forget; mark as merged immediately to avoid duplicates
+		localStorage.setItem(MERGE_KEY, user.id);
+		fetch('/api/sudoku/merge-guest', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: raw
+		}).then((res) => {
+			if (res.ok) localStorage.removeItem('sudoku_guest_stats');
+			else localStorage.removeItem(MERGE_KEY); // retry next visit
+		});
+	});
+
+	// First-visit locale auto-detection from browser language preference.
+	$effect(() => {
+		const hasCookie = document.cookie.split(';').some((c) => c.trim().startsWith('PARAGLIDE_LOCALE='));
+		if (hasCookie) return;
+		const preferred = navigator.language?.split('-')[0];
+		if (preferred && preferred !== getLocale() && (locales as readonly string[]).includes(preferred)) {
+			setLocale(preferred as typeof locales[number]);
+		}
+	});
 </script>
 
-<div class="app">
+<nerd-den-app class="flex min-h-screen flex-col">
 	<Header />
-	<main>{@render children()}</main>
+	<main class="m-auto my-0 box-border flex w-full max-w-5xl flex-1 flex-col p-4">
+		{@render children()}
+	</main>
 
-	<footer>
-		<p>
-			visit
-			<a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a>
-			to learn about SvelteKit
+	<footer class="flex flex-col items-center justify-center p-3 sm:px-0">
+		<p class="text-sm text-gray-500">
+			Made with ❤️ by <a class="font-bold" href="https://svelte.dev">Svelte</a>
 		</p>
 	</footer>
-</div>
+</nerd-den-app>
 
 <div style="display:none">
 	{#each locales as locale (locale)}
-		<a href={resolve(localizeHref(page.url.pathname, { locale }) as Pathname)}>{locale}</a>
+		<a href={resolve(localizeHref(page.url.pathname, { locale }))}>{locale}</a>
 	{/each}
 </div>
-
-<style>
-	.app {
-		display: flex;
-		flex-direction: column;
-		min-height: 100vh;
-	}
-
-	main {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		padding: 1rem;
-		width: 100%;
-		max-width: 64rem;
-		margin: 0 auto;
-		box-sizing: border-box;
-	}
-
-	footer {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		padding: 12px;
-	}
-
-	footer a {
-		font-weight: bold;
-	}
-
-	@media (min-width: 480px) {
-		footer {
-			padding: 12px 0;
-		}
-	}
-</style>
