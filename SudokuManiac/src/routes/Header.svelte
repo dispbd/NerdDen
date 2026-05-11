@@ -9,6 +9,7 @@
 		{ href: resolve('/sudoku/story'), label: 'Story' },
 		{ href: resolve('/sudoku/competitive'), label: 'Competitive' },
 		{ href: resolve('/crossword'), label: 'Crosswords' },
+		{ href: resolve('/alias'), label: 'Hat / Alias' },
 		{ href: resolve('/leaderboard'), label: 'Leaderboard' }
 	] as const;
 

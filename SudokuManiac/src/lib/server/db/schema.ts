@@ -376,3 +376,77 @@ export const crosswordSessionsRelations = relations(crosswordSessions, ({ one })
 		references: [crosswords.id]
 	})
 }));
+
+// ─── Alias / Hat ──────────────────────────────────────────────────────────────
+
+export const aliasRooms = pgTable('alias_rooms', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	/** 6-char invite code */
+	code: text('code').notNull().unique(),
+	hostId: text('host_id').references(() => user.id, { onDelete: 'set null' }),
+	status: text('status', { enum: ['lobby', 'playing', 'finished'] })
+		.notNull()
+		.default('lobby'),
+	topic: text('topic').notNull(),
+	language: text('language').notNull().default('en'),
+	difficulty: text('difficulty', {
+		enum: ['beginner', 'easy', 'medium', 'hard', 'expert', 'extreme']
+	})
+		.notNull()
+		.default('medium'),
+	/** Seconds per speaking turn */
+	turnDuration: integer('turn_duration').notNull().default(60),
+	/** Total words put in the hat */
+	wordCount: integer('word_count').notNull().default(30),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const aliasTeams = pgTable(
+	'alias_teams',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		roomId: uuid('room_id')
+			.notNull()
+			.references(() => aliasRooms.id, { onDelete: 'cascade' }),
+		name: text('name').notNull(),
+		color: text('color').notNull().default('#6366f1'),
+		score: integer('score').notNull().default(0)
+	},
+	(table) => [index('alias_teams_roomId_idx').on(table.roomId)]
+);
+
+export const aliasTeamMembers = pgTable(
+	'alias_team_members',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		teamId: uuid('team_id')
+			.notNull()
+			.references(() => aliasTeams.id, { onDelete: 'cascade' }),
+		roomId: uuid('room_id')
+			.notNull()
+			.references(() => aliasRooms.id, { onDelete: 'cascade' }),
+		/** null for guests */
+		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+		userName: text('user_name').notNull(),
+		/** Position in speaker rotation within the team */
+		speakerOrder: integer('speaker_order').notNull().default(0)
+	},
+	(table) => [
+		index('alias_team_members_roomId_idx').on(table.roomId),
+		index('alias_team_members_teamId_idx').on(table.teamId)
+	]
+);
+
+export const aliasRoomsRelations = relations(aliasRooms, ({ many }) => ({
+	teams: many(aliasTeams)
+}));
+
+export const aliasTeamsRelations = relations(aliasTeams, ({ one, many }) => ({
+	room: one(aliasRooms, { fields: [aliasTeams.roomId], references: [aliasRooms.id] }),
+	members: many(aliasTeamMembers)
+}));
+
+export const aliasTeamMembersRelations = relations(aliasTeamMembers, ({ one }) => ({
+	team: one(aliasTeams, { fields: [aliasTeamMembers.teamId], references: [aliasTeams.id] }),
+	room: one(aliasRooms, { fields: [aliasTeamMembers.roomId], references: [aliasRooms.id] })
+}));
