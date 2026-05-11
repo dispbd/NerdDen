@@ -44,7 +44,7 @@ These phases concentrate on polishing the Sudoku experience before returning to 
 ---
 
 ## Phase 8-E — i18n (Localization)
-**Status: 🔜 Next**
+**Status: ✅ Done**
 
 - Wire up the already-installed **Paraglide (inlang)** library.
 - Supported locales: **English (en)**, **Russian (ru)**, **German (de)**, **Spanish (es)**.
@@ -55,7 +55,7 @@ These phases concentrate on polishing the Sudoku experience before returning to 
 ---
 
 ## Phase 8-F — Mobile Optimisation
-**Status: 🔜 Pending**
+**Status: 🔜 Next**
 
 - Fully responsive layout: Header collapses to a hamburger menu on small screens.
 - Sudoku board scales to fit the viewport without overflow (currently fixed-size canvas).

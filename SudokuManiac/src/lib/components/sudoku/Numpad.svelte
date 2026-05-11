@@ -16,15 +16,15 @@
 	const cols = $derived(Math.ceil(gridSize / 2) + 1);
 </script>
 
-<num-pad class="grid gap-1.5" style="grid-template-columns: repeat({cols}, minmax(0, 1fr))">
+<num-pad class="grid gap-1.5 w-full" style="grid-template-columns: repeat({cols}, minmax(0, 1fr))">
 	{#each digits as n (n)}
 		<button
-			class="aspect-square text-xl font-semibold rounded-lg bg-blue-50 border border-gray-300 cursor-pointer transition-colors hover:bg-blue-200"
+			class="min-h-12 aspect-square text-xl font-semibold rounded-lg bg-blue-50 border border-gray-300 cursor-pointer transition-colors hover:bg-blue-200 active:bg-blue-300 touch-manipulation select-none"
 			onclick={() => onDigit(n)}
 		>{n}</button>
 	{/each}
 	<button
-		class="aspect-square text-xl font-semibold rounded-lg bg-red-50 border border-red-300 text-red-600 cursor-pointer transition-colors hover:bg-red-100"
+		class="min-h-12 aspect-square text-xl font-semibold rounded-lg bg-red-50 border border-red-300 text-red-600 cursor-pointer transition-colors hover:bg-red-100 active:bg-red-200 touch-manipulation select-none"
 		onclick={() => onDigit(0)}
 	>✕</button>
 </num-pad>

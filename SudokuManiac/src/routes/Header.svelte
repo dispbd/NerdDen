@@ -29,29 +29,36 @@
 	};
 
 	let langOpen = $state(false);
+	let mobileOpen = $state(false);
 	const currentLocale = $derived(getLocale());
+
+	function isActive(href: string) {
+		return page.url.pathname === href || (href !== resolve('/') && page.url.pathname.startsWith(href));
+	}
 </script>
 
-<svelte:window onclick={(e) => {
-	if (!(e.target as HTMLElement)?.closest?.('lang-switcher')) langOpen = false;
-}} />
+<svelte:window
+	onclick={(e) => {
+		const t = e.target as HTMLElement;
+		if (!t?.closest?.('lang-switcher')) langOpen = false;
+		if (!t?.closest?.('mobile-menu') && !t?.closest?.('[data-hamburger]')) mobileOpen = false;
+	}}
+/>
 
-<header class="flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
+<header class="relative flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white/90 backdrop-blur-sm z-30">
 	<a href={resolve('/')} class="text-xl font-extrabold text-blue-700 no-underline hover:text-blue-800 transition-colors">
 		NerdDen
 	</a>
 
-	<nav>
+	<!-- Desktop nav -->
+	<nav class="hidden md:block">
 		<ul class="flex gap-6 list-none m-0 p-0">
 			{#each NAV_LINKS as link (link.label)}
 				<li>
 					<a
 						href={link.href}
-						aria-current={page.url.pathname === link.href || (link.href !== '/' && page.url.pathname.startsWith(link.href)) ? 'page' : undefined}
-						class="font-semibold text-sm no-underline transition-colors
-							{page.url.pathname === link.href || (link.href !== '/' && page.url.pathname.startsWith(link.href))
-							? 'text-blue-600'
-							: 'text-gray-600 hover:text-blue-500'}"
+						aria-current={isActive(link.href) ? 'page' : undefined}
+						class="font-semibold text-sm no-underline transition-colors {isActive(link.href) ? 'text-blue-600' : 'text-gray-600 hover:text-blue-500'}"
 					>
 						{link.label}
 					</a>
@@ -60,7 +67,7 @@
 		</ul>
 	</nav>
 
-	<header-auth class="flex items-center gap-3">
+	<header-auth class="hidden md:flex items-center gap-3">
 		<!-- Language switcher -->
 		<lang-switcher class="relative">
 			<button
@@ -104,5 +111,72 @@
 			</a>
 		{/if}
 	</header-auth>
+
+	<!-- Hamburger button (mobile) -->
+	<button
+		data-hamburger
+		onclick={() => (mobileOpen = !mobileOpen)}
+		aria-label="Menu"
+		aria-expanded={mobileOpen}
+		class="md:hidden flex flex-col justify-center gap-1.5 w-10 h-10 border-0 bg-transparent cursor-pointer p-2"
+	>
+		<span class="block h-0.5 w-full bg-gray-700 transition-all {mobileOpen ? 'translate-y-2 rotate-45' : ''}"></span>
+		<span class="block h-0.5 w-full bg-gray-700 transition-all {mobileOpen ? 'opacity-0' : ''}"></span>
+		<span class="block h-0.5 w-full bg-gray-700 transition-all {mobileOpen ? '-translate-y-2 -rotate-45' : ''}"></span>
+	</button>
 </header>
+
+<!-- Mobile menu drawer -->
+{#if mobileOpen}
+	<mobile-menu class="md:hidden fixed inset-x-0 top-14.25 bg-white border-b border-gray-200 shadow-lg z-20 flex flex-col">
+		<nav class="flex flex-col px-4 py-3 gap-1">
+			{#each NAV_LINKS as link (link.label)}
+				<a
+					href={link.href}
+					onclick={() => (mobileOpen = false)}
+					aria-current={isActive(link.href) ? 'page' : undefined}
+					class="py-3 px-2 font-semibold text-base no-underline border-b border-gray-100 last:border-0 transition-colors {isActive(link.href) ? 'text-blue-600' : 'text-gray-700 hover:text-blue-500'}"
+				>
+					{link.label}
+				</a>
+			{/each}
+		</nav>
+
+		<mobile-auth class="flex flex-col px-4 pb-4 gap-3">
+			<!-- Language row -->
+			<lang-row class="flex flex-wrap gap-2 pt-2">
+				{#each locales as locale (locale)}
+					<button
+						onclick={() => { setLocale(locale); mobileOpen = false; }}
+						class="px-3 py-1.5 rounded-full text-sm font-semibold border cursor-pointer transition-colors
+							{locale === currentLocale ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'}"
+					>
+						{LOCALE_LABELS[locale] ?? locale}
+					</button>
+				{/each}
+			</lang-row>
+
+			{#if $session?.data?.user}
+				<mobile-user class="flex items-center justify-between">
+					<span class="text-sm font-semibold text-gray-700">{$session.data.user.name}</span>
+					<button
+						onclick={() => { void signOut(); mobileOpen = false; }}
+						class="text-sm font-semibold text-red-500 cursor-pointer border-0 bg-transparent p-0"
+					>
+						{m.nav_sign_out()}
+					</button>
+				</mobile-user>
+			{:else}
+				<mobile-auth-links class="flex gap-3">
+					<a href={resolve('/sign-in')} onclick={() => (mobileOpen = false)} class="flex-1 text-center py-2.5 border border-blue-600 text-blue-600 font-semibold rounded-lg no-underline hover:bg-blue-50 transition-colors">
+						{m.nav_sign_in()}
+					</a>
+					<a href={resolve('/sign-up')} onclick={() => (mobileOpen = false)} class="flex-1 text-center py-2.5 bg-blue-600 text-white font-semibold rounded-lg no-underline hover:bg-blue-700 transition-colors">
+						{m.nav_sign_up()}
+					</a>
+				</mobile-auth-links>
+			{/if}
+		</mobile-auth>
+	</mobile-menu>
+{/if}
 

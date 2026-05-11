@@ -10,6 +10,7 @@
 		/** Currently selected digit (1-N) to place, or 0 for erase */
 		activeDigit?: number;
 		theme?: 'light' | 'dark';
+		/** Explicit pixel size. Pass 0 (or omit) to auto-size to the container width. */
 		size?: number;
 		gridSize?: GridSize;
 		onCellSelect?: (row: number, col: number) => void;
@@ -21,31 +22,42 @@
 		solution,
 		activeDigit = $bindable(0),
 		theme = 'light',
-		size = 540,
+		size = 0,
 		gridSize = 9,
 		onCellSelect,
 		onSolved
 	}: Props = $props();
 
+	let wrapper: HTMLElement;
 	let canvas: HTMLCanvasElement;
 	let board: SudokuBoard | null = null;
 
+	function resolveSize(): number {
+		if (size > 0) return size;
+		return wrapper?.clientWidth || 320;
+	}
+
 	onMount(async () => {
-		board = new SudokuBoard({ size, theme: theme === 'dark' ? darkTheme : lightTheme, gridSize });
+		const px = resolveSize();
+		board = new SudokuBoard({ size: px, theme: theme === 'dark' ? darkTheme : lightTheme, gridSize });
 		await board.init(canvas);
-		// Load puzzle that may have been set before init completed
 		if (puzzle.length) board.loadPuzzle(puzzle, solution);
 
 		board.on('cellSelect', ({ row, col }) => {
 			onCellSelect?.(row, col);
-			if (activeDigit > 0) {
-				board?.setDigit(activeDigit);
-			}
+			if (activeDigit > 0) board?.setDigit(activeDigit);
 		});
 
-		board.on('solved', () => {
-			onSolved?.();
+		board.on('solved', () => onSolved?.());
+
+		// Resize observer — re-init board when container size changes
+		const ro = new ResizeObserver(() => {
+			const newPx = resolveSize();
+			board?.resize(newPx);
 		});
+		ro.observe(wrapper);
+
+		return () => ro.disconnect();
 	});
 
 	onDestroy(() => {
@@ -53,36 +65,18 @@
 		board = null;
 	});
 
-	// React to puzzle changes
-	$effect(() => {
-		board?.loadPuzzle(puzzle, solution);
-	});
+	$effect(() => { board?.loadPuzzle(puzzle, solution); });
+	$effect(() => { board?.setTheme(theme === 'dark' ? darkTheme : lightTheme); });
 
-	// React to theme changes
-	$effect(() => {
-		board?.setTheme(theme === 'dark' ? darkTheme : lightTheme);
-	});
-
-	// Expose setDigit for external use (keyboard / numpad)
-	export function placeDigit(num: number) {
-		board?.setDigit(num);
-	}
-
-	/** Returns a snapshot of the current player grid for session saving */
-	export function getCurrentGrid(): Grid | null {
-		return board?.getPlayerGrid() ?? null;
-	}
-
-	/** Reveal a hint — fills one empty selected cell (or the first empty one) */
-	export function revealHint(): void {
-		board?.revealHint();
-	}
+	export function placeDigit(num: number) { board?.setDigit(num); }
+	export function getCurrentGrid(): Grid | null { return board?.getPlayerGrid() ?? null; }
+	export function revealHint(): void { board?.revealHint(); }
 </script>
 
-<canvas
-	bind:this={canvas}
-	width={size}
-	height={size}
-	class="block touch-none"
-	style="width:{size}px; height:{size}px;"
-></canvas>
+<board-container bind:this={wrapper} class="block w-full aspect-square">
+	<canvas
+		bind:this={canvas}
+		class="block w-full h-full"
+		style="touch-action:none;"
+	></canvas>
+</board-container>

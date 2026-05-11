@@ -329,7 +329,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<sudoku-page class="flex flex-col items-center max-w-2xl mx-auto px-4 py-6 gap-6">
+<sudoku-page class="flex flex-col items-center w-full max-w-lg mx-auto px-3 py-4 gap-4 sm:px-4 sm:py-6 sm:gap-6">
 	<h1 class="text-4xl font-extrabold m-0">SudokuManiac</h1>
 
 	{#if !gameStarted}
@@ -420,8 +420,8 @@
 			</lobby-actions>
 		</game-lobby>
 	{:else}
-		<game-screen class="flex flex-col items-center gap-4 w-full">
-			<game-header class="flex items-center justify-between w-full max-w-135">
+		<game-screen class="flex flex-col items-center gap-3 w-full sm:gap-4">
+			<game-header class="flex items-center justify-between w-full">
 				<difficulty-badge class="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-bold text-sm">
 					{diffLabel(difficulty)}
 				</difficulty-badge>
@@ -443,18 +443,17 @@
 			</game-header>
 
 			{#if gameSolved}
-				<solved-banner class="block w-full max-w-135 text-center py-2.5 bg-green-100 text-green-800 rounded-lg font-bold text-lg">
+				<solved-banner class="block w-full text-center py-2.5 bg-green-100 text-green-800 rounded-lg font-bold text-lg">
 				{m.sudoku_solved()}
 				</solved-banner>
 			{/if}
 
-			<board-wrap class="block w-full max-w-135 aspect-square overflow-hidden rounded-lg shadow-lg">
+			<board-wrap class="block w-full rounded-lg shadow-lg overflow-hidden">
 				<SudokuBoardComponent
 					bind:this={boardRef}
 					{puzzle}
 					{solution}
 					{gridSize}
-					size={Math.min(540, 90 * 9)}
 					onSolved={() => void handleSolved()}
 				/>
 			</board-wrap>
