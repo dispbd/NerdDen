@@ -9,7 +9,7 @@
 		<p class="text-xl text-gray-500 m-0">A multi-game platform for nerds</p>
 	</home-hero>
 
-	<games-grid class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
+	<games-grid class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl">
 		<a
 			href="/sudoku"
 			class="flex flex-col gap-2 p-6 rounded-2xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors no-underline"
@@ -19,10 +19,26 @@
 			<p class="text-sm text-blue-600 m-0">Classic 9×9 Sudoku with multiple difficulties</p>
 		</a>
 
-		<game-card class="flex flex-col gap-2 p-6 rounded-2xl border-2 border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed">
+		<a
+			href="/coming-soon"
+			class="flex flex-col gap-2 p-6 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors no-underline"
+		>
 			<span class="text-4xl">🔤</span>
 			<game-card-title class="block text-xl font-bold text-gray-500">Crosswords</game-card-title>
-			<p class="text-sm text-gray-400 m-0">Coming soon</p>
-		</game-card>
+			<wip-badge class="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full w-fit">
+				🚧 In development
+			</wip-badge>
+		</a>
+
+		<a
+			href="/coming-soon"
+			class="flex flex-col gap-2 p-6 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors no-underline"
+		>
+			<span class="text-4xl">🎩</span>
+			<game-card-title class="block text-xl font-bold text-gray-500">Hat / Alias</game-card-title>
+			<wip-badge class="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full w-fit">
+				🚧 In development
+			</wip-badge>
+		</a>
 	</games-grid>
 </home-page>

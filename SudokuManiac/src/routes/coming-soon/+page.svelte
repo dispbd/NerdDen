@@ -1,0 +1,21 @@
+<svelte:head>
+	<title>In Development — NerdDen</title>
+</svelte:head>
+
+<coming-soon-page class="flex flex-col items-center justify-center gap-8 px-4 py-24 text-center">
+	<coming-icon class="text-7xl select-none">🚧</coming-icon>
+
+	<coming-text class="flex flex-col gap-3">
+		<h1 class="text-4xl font-extrabold tracking-tight m-0">In Development</h1>
+		<p class="text-lg text-gray-500 m-0 max-w-md">
+			This game is still being built. Check back soon — it will be worth the wait!
+		</p>
+	</coming-text>
+
+	<a
+		href="/"
+		class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors no-underline"
+	>
+		← Back to Home
+	</a>
+</coming-soon-page>
