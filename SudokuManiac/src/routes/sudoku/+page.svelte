@@ -17,6 +17,11 @@
 		updateGuestSave,
 		deleteGuestSave
 	} from '$lib/games/sudoku/guestSaves.js';
+	import {
+		recordGuestSolve,
+		spendGuestHint,
+		loadGuestStats
+	} from '$lib/games/sudoku/guestProgress.js';
 
 	let { data } = $props();
 
@@ -60,6 +65,8 @@
 			}));
 		} else {
 			saves = loadGuestSaves().map((s) => ({ ...s, source: 'local' as const }));
+			const gStats = loadGuestStats();
+			hintsAvailable = gStats.hintsAvailable;
 		}
 	});
 
@@ -217,6 +224,8 @@
 	}
 
 	let hintsAvailable = $state<number | null>(null);
+	/** Show "Sign in to sync" nudge after a guest solves a puzzle */
+	let showSyncNudge = $state(false);
 
 	/** Toast notifications for achievements / level-up */
 	interface Toast {
@@ -270,6 +279,17 @@
 			localSessionId = null;
 			deleteGuestSave(lsId);
 			saves = saves.filter((s) => s.id !== lsId);
+			// Record guest solve + award achievements
+			const result = recordGuestSolve({
+				difficulty,
+				timeSpent: timerRef?.getElapsed() ?? 0,
+				hintsUsed
+			});
+			if (result.xpGained) showToast('⭐', `+${result.xpGained} XP`);
+			if (result.levelUp) showToast('🎉', `Level up! Now Level ${result.newLevel}`);
+			for (const ach of result.newAchievements) showToast(ach.icon, `Achievement: ${ach.title}`);
+			hintsAvailable = loadGuestStats().hintsAvailable;
+			showSyncNudge = true;
 		}
 	}
 
@@ -431,13 +451,22 @@
 					<button
 						class="px-5 py-2 border border-amber-400 bg-amber-50 text-amber-700 rounded-lg font-semibold cursor-pointer hover:bg-amber-100 transition-colors"
 						onclick={async () => {
+						if (data.isAuthenticated) {
 							if (!sessionId) return;
 							const res = await fetch('/api/sudoku/hints', { method: 'POST' });
 							if (res.ok) {
-								const data = await res.json();
-								hintsAvailable = data.hintsAvailable;
+								const d = await res.json();
+								hintsAvailable = d.hintsAvailable;
 								hintsUsed++;
 								boardRef?.revealHint();
+							}
+						} else {
+							const remaining = spendGuestHint();
+							if (remaining !== null) {
+								hintsAvailable = remaining;
+								hintsUsed++;
+								boardRef?.revealHint();
+							}
 							}
 						}}
 					>
@@ -479,4 +508,22 @@
 			</toast-item>
 		{/each}
 	</toast-container>
+{/if}
+
+<!-- Sign-in sync nudge (guests only, shown after solving) -->
+{#if showSyncNudge && !data.isAuthenticated}
+	<sync-nudge class="fixed bottom-4 left-4 flex items-center gap-3 bg-white border border-blue-200 shadow-lg rounded-xl px-4 py-3 max-w-xs">
+		<span class="text-2xl shrink-0">☁️</span>
+		<sync-text class="flex flex-col gap-0.5">
+			<p class="m-0 text-sm font-semibold text-gray-800">Progress saved locally</p>
+			<p class="m-0 text-xs text-gray-500">
+				<a href={resolve('/sign-in')} class="text-blue-600 font-semibold no-underline hover:underline">Sign in</a>
+				to sync across devices
+			</p>
+		</sync-text>
+		<button
+			onclick={() => (showSyncNudge = false)}
+			class="ml-auto text-gray-400 hover:text-gray-600 border-0 bg-transparent cursor-pointer text-lg leading-none shrink-0"
+		>×</button>
+	</sync-nudge>
 {/if}

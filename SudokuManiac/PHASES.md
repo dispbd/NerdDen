@@ -34,7 +34,7 @@ These phases concentrate on polishing the Sudoku experience before returning to 
 ---
 
 ## Phase 8-D — Local-First Progress (No Auth Required)
-**Status: 🔜 Next**
+**Status: ✅ Done**
 
 - All gameplay features work **without login**: session saves, history, stats, achievements.
 - Guest state lives in `localStorage` (saves, history, achievement flags).
@@ -44,7 +44,7 @@ These phases concentrate on polishing the Sudoku experience before returning to 
 ---
 
 ## Phase 8-E — i18n (Localization)
-**Status: 🔜 Pending**
+**Status: 🔜 Next**
 
 - Wire up the already-installed **Paraglide (inlang)** library.
 - Supported locales: **English (en)**, **Russian (ru)**, **German (de)**, **Spanish (es)**.
