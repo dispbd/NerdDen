@@ -5,6 +5,7 @@
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import SudokuBoardComponent from '$lib/components/sudoku/SudokuBoard.svelte';
 	import Numpad from '$lib/components/sudoku/Numpad.svelte';
 	import GameTimer from '$lib/components/sudoku/GameTimer.svelte';
@@ -34,6 +35,8 @@
 
 	/** ID of the current DB session row (auth users only) */
 	let sessionId = $state<string | null>(null);
+	/** ISO date of when the current DB session was created (for save-slot card) */
+	let sessionCreatedAt = $state<string | null>(null);
 	/** ID of the current localStorage save (guest users only) */
 	let localSessionId = $state<string | null>(null);
 	/** Auto-save interval handle */
@@ -79,12 +82,43 @@
 		if (slot.timeSpent > 0) void restoreTimerOffset(slot.timeSpent);
 		if (slot.source === 'db') {
 			sessionId = slot.id;
+			sessionCreatedAt = slot.createdAt;
 			localSessionId = null;
 		} else {
 			localSessionId = slot.id;
 			sessionId = null;
 		}
+		// Remove from saves list while the game is active
+		saves = saves.filter((s) => s.id !== slot.id);
 		startAutoSave();
+	}
+
+	/**
+	 * Save current DB session progress and add/update it in the saves list.
+	 * Clears sessionId when done. Used by Back to Menu and startGame (auth).
+	 */
+	async function stashCurrentDbSession() {
+		if (!sessionId) return;
+		const currentGrid = boardRef?.getCurrentGrid?.() ?? puzzle;
+		const elapsed = timerRef?.getElapsed() ?? 0;
+		await fetch(`/api/sudoku/sessions/${sessionId}`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ gridState: currentGrid, timeSpent: elapsed })
+		});
+		const updatedSlot: SaveSlot = {
+			id: sessionId,
+			source: 'db',
+			difficulty,
+			gridSize,
+			gridState: currentGrid,
+			solution,
+			timeSpent: elapsed,
+			createdAt: sessionCreatedAt ?? new Date().toISOString()
+		};
+		saves = [updatedSlot, ...saves.filter((s) => s.id !== sessionId)].slice(0, 3);
+		sessionId = null;
+		sessionCreatedAt = null;
 	}
 
 	async function deleteSlot(slot: SaveSlot) {
@@ -101,14 +135,9 @@
 	}
 
 	async function startGame(diff?: Difficulty) {
-		// Abandon previous sessions
+		// Stash / clean up previous sessions
 		if (sessionId) {
-			await fetch(`/api/sudoku/sessions/${sessionId}`, {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ action: 'abandon', timeSpent: timerRef?.getElapsed() ?? 0 })
-			});
-			sessionId = null;
+			await stashCurrentDbSession(); // saves progress, adds to saves list
 		}
 		if (localSessionId) {
 			deleteGuestSave(localSessionId);
@@ -142,6 +171,9 @@
 			if (res.ok) {
 				const newSession = await res.json();
 				sessionId = newSession.id ?? null;
+				sessionCreatedAt = newSession.createdAt
+					? new Date(newSession.createdAt).toISOString()
+					: new Date().toISOString();
 				startAutoSave();
 			}
 		} else {
@@ -286,7 +318,7 @@
 			<!-- Other game modes -->
 			<other-modes class="grid grid-cols-2 gap-3 w-full max-w-sm">
 				<a
-					href="/sudoku/story"
+					href={resolve('/sudoku/story')}
 					class="flex flex-col gap-1.5 p-4 rounded-xl border-2 border-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition-colors no-underline"
 				>
 					<span class="text-2xl">📖</span>
@@ -294,7 +326,7 @@
 					<span class="text-xs text-indigo-500">Progress through puzzle chains</span>
 				</a>
 				<a
-					href="/sudoku/competitive"
+					href={resolve('/sudoku/competitive')}
 					class="flex flex-col gap-1.5 p-4 rounded-xl border-2 border-rose-200 bg-rose-50 hover:bg-rose-100 transition-colors no-underline"
 				>
 					<span class="text-2xl">⚡</span>
@@ -415,13 +447,15 @@
 				<button
 					class="px-5 py-2 border border-gray-300 rounded-lg bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
 					onclick={async () => {
-						if (sessionId && !gameSolved) {
-							await fetch(`/api/sudoku/sessions/${sessionId}`, {
-								method: 'PATCH',
-								headers: { 'Content-Type': 'application/json' },
-								body: JSON.stringify({ action: 'abandon', timeSpent: timerRef?.getElapsed() ?? 0 })
-							});
-							sessionId = null;
+						if (!gameSolved) {
+							if (sessionId) {
+								await stashCurrentDbSession();
+							} else if (localSessionId) {
+								const currentGrid = boardRef?.getCurrentGrid?.() ?? puzzle;
+								updateGuestSave(localSessionId, { gridState: currentGrid, timeSpent: timerRef?.getElapsed() ?? 0 });
+								saves = loadGuestSaves().map((s) => ({ ...s, source: 'local' as const }));
+								localSessionId = null;
+							}
 						}
 						stopAutoSave();
 						gameStarted = false;
