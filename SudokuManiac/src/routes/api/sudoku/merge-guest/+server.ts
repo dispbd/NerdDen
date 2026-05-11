@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { userStats, userAchievements } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { ACHIEVEMENTS } from '$lib/server/games/achievements/catalog';
+import { ACHIEVEMENTS } from '$lib/games/achievements/catalog';
 import { calculateLevel } from '$lib/server/games/achievements/engine';
 
 interface GuestStats {
