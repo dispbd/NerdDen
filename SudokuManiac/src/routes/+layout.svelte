@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { locales, localizeHref } from '$lib/paraglide/runtime';
+	import { locales, localizeHref, getLocale, setLocale } from '$lib/paraglide/runtime';
 	import { createAuthClient } from 'better-auth/svelte';
 	import Header from './Header.svelte';
 	import './layout.css';
@@ -30,6 +30,16 @@
 			if (res.ok) localStorage.removeItem('sudoku_guest_stats');
 			else localStorage.removeItem(MERGE_KEY); // retry next visit
 		});
+	});
+
+	// First-visit locale auto-detection from browser language preference.
+	$effect(() => {
+		const hasCookie = document.cookie.split(';').some((c) => c.trim().startsWith('PARAGLIDE_LOCALE='));
+		if (hasCookie) return;
+		const preferred = navigator.language?.split('-')[0];
+		if (preferred && preferred !== getLocale() && (locales as readonly string[]).includes(preferred)) {
+			setLocale(preferred as typeof locales[number]);
+		}
 	});
 </script>
 

@@ -6,6 +6,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
+	import { m } from '$lib/paraglide/messages.js';
 	import SudokuBoardComponent from '$lib/components/sudoku/SudokuBoard.svelte';
 	import Numpad from '$lib/components/sudoku/Numpad.svelte';
 	import GameTimer from '$lib/components/sudoku/GameTimer.svelte';
@@ -285,12 +286,26 @@
 				timeSpent: timerRef?.getElapsed() ?? 0,
 				hintsUsed
 			});
-			if (result.xpGained) showToast('⭐', `+${result.xpGained} XP`);
-			if (result.levelUp) showToast('🎉', `Level up! Now Level ${result.newLevel}`);
-			for (const ach of result.newAchievements) showToast(ach.icon, `Achievement: ${ach.title}`);
+			if (result.xpGained) showToast('⭐', m.toast_xp_gained({ xp: result.xpGained }));
+			if (result.levelUp) showToast('🎉', m.toast_level_up({ level: result.newLevel }));
+			for (const ach of result.newAchievements) showToast(ach.icon, m.toast_achievement({ title: ach.title }));
 			hintsAvailable = loadGuestStats().hintsAvailable;
 			showSyncNudge = true;
 		}
+	}
+
+	const DIFFICULTY_LABELS: Record<string, () => string> = {
+		beginner: m.difficulty_beginner,
+		easy: m.difficulty_easy,
+		medium: m.difficulty_medium,
+		hard: m.difficulty_hard,
+		expert: m.difficulty_expert,
+		extreme: m.difficulty_extreme
+	};
+
+	/** Translated difficulty name */
+	function diffLabel(d: string): string {
+		return DIFFICULTY_LABELS[d]?.() ?? d;
 	}
 
 	function startRandom() {
@@ -323,7 +338,7 @@
 			<!-- Save slots -->
 			{#if saves.length > 0}
 				<saves-section class="flex flex-col gap-3 w-full max-w-sm">
-					<h2 class="m-0 text-base font-semibold text-gray-500 uppercase tracking-wide">Continue Playing</h2>
+					<h2 class="m-0 text-base font-semibold text-gray-500 uppercase tracking-wide">{m.sudoku_continue_playing()}</h2>
 					{#each saves as slot (slot.id)}
 						<SaveSlotCard
 							{slot}
@@ -342,23 +357,23 @@
 					class="flex flex-col gap-1.5 p-4 rounded-xl border-2 border-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition-colors no-underline"
 				>
 					<span class="text-2xl">📖</span>
-					<span class="font-bold text-indigo-800">Story Mode</span>
-					<span class="text-xs text-indigo-500">Progress through puzzle chains</span>
+				<span class="font-bold text-indigo-800">{m.sudoku_story_mode()}</span>
+				<span class="text-xs text-indigo-500">{m.sudoku_story_desc()}</span>
 				</a>
 				<a
 					href={resolve('/sudoku/competitive')}
 					class="flex flex-col gap-1.5 p-4 rounded-xl border-2 border-rose-200 bg-rose-50 hover:bg-rose-100 transition-colors no-underline"
 				>
 					<span class="text-2xl">⚡</span>
-					<span class="font-bold text-rose-800">Competitive</span>
-					<span class="text-xs text-rose-500">Race against other players</span>
+				<span class="font-bold text-rose-800">{m.sudoku_competitive()}</span>
+				<span class="text-xs text-rose-500">{m.sudoku_competitive_desc()}</span>
 				</a>
 			</other-modes>
 
 			<divider class="w-full max-w-sm border-t border-gray-200"></divider>
 
 			<!-- Quick Play -->
-			<h2 class="m-0 text-base font-semibold text-gray-500 uppercase tracking-wide">Quick Play</h2>
+			<h2 class="m-0 text-base font-semibold text-gray-500 uppercase tracking-wide">{m.sudoku_quick_play()}</h2>
 
 			<difficulty-grid class="grid grid-cols-3 gap-2 w-full max-w-sm">
 				{#each DIFFICULTIES as d (d)}
@@ -369,13 +384,13 @@
 							: 'border-transparent bg-blue-50 hover:bg-blue-100'}"
 						onclick={() => (difficulty = d)}
 					>
-						{d.charAt(0).toUpperCase() + d.slice(1)}
+						{diffLabel(d)}
 					</button>
 				{/each}
 			</difficulty-grid>
 
 			<settings-row class="flex flex-col items-center gap-2">
-				<span class="text-sm font-semibold text-gray-600">Grid Size</span>
+				<span class="text-sm font-semibold text-gray-600">{m.sudoku_grid_size()}</span>
 				<size-selector class="flex gap-2">
 					{#each GRID_SIZES as s (s)}
 						<button
@@ -408,7 +423,7 @@
 		<game-screen class="flex flex-col items-center gap-4 w-full">
 			<game-header class="flex items-center justify-between w-full max-w-135">
 				<difficulty-badge class="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-bold text-sm">
-					{difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+					{diffLabel(difficulty)}
 				</difficulty-badge>
 
 				<GameTimer bind:this={timerRef} running={timerRunning} />
@@ -418,7 +433,7 @@
 						class="px-3 py-1.5 rounded-md border border-gray-300 bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
 						title="New game"
 						onclick={() => void startGame()}
-					>↺ New</button>
+				>{m.sudoku_new_game()}</button>
 					<button
 						class="px-3 py-1.5 rounded-md border border-gray-300 bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
 						title="Random game"
@@ -429,7 +444,7 @@
 
 			{#if gameSolved}
 				<solved-banner class="block w-full max-w-135 text-center py-2.5 bg-green-100 text-green-800 rounded-lg font-bold text-lg">
-					🎉 Solved!
+				{m.sudoku_solved()}
 				</solved-banner>
 			{/if}
 
@@ -470,7 +485,7 @@
 							}
 						}}
 					>
-						💡 Hint ({hintsAvailable})
+						{m.sudoku_hint({ count: hintsAvailable })}
 					</button>
 				{/if}
 				<button
@@ -491,7 +506,7 @@
 						timerRunning = false;
 					}}
 				>
-					Back to Menu
+					{m.sudoku_back_to_menu()}
 				</button>
 			</game-footer>
 		</game-screen>
@@ -515,10 +530,10 @@
 	<sync-nudge class="fixed bottom-4 left-4 flex items-center gap-3 bg-white border border-blue-200 shadow-lg rounded-xl px-4 py-3 max-w-xs">
 		<span class="text-2xl shrink-0">☁️</span>
 		<sync-text class="flex flex-col gap-0.5">
-			<p class="m-0 text-sm font-semibold text-gray-800">Progress saved locally</p>
+			<p class="m-0 text-sm font-semibold text-gray-800">{m.sync_saved_locally()}</p>
 			<p class="m-0 text-xs text-gray-500">
-				<a href={resolve('/sign-in')} class="text-blue-600 font-semibold no-underline hover:underline">Sign in</a>
-				to sync across devices
+				<a href={resolve('/sign-in')} class="text-blue-600 font-semibold no-underline hover:underline">{m.sync_sign_in()}</a>
+				{m.sync_across_devices()}
 			</p>
 		</sync-text>
 		<button
