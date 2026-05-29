@@ -58,7 +58,7 @@ export const notebookTheme: BoardTheme = {
 	fontFamily: 'Caveat, cursive',
 	digitScale: 0.64,
 	gridLineWidth: 0.75,
-	gridLineThickWidth: 4.0
+	gridLineThickWidth: 2.0
 };
 
 export const darkTheme: BoardTheme = {

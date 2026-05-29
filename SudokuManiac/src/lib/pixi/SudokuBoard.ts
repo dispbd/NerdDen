@@ -219,13 +219,16 @@ export class SudokuBoard {
 		this.digitTexts = [];
 		this.candidateContainers = [];
 
+		// Grid lines first (bottom layer) so cell backgrounds render on top
+		this.drawGridLines();
+
 		for (let r = 0; r < this.gridSize; r++) {
 			this.cellBgs[r] = [];
 			this.digitTexts[r] = [];
 			this.candidateContainers[r] = [];
 
 			for (let c = 0; c < this.gridSize; c++) {
-				// Cell background
+				// Cell background (above grid lines)
 				const bg = new Graphics();
 				bg.eventMode = 'static';
 				bg.cursor = 'pointer';
@@ -238,8 +241,6 @@ export class SudokuBoard {
 				this.candidateContainers[r][c] = null;
 			}
 		}
-
-		this.drawGridLines();
 	}
 
 	private drawGridLines(): void {
@@ -290,8 +291,23 @@ export class SudokuBoard {
 		const x = c * this.cellSize;
 		const y = r * this.cellSize;
 
+		// Inset cell background by half the relevant border width so it never covers grid lines
+		const thinHalf = (this.theme.gridLineWidth ?? 1) / 2;
+		const thickHalf = (this.theme.gridLineThickWidth ?? 2.5) / 2;
+		const boxRows = this.boxRows;
+		const boxCols = this.boxCols;
+		const insetLeft   = c % boxCols === 0 ? thickHalf : thinHalf;
+		const insetTop    = r % boxRows === 0 ? thickHalf : thinHalf;
+		const insetRight  = (c + 1) % boxCols === 0 ? thickHalf : thinHalf;
+		const insetBottom = (r + 1) % boxRows === 0 ? thickHalf : thinHalf;
+
 		bg.clear();
-		bg.rect(x + 0.5, y + 0.5, this.cellSize - 1, this.cellSize - 1);
+		bg.rect(
+			x + insetLeft,
+			y + insetTop,
+			this.cellSize - insetLeft - insetRight,
+			this.cellSize - insetTop - insetBottom
+		);
 		bg.fill(color);
 	}
 
@@ -360,7 +376,8 @@ export class SudokuBoard {
 			fontFamily: this.theme.fontFamily ?? 'system-ui, sans-serif',
 			fontSize,
 			fontWeight: isGiven ? '700' : '400',
-			fill: color
+			fill: color,
+			padding: Math.ceil(fontSize * 0.2) // prevent clipping of handwriting font descenders/ascenders
 		});
 
 		const text = new Text({ text: String(value), style });
