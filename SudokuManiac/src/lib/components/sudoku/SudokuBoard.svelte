@@ -7,6 +7,8 @@
 	interface Props {
 		puzzle: Grid;
 		solution: Grid;
+		/** Player grid to restore when continuing a saved game. Empty array = new game. */
+		playerGrid?: Grid;
 		/** Currently selected digit (1-N) to place, or 0 for erase */
 		activeDigit?: number;
 		theme?: 'light' | 'dark';
@@ -20,6 +22,7 @@
 	let {
 		puzzle,
 		solution,
+		playerGrid = [],
 		activeDigit = $bindable(0),
 		theme = 'light',
 		size = 0,
@@ -41,7 +44,13 @@
 		const px = resolveSize();
 		board = new SudokuBoard({ size: px, theme: theme === 'dark' ? darkTheme : lightTheme, gridSize });
 		await board.init(canvas);
-		if (puzzle.length) board.loadPuzzle(puzzle, solution);
+		if (puzzle.length) {
+			if (playerGrid.length) {
+				board.loadState(puzzle, playerGrid, solution);
+			} else {
+				board.loadPuzzle(puzzle, solution);
+			}
+		}
 
 		board.on('cellSelect', ({ row, col }) => {
 			onCellSelect?.(row, col);
@@ -65,7 +74,13 @@
 		board = null;
 	});
 
-	$effect(() => { board?.loadPuzzle(puzzle, solution); });
+	$effect(() => {
+		if (playerGrid.length) {
+			board?.loadState(puzzle, playerGrid, solution);
+		} else {
+			board?.loadPuzzle(puzzle, solution);
+		}
+	});
 	$effect(() => { board?.setTheme(theme === 'dark' ? darkTheme : lightTheme); });
 
 	export function placeDigit(num: number) { board?.setDigit(num); }

@@ -50,6 +50,8 @@ export const gameSessions = pgTable(
 		hintsUsed: integer('hints_used').notNull().default(0),
 		/** Current player grid (9×9 numbers, 0 = empty) */
 		gridState: jsonb('grid_state').notNull(),
+		/** Original puzzle grid (0 = empty cell the player must fill) */
+		puzzle: jsonb('puzzle'),
 		/** Full solution grid */
 		solution: jsonb('solution').notNull(),
 		/** Grid size: 4, 6, or 9 */

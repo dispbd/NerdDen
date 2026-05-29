@@ -12,6 +12,8 @@ export interface GuestSave {
 	id: string;
 	difficulty: Difficulty;
 	gridSize: GridSize;
+	/** Original puzzle with 0s for empty cells */
+	puzzle: Grid;
 	gridState: Grid;
 	solution: Grid;
 	timeSpent: number;
@@ -66,6 +68,7 @@ export function deleteGuestSave(id: string): void {
 export function createGuestSave(params: {
 	difficulty: Difficulty;
 	gridSize: GridSize;
+	puzzle: Grid;
 	gridState: Grid;
 	solution: Grid;
 }): GuestSave {

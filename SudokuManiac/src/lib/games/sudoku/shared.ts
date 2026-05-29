@@ -13,6 +13,8 @@ export interface SaveSlot {
 	source: 'db' | 'local';
 	difficulty: Difficulty;
 	gridSize: GridSize;
+	/** Original puzzle with 0s for empty cells. Undefined for saves created before this field was added. */
+	puzzle?: Grid;
 	gridState: Grid;
 	solution: Grid;
 	/** Elapsed time in seconds */

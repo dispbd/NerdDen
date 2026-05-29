@@ -94,6 +94,20 @@ export class SudokuBoard {
 		if (this.initialized) this.renderAllCells();
 	}
 
+	/** Load an in-progress saved game — preserves player entries and distinguishes them from givens */
+	loadState(puzzle: Grid, playerGrid: Grid, solution: Grid): void {
+		this.puzzle = puzzle;
+		this.solution = solution;
+		this.playerGrid = playerGrid.map((row) => [...row]);
+		this.errors.clear();
+		this.selectedRow = -1;
+		this.selectedCol = -1;
+		if (this.initialized) {
+			this.updateErrors();
+			this.renderAllCells();
+		}
+	}
+
 	/** Set a digit in the selected cell (0 = erase) */
 	setDigit(num: number): void {
 		const { selectedRow: r, selectedCol: c } = this;

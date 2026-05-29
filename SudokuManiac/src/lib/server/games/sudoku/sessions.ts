@@ -24,6 +24,7 @@ const HINTS_PER_SOLVE = 1;
 export async function createGameSession(params: {
 	userId: string | null;
 	difficulty: Difficulty;
+	puzzle: Grid;
 	gridState: Grid;
 	solution: Grid;
 	gridSize?: number;
@@ -34,6 +35,7 @@ export async function createGameSession(params: {
 			userId: params.userId,
 			gameType: 'sudoku',
 			difficulty: params.difficulty,
+			puzzle: params.puzzle,
 			gridState: params.gridState,
 			solution: params.solution,
 			gridSize: params.gridSize ?? 9

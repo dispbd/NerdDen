@@ -33,6 +33,8 @@
 	let gridSize = $state<GridSize>(9);
 	let puzzle = $state<Grid>([]);
 	let solution = $state<Grid>([]);
+	/** Player grid when restoring a saved game. Empty array = new game (board initialises from puzzle). */
+	let playerGrid = $state<Grid>([]);
 	let gameStarted = $state(false);
 	let gameSolved = $state(false);
 	let timerRunning = $state(false);
@@ -59,6 +61,7 @@
 				source: 'db' as const,
 				difficulty: s.difficulty as Difficulty,
 				gridSize: (s.gridSize ?? 9) as GridSize,
+				puzzle: (s.puzzle as Grid | null) ?? undefined,
 				gridState: s.gridState as Grid,
 				solution: s.solution as Grid,
 				timeSpent: s.timeSpent,
@@ -78,7 +81,10 @@
 	}
 
 	async function continueSession(slot: SaveSlot) {
-		puzzle = slot.gridState;
+		// Original puzzle (0 = blank) may be absent for saves created before this feature.
+		// Fallback: treat gridState as puzzle (old behaviour — givens won't be locked).
+		puzzle = slot.puzzle ?? slot.gridState;
+		playerGrid = slot.gridState;
 		solution = slot.solution;
 		difficulty = slot.difficulty;
 		gridSize = slot.gridSize;
@@ -107,7 +113,7 @@
 	 */
 	async function stashCurrentDbSession() {
 		if (!sessionId) return;
-		const currentGrid = boardRef?.getCurrentGrid?.() ?? puzzle;
+		const currentGrid = boardRef?.getCurrentGrid?.() ?? playerGrid;
 		const elapsed = timerRef?.getElapsed() ?? 0;
 		await fetch(`/api/sudoku/sessions/${sessionId}`, {
 			method: 'PATCH',
@@ -119,6 +125,7 @@
 			source: 'db',
 			difficulty,
 			gridSize,
+			puzzle,
 			gridState: currentGrid,
 			solution,
 			timeSpent: elapsed,
@@ -157,6 +164,7 @@
 		);
 		const generated = (await genRes.json()) as { puzzle: Grid; solution: Grid };
 		puzzle = generated.puzzle;
+		playerGrid = []; // new game — board initialises player grid from puzzle
 		solution = generated.solution;
 		if (diff) difficulty = diff;
 		gameStarted = true;
@@ -171,6 +179,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					difficulty: diff ?? difficulty,
+					puzzle: generated.puzzle,
 					gridState: generated.puzzle,
 					solution: generated.solution,
 					gridSize
@@ -188,6 +197,7 @@
 			const save = createGuestSave({
 				difficulty: diff ?? difficulty,
 				gridSize,
+				puzzle: generated.puzzle,
 				gridState: generated.puzzle,
 				solution: generated.solution
 			});
@@ -453,6 +463,7 @@
 					bind:this={boardRef}
 					{puzzle}
 					{solution}
+					{playerGrid}
 					{gridSize}
 					onSolved={() => void handleSolved()}
 				/>
