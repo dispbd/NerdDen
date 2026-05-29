@@ -15,7 +15,12 @@ export interface BoardTheme {
 	digitGiven: number;
 	digitPlayer: number;
 	digitError: number;
+	digitHint?: number;       // hint-revealed digit (optional, falls back to digitPlayer)
 	digitCandidate: number;
+	fontFamily?: string;      // custom font (default: system-ui)
+	digitScale?: number;      // fontSize = cellSize * digitScale (default: 0.56)
+	gridLineWidth?: number;   // thin cell line width (default: 1)
+	gridLineThickWidth?: number; // box border width (default: 2.5)
 }
 
 export const lightTheme: BoardTheme = {
@@ -32,6 +37,28 @@ export const lightTheme: BoardTheme = {
 	digitPlayer: 0x2563eb,
 	digitError: 0xdc2626,
 	digitCandidate: 0x6b7280
+};
+
+/** Notebook / paper theme — mimics a hand-filled sudoku booklet */
+export const notebookTheme: BoardTheme = {
+	background: 0xffffff,
+	cellBackground: 0xffffff,
+	cellBackgroundAlt: 0xffffff, // no alternating box tint
+	cellSelected: 0xd0e8ff,
+	cellHighlighted: 0xf0f7ff,
+	cellError: 0xffe8e8,
+	cellGiven: 0xffffff,         // given cells are plain white
+	gridLine: 0xcccccc,          // light gray thin lines
+	gridLineThick: 0x0a0a0a,     // near-black box borders
+	digitGiven: 0x0a0a0a,        // black
+	digitPlayer: 0xbf1515,       // dark red
+	digitError: 0xff2020,
+	digitHint: 0x1a7a2a,         // dark green (matches photo)
+	digitCandidate: 0x999999,
+	fontFamily: 'Caveat, cursive',
+	digitScale: 0.64,
+	gridLineWidth: 0.75,
+	gridLineThickWidth: 4.0
 };
 
 export const darkTheme: BoardTheme = {

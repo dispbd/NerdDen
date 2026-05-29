@@ -36,6 +36,7 @@ export class SudokuBoard {
 	private playerGrid: Grid = [];
 	private solution: Grid = [];
 	private errors: Set<string> = new Set();
+	private hintCells: Set<string> = new Set();
 
 	private selectedRow = -1;
 	private selectedCol = -1;
@@ -89,6 +90,7 @@ export class SudokuBoard {
 		this.solution = solution;
 		this.playerGrid = puzzle.map((row) => [...row]);
 		this.errors.clear();
+		this.hintCells.clear();
 		this.selectedRow = -1;
 		this.selectedCol = -1;
 		if (this.initialized) this.renderAllCells();
@@ -100,6 +102,7 @@ export class SudokuBoard {
 		this.solution = solution;
 		this.playerGrid = playerGrid.map((row) => [...row]);
 		this.errors.clear();
+		this.hintCells.clear();
 		this.selectedRow = -1;
 		this.selectedCol = -1;
 		if (this.initialized) {
@@ -195,6 +198,7 @@ export class SudokuBoard {
 		if (targetRow < 0 || targetCol < 0) return; // board is full
 
 		this.playerGrid[targetRow][targetCol] = this.solution[targetRow][targetCol];
+		this.hintCells.add(`${targetRow},${targetCol}`);
 		this.updateCellDisplay(targetRow, targetCol);
 		this.updateErrors();
 		this.renderHighlights();
@@ -248,13 +252,13 @@ export class SudokuBoard {
 			const pos = i * this.cellSize;
 
 			// Vertical lines (separate columns)
-			const vWidth = isVertBoxBorder ? 2.5 : 1;
+			const vWidth = isVertBoxBorder ? (this.theme.gridLineThickWidth ?? 2.5) : (this.theme.gridLineWidth ?? 1);
 			const vColor = isVertBoxBorder ? this.theme.gridLineThick : this.theme.gridLine;
 			lines.moveTo(pos, 0).lineTo(pos, totalSize);
 			lines.stroke({ color: vColor, width: vWidth });
 
 			// Horizontal lines (separate rows)
-			const hWidth = isHorizBoxBorder ? 2.5 : 1;
+			const hWidth = isHorizBoxBorder ? (this.theme.gridLineThickWidth ?? 2.5) : (this.theme.gridLineWidth ?? 1);
 			const hColor = isHorizBoxBorder ? this.theme.gridLineThick : this.theme.gridLine;
 			lines.moveTo(0, pos).lineTo(totalSize, pos);
 			lines.stroke({ color: hColor, width: hWidth });
@@ -341,18 +345,21 @@ export class SudokuBoard {
 
 		const isGiven = this.puzzle[r][c] !== 0;
 		const isError = this.errors.has(`${r},${c}`);
+		const isHint = !isGiven && this.hintCells.has(`${r},${c}`);
 
 		const color = isError
 			? this.theme.digitError
-			: isGiven
-				? this.theme.digitGiven
-				: this.theme.digitPlayer;
+			: isHint
+				? (this.theme.digitHint ?? this.theme.digitPlayer)
+				: isGiven
+					? this.theme.digitGiven
+					: this.theme.digitPlayer;
 
-		const fontSize = Math.round(this.cellSize * 0.56);
+		const fontSize = Math.round(this.cellSize * (this.theme.digitScale ?? 0.56));
 		const style = new TextStyle({
-			fontFamily: 'system-ui, sans-serif',
+			fontFamily: this.theme.fontFamily ?? 'system-ui, sans-serif',
 			fontSize,
-			fontWeight: isGiven ? '700' : '500',
+			fontWeight: isGiven ? '700' : '400',
 			fill: color
 		});
 

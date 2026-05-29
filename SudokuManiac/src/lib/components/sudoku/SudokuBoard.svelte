@@ -1,8 +1,12 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { SudokuBoard } from '$lib/pixi/SudokuBoard.js';
-	import { darkTheme, lightTheme } from '$lib/pixi/themes.js';
+	import { darkTheme, notebookTheme } from '$lib/pixi/themes.js';
 	import type { Grid, GridSize } from '$lib/games/sudoku/shared.js';
+
+	function resolveTheme(t: string) {
+		return t === 'dark' ? darkTheme : notebookTheme;
+	}
 
 	interface Props {
 		puzzle: Grid;
@@ -41,8 +45,11 @@
 	}
 
 	onMount(async () => {
+		// Ensure handwriting font is ready before first PixiJS render
+		try { await document.fonts.load('700 40px Caveat'); } catch { /* fallback ok */ }
+
 		const px = resolveSize();
-		board = new SudokuBoard({ size: px, theme: theme === 'dark' ? darkTheme : lightTheme, gridSize });
+		board = new SudokuBoard({ size: px, theme: resolveTheme(theme), gridSize });
 		await board.init(canvas);
 		if (puzzle.length) {
 			if (playerGrid.length) {
@@ -81,7 +88,7 @@
 			board?.loadPuzzle(puzzle, solution);
 		}
 	});
-	$effect(() => { board?.setTheme(theme === 'dark' ? darkTheme : lightTheme); });
+	$effect(() => { board?.setTheme(resolveTheme(theme)); });
 
 	export function placeDigit(num: number) { board?.setDigit(num); }
 	export function getCurrentGrid(): Grid | null { return board?.getPlayerGrid() ?? null; }
