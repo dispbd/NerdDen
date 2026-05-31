@@ -10,8 +10,8 @@ export interface BoardTheme {
 	cellHighlighted: number; // same row/col/box as selected
 	cellError: number;
 	cellGiven: number; // locked (pre-filled) cell bg
-	cellOpponentSelected?: number; // opponent’s active cell (shown in read-only board)
-	gridLine: number;
+	cellOpponentSelected?: number; // opponent’s active cell (shown in read-only board)	/** Background for opponent cells that are filled but digits are hidden */
+	cellOpponentFilled?: number;	gridLine: number;
 	gridLineThick: number; // box borders
 	digitGiven: number;
 	digitPlayer: number;
@@ -32,6 +32,7 @@ export const lightTheme: BoardTheme = {
 	cellHighlighted: 0xdaeafe,
 	cellError: 0xffe0e0,
 	cellGiven: 0xeceff8,
+	cellOpponentFilled: 0xc5d8f5,
 	gridLine: 0xb0b8cc,
 	gridLineThick: 0x3a4560,
 	digitGiven: 0x1a2340,
@@ -50,6 +51,7 @@ export const notebookTheme: BoardTheme = {
 	cellError: 0xffe8e8,
 	cellGiven: 0xffffff,         // given cells are plain white
 	cellOpponentSelected: 0xffd54f, // amber — opponent cursor
+	cellOpponentFilled: 0xe0e0e0, // light gray — filled but digit hidden
 	gridLine: 0xcccccc,          // light gray thin lines
 	gridLineThick: 0x0a0a0a,     // near-black box borders
 	digitGiven: 0x0a0a0a,        // black
@@ -71,6 +73,7 @@ export const darkTheme: BoardTheme = {
 	cellHighlighted: 0x1c2d4a,
 	cellError: 0x4a1c1c,
 	cellGiven: 0x2a2f45,
+	cellOpponentFilled: 0x303654,
 	gridLine: 0x3a4055,
 	gridLineThick: 0x8899cc,
 	digitGiven: 0xe8eaf6,

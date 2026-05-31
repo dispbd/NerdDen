@@ -21,6 +21,8 @@
 		gridSize?: GridSize;
 		/** Read-only mode — disables all input (for opponent board display) */
 		readonly?: boolean;
+		/** Hide player-entered digits (show filled cells as colored blocks instead) */
+		hideDigits?: boolean;
 		/** Opponent's selected cell row (-1 = none) */
 		opponentRow?: number;
 		/** Opponent's selected cell col (-1 = none) */
@@ -38,6 +40,7 @@
 		size = 0,
 		gridSize = 9,
 		readonly = false,
+		hideDigits = false,
 		opponentRow = -1,
 		opponentCol = -1,
 		onCellSelect,
@@ -58,7 +61,7 @@
 		try { await document.fonts.load('700 40px Caveat'); } catch { /* fallback ok */ }
 
 		const px = resolveSize();
-		board = new SudokuBoard({ size: px, theme: resolveTheme(theme), gridSize });
+		board = new SudokuBoard({ size: px, theme: resolveTheme(theme), gridSize, hidePlayerDigits: hideDigits });
 		await board.init(canvas);
 		if (puzzle.length) {
 			if (playerGrid.length) {
@@ -100,6 +103,7 @@
 	});
 	$effect(() => { board?.setTheme(resolveTheme(theme)); });
 	$effect(() => { board?.setOpponentSelection(opponentRow, opponentCol); });
+	$effect(() => { board?.setHidePlayerDigits(hideDigits); });
 
 	export function placeDigit(num: number) { board?.setDigit(num); }
 	export function getCurrentGrid(): Grid | null { return board?.getPlayerGrid() ?? null; }

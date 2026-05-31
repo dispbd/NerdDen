@@ -68,6 +68,9 @@
 	/** Grid to restore when entering the game view (empty = new game, populated = reconnect) */
 	let gameInitialGrid = $state<number[][]>([]);
 
+	/** Prevents the reconnect $effect from re-entering game view while leaving */
+	let leaving = false;
+
 	let progressTimer: ReturnType<typeof setInterval> | null = null;
 
 	const conn = createRoomConnection(
@@ -217,6 +220,7 @@
 	}
 
 	function backToLobby() {
+		leaving = false;
 		conn.disconnect();
 		view = 'lobby';
 		timerRunning = false;
@@ -231,10 +235,12 @@
 	}
 
 	/** Explicit leave — notifies server, marks as abandoned, opponent wins. */
-	async function leaveGame() {
+	function leaveGame() {
 		if (!room.roomId) { backToLobby(); return; }
-		await conn.sendLeave(room.roomId);
-		backToLobby();
+		leaving = true;
+		const roomId = room.roomId;
+		backToLobby(); // navigate away immediately
+		conn.sendLeave(roomId); // notify server in background
 	}
 
 	/** Rejoin an in-progress game from a previous session (saved in localStorage). */
@@ -296,7 +302,7 @@
 	 * view (e.g. reconnecting mid-game), jump straight to the game view and restore timer.
 	 */
 	$effect(() => {
-		if (room.status === 'in_progress' && (view === 'room' || view === 'lobby') && room.puzzle) {
+		if (!leaving && room.status === 'in_progress' && (view === 'room' || view === 'lobby') && room.puzzle) {
 			const me = room.players.find((p) => p.userId === myId);
 			gameInitialGrid = me?.gridState ?? [];
 			const saved = typeof localStorage !== 'undefined' ? getSavedRoom() : null;
@@ -589,6 +595,7 @@
 			playerGrid={opponent.gridState ?? []}
 			gridSize={room.gridSize}
 			readonly={true}
+			hideDigits={true}
 			opponentRow={opponent.selectedRow}
 			opponentCol={opponent.selectedCol}
 		/>
@@ -633,6 +640,7 @@
 			playerGrid={opponent.gridState ?? []}
 			gridSize={room.gridSize}
 			readonly={true}
+			hideDigits={true}
 			opponentRow={opponent.selectedRow}
 			opponentCol={opponent.selectedCol}
 			size={168}

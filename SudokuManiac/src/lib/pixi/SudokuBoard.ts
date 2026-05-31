@@ -13,6 +13,8 @@ export interface BoardOptions {
 	size?: number; // canvas size in px (square)
 	theme?: BoardTheme;
 	gridSize?: GridSize;
+	/** Hide player-entered digits (show filled cells as colored blocks) — for opponent board */
+	hidePlayerDigits?: boolean;
 }
 
 export interface CellSelectEvent {
@@ -44,6 +46,7 @@ export class SudokuBoard {
 	private opponentCol = -1;
 
 	private theme: BoardTheme;
+	private hidePlayerDigits: boolean;
 	private cellSize = 0;
 	private padding = 4;
 	private initialized = false;
@@ -56,6 +59,7 @@ export class SudokuBoard {
 
 	constructor(private options: BoardOptions = {}) {
 		this.theme = options.theme ?? lightTheme;
+		this.hidePlayerDigits = options.hidePlayerDigits ?? false;
 		this.gridSize = options.gridSize ?? 9;
 		const dim = getBoxDim(this.gridSize);
 		this.boxRows = dim.rows;
@@ -153,6 +157,13 @@ export class SudokuBoard {
 			this.app.renderer.background.color = theme.background;
 		}
 		this.renderAllCells();
+	}
+
+	/** Toggle hiding player-entered digits (for opponent board) */
+	setHidePlayerDigits(value: boolean): void {
+		if (this.hidePlayerDigits === value) return;
+		this.hidePlayerDigits = value;
+		if (this.initialized) this.renderAllCells();
 	}
 
 	/** Resize the board canvas */
@@ -333,6 +344,16 @@ export class SudokuBoard {
 		if (r === this.selectedRow && c === this.selectedCol) return this.theme.cellSelected;
 		if (r === this.opponentRow && c === this.opponentCol)
 			return this.theme.cellOpponentSelected ?? 0xffe0b2;
+		// Opponent board: player-filled cells show as a distinct color (digit is hidden)
+		if (
+			this.hidePlayerDigits &&
+			this.playerGrid.length &&
+			this.puzzle.length &&
+			this.puzzle[r][c] === 0 &&
+			this.playerGrid[r][c] !== 0
+		) {
+			return this.theme.cellOpponentFilled ?? this.theme.cellHighlighted;
+		}
 		if (this.isHighlighted(r, c)) return this.theme.cellHighlighted;
 		if (this.errors.has(key)) return this.theme.cellError;
 		if (this.puzzle.length && this.puzzle[r][c] !== 0) return this.theme.cellGiven;
@@ -371,6 +392,9 @@ export class SudokuBoard {
 		if (value === 0) return;
 
 		const isGiven = this.puzzle[r][c] !== 0;
+
+		// In hidePlayerDigits mode, skip rendering text for player entries (background already signals fill)
+		if (this.hidePlayerDigits && !isGiven) return;
 		const isError = this.errors.has(`${r},${c}`);
 		const isHint = !isGiven && this.hintCells.has(`${r},${c}`);
 
