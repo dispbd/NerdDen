@@ -1,11 +1,14 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import { page } from '$app/stores';
 	import {
 		createRoomConnection,
 		getOrCreateGuestId,
 		getOrCreateGuestName,
-		setGuestName
+		setGuestName,
+		getSavedRoom,
+		clearSavedRoom,
+		type SavedRoomData
 	} from '$lib/competitive/room-connection.svelte';
 	import SudokuBoardComponent from '$lib/components/sudoku/SudokuBoard.svelte';
 	import GameTimer from '$lib/components/sudoku/GameTimer.svelte';
@@ -56,11 +59,21 @@
 	let selectedRow = $state(-1);
 	let selectedCol = $state(-1);
 
+	/** Saved room data for reconnect prompt */
+	let savedRoom = $state<SavedRoomData | null>(null);
+	/** Set when the opponent explicitly left — triggers win overlay */
+	let opponentAbandonedName = $state('');
+	/** Inline confirmation state for the Leave button */
+	let confirmLeave = $state(false);
+	/** Grid to restore when entering the game view (empty = new game, populated = reconnect) */
+	let gameInitialGrid = $state<number[][]>([]);
+
 	let progressTimer: ReturnType<typeof setInterval> | null = null;
 
 	const conn = createRoomConnection(
 		{
 			onGameStarted() {
+				gameInitialGrid = []; // fresh game — board starts empty
 				view = 'game';
 				timerRunning = true;
 				hintsUsed = 0;
@@ -73,9 +86,15 @@
 					clearProgress();
 				}
 			},
-			onGameFinished() {
+			onGameFinished(_standings, reason) {
 				timerRunning = false;
-				view = 'results';
+				clearProgress();
+				// 'abandoned' case: the win overlay already shows, don't auto-navigate
+				if (reason !== 'abandoned') view = 'results';
+			},
+			onOpponentAbandoned(_userId, name) {
+				opponentAbandonedName = name;
+				timerRunning = false;
 				clearProgress();
 			},
 			onSolveRejected() {
@@ -204,9 +223,26 @@
 		hintsUsed = 0;
 		selectedRow = -1;
 		selectedCol = -1;
+		confirmLeave = false;
+		opponentAbandonedName = '';
 		clearProgress();
 		if (typeof history !== 'undefined') history.replaceState({}, '', location.pathname);
 		loadOpenRooms();
+	}
+
+	/** Explicit leave — notifies server, marks as abandoned, opponent wins. */
+	async function leaveGame() {
+		if (!room.roomId) { backToLobby(); return; }
+		await conn.sendLeave(room.roomId);
+		backToLobby();
+	}
+
+	/** Rejoin an in-progress game from a previous session (saved in localStorage). */
+	function rejoinGame() {
+		if (!savedRoom) return;
+		conn.connect(savedRoom.roomId);
+		view = 'room'; // the $effect below will transition to 'game' once room_state arrives
+		savedRoom = null;
 	}
 
 	/** Copy the invite link and show a brief toast. */
@@ -239,7 +275,41 @@
 			inviteCode = urlCode.toUpperCase();
 			joinCode = inviteCode;
 		}
+		// Check for an active room from a previous session
+		const saved = getSavedRoom();
+		if (saved) {
+			fetch(`/api/competitive/rooms/${saved.roomId}`)
+				.then((r) => (r.ok ? r.json() : null))
+				.then((r) => {
+					if (r && r.status === 'in_progress') {
+						savedRoom = saved;
+					} else {
+						clearSavedRoom();
+					}
+				})
+				.catch(() => clearSavedRoom());
+		}
 	});
+
+	/**
+	 * When SSE sends room_state with status 'in_progress' while we're on the lobby/room
+	 * view (e.g. reconnecting mid-game), jump straight to the game view and restore timer.
+	 */
+	$effect(() => {
+		if (room.status === 'in_progress' && (view === 'room' || view === 'lobby') && room.puzzle) {
+			const me = room.players.find((p) => p.userId === myId);
+			gameInitialGrid = me?.gridState ?? [];
+			const saved = typeof localStorage !== 'undefined' ? getSavedRoom() : null;
+			const offset = saved?.gameStartedAt
+				? Math.floor((Date.now() - saved.gameStartedAt) / 1000)
+				: 0;
+			view = 'game';
+			timerRunning = true;
+			if (!progressTimer) progressTimer = setInterval(sendProgress, 1500);
+			if (offset > 0) tick().then(() => timerRef?.addOffset(offset));
+		}
+	});
+
 	onDestroy(() => conn.disconnect());
 </script>
 
@@ -247,6 +317,23 @@
 {#if view === 'lobby'}
 <main class="min-h-screen bg-base-200 flex flex-col items-center gap-8 py-12 px-4">
 	<h1 class="text-4xl font-bold">Online Mode</h1>
+
+	<!-- ── Rejoin prompt (active game from a previous session) ── -->
+	{#if savedRoom}
+	<section class="card bg-warning/10 border border-warning/30 shadow-md w-full max-w-md p-6 flex flex-col gap-4">
+		<div class="flex items-center gap-3">
+			<span class="text-3xl">🔄</span>
+			<div>
+				<p class="font-bold text-lg">You have an active game!</p>
+				<p class="text-sm text-base-content/60">Room: <span class="font-mono font-bold tracking-widest">{savedRoom.roomCode}</span></p>
+			</div>
+		</div>
+		<div class="flex gap-2">
+			<button class="btn btn-warning flex-1" onclick={rejoinGame}>Return to game</button>
+			<button class="btn btn-ghost btn-sm" onclick={() => { savedRoom = null; clearSavedRoom(); }}>Dismiss</button>
+		</div>
+	</section>
+	{/if}
 
 	<!-- ── Invite prompt (opened via share link) ── -->
 	{#if inviteCode}
@@ -418,9 +505,16 @@
 <!-- ══════════════════ GAME ══════════════════ -->
 {:else if view === 'game'}
 
-<!-- Top bar: abandon / timer / layout toggle -->
+<!-- Top bar: leave / timer / layout toggle -->
 <header class="fixed top-0 left-0 right-0 z-10 bg-base-100/90 backdrop-blur-sm border-b border-base-200 flex items-center justify-between px-3 py-1.5 h-11">
-	<button class="btn btn-xs btn-ghost" onclick={backToLobby}>✕ Abandon</button>
+	{#if confirmLeave}
+	<div class="flex items-center gap-2 flex-1">
+		<span class="text-sm font-medium text-error">Leave the game?</span>
+		<button class="btn btn-xs btn-error" onclick={leaveGame}>Yes, leave</button>
+		<button class="btn btn-xs btn-ghost" onclick={() => (confirmLeave = false)}>Cancel</button>
+	</div>
+	{:else}
+	<button class="btn btn-xs btn-ghost" onclick={() => (confirmLeave = true)}>🚪 Leave</button>
 	<GameTimer bind:this={timerRef} running={timerRunning} />
 	<div class="flex gap-1">
 		<button
@@ -432,7 +526,31 @@
 			onclick={() => (layoutMode = 'pip')}
 			title="Full + floating">⬛◻</button>
 	</div>
+	{/if}
 </header>
+
+<!-- Opponent-left win overlay -->
+{#if opponentAbandonedName}
+<div class="fixed inset-0 z-30 bg-black/50 flex items-center justify-center p-4">
+	<div class="card bg-base-100 shadow-2xl max-w-sm w-full p-6 flex flex-col gap-4">
+		<div class="text-center">
+			<span class="text-5xl">🏆</span>
+			<h2 class="text-2xl font-bold mt-2">You win!</h2>
+			<p class="text-base-content/60 text-sm mt-1">{opponentAbandonedName} left the game early</p>
+		</div>
+		<div class="flex flex-col gap-2">
+			<button
+				class="btn btn-primary"
+				onclick={() => { opponentAbandonedName = ''; view = 'results'; }}>
+				See results
+			</button>
+			<button class="btn btn-ghost" onclick={() => (opponentAbandonedName = '')}>
+				Keep solving (for fun)
+			</button>
+		</div>
+	</div>
+</div>
+{/if}
 
 <!-- SPLIT -->
 {#if layoutMode === 'split'}
@@ -446,6 +564,7 @@
 			bind:this={boardRef}
 			puzzle={room.puzzle!}
 			solution={[]}
+			playerGrid={gameInitialGrid}
 			gridSize={room.gridSize}
 			onCellSelect={handleCellSelect}
 			onSolved={handleSolved}
@@ -490,6 +609,7 @@
 		bind:this={boardRef}
 		puzzle={room.puzzle!}
 		solution={[]}
+		playerGrid={gameInitialGrid}
 		gridSize={room.gridSize}
 		onCellSelect={handleCellSelect}
 		onSolved={handleSolved}

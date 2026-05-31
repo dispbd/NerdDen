@@ -24,8 +24,8 @@ export interface PlayerInfo {
 	selectedRow: number;
 	selectedCol: number;
 	/** Opponent’s committed grid state (given + player-entered digits) */
-	gridState: number[][] | null;
-}
+	gridState: number[][] | null;	/** true when the player explicitly left via the Leave button */
+	abandoned?: boolean;}
 
 // ─── Client → Server ─────────────────────────────────────────────────────────
 
@@ -138,6 +138,15 @@ export interface WsGameFinished {
 		eloDelta: number;
 		newRating: number;
 	}>;
+	/** Why the game ended */
+	reason?: 'all_finished' | 'abandoned';
+}
+
+/** A player explicitly left the game (cannot rejoin; opponent wins) */
+export interface WsPlayerAbandoned {
+	type: 'player_abandoned';
+	userId: string;
+	name: string;
 }
 
 /** Server rejected a solve attempt */
@@ -164,6 +173,7 @@ export type ServerMessage =
 	| WsGameStarted
 	| WsPlayerProgress
 	| WsPlayerFinished
+	| WsPlayerAbandoned
 	| WsGameFinished
 	| WsSolveRejected
 	| WsError

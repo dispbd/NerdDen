@@ -6,6 +6,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { createRoom, listWaitingRooms } from '$lib/server/competitive/store';
+import { dbSyncRoomCreated } from '$lib/server/competitive/db-sync';
 import type { Difficulty, GridSize } from '$lib/competitive/protocol';
 
 function resolvePlayer(request: Request, locals: App.Locals) {
@@ -23,6 +24,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const maxPlayers = Math.min(Number(body.maxPlayers) || 2, 8);
 
 	const room = createRoom(player.id, player.name, difficulty, gridSize, maxPlayers);
+
+	// Persist to DB for auth users (guest-hosted rooms stay in-memory only)
+	if (locals.user) dbSyncRoomCreated(room, locals.user.id);
+
 	return json({ id: room.id, code: room.code }, { status: 201 });
 };
 

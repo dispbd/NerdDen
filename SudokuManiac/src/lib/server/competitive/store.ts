@@ -16,6 +16,8 @@ export interface RoomPlayer {
 	finishPosition: number | null;
 	timeSpent: number | null;
 	hintsUsed: number;
+	/** true when the player explicitly left via the Leave button — cannot rejoin */
+	abandoned: boolean;
 }
 
 export interface Room {
@@ -73,7 +75,8 @@ export function createRoom(
 					selectedCol: -1,
 					finishPosition: null,
 					timeSpent: null,
-					hintsUsed: 0
+					hintsUsed: 0,
+					abandoned: false
 				}
 			]
 		]),
@@ -122,7 +125,8 @@ export function joinRoom(
 			selectedCol: -1,
 			finishPosition: null,
 			timeSpent: null,
-			hintsUsed: 0
+			hintsUsed: 0,
+			abandoned: false
 		});
 	}
 }
@@ -182,7 +186,10 @@ export function recordSolve(
 	player.timeSpent = timeSpent;
 	player.gridState = gridState;
 
-	const allFinished = [...room.players.values()].every((p) => p.finishPosition !== null);
+	// Count abandoned players as "done" so they don't block game_finished
+	const allFinished = [...room.players.values()].every(
+		(p) => p.finishPosition !== null || p.abandoned
+	);
 	if (allFinished) room.status = 'finished';
 
 	return { valid: true, finishPosition: player.finishPosition, allFinished };
@@ -199,6 +206,42 @@ export function toPlayerInfo(player: RoomPlayer, gridSize: number) {
 		eloRating: 1200,
 		selectedRow: player.selectedRow,
 		selectedCol: player.selectedCol,
-		gridState: player.gridState
+		gridState: player.gridState,
+		abandoned: player.abandoned
 	};
+}
+
+export interface AbandonResult {
+	/** true when room moved to 'finished' (all active players now have positions) */
+	allFinished: boolean;
+}
+
+/**
+ * Mark a player as abandoned. Awards finish positions to all opponents who
+ * haven't finished yet, and closes the room if everyone is accounted for.
+ */
+export function abandonRoom(room: Room, playerId: string): AbandonResult {
+	const player = room.players.get(playerId);
+	if (!player || player.abandoned) return { allFinished: false };
+
+	player.abandoned = true;
+
+	// Award win positions to active, unfinished opponents
+	const alreadyPositioned = [...room.players.values()].filter(
+		(p) => p.finishPosition !== null
+	).length;
+	let pos = alreadyPositioned + 1;
+	for (const [id, p] of room.players) {
+		if (id !== playerId && !p.abandoned && p.finishPosition === null) {
+			p.finishPosition = pos++;
+		}
+	}
+
+	// Room finishes if all non-abandoned players have positions
+	const activePlayers = [...room.players.values()].filter((p) => !p.abandoned);
+	const allFinished =
+		activePlayers.length > 0 && activePlayers.every((p) => p.finishPosition !== null);
+	if (allFinished) room.status = 'finished';
+
+	return { allFinished };
 }

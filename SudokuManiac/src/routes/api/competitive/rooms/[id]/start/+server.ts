@@ -7,6 +7,7 @@ import type { RequestHandler } from './$types';
 import { json, error } from '@sveltejs/kit';
 import { getRoom, startRoom } from '$lib/server/competitive/store';
 import { broadcast } from '$lib/server/competitive/sse';
+import { dbSyncGameStarted } from '$lib/server/competitive/db-sync';
 
 export const POST: RequestHandler = async ({ params, request, locals }) => {
 	const room = getRoom(params.id);
@@ -23,6 +24,8 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 		puzzle: room.puzzle,
 		startedAt: new Date().toISOString()
 	});
+
+	dbSyncGameStarted(params.id);
 
 	return json({ ok: true });
 };

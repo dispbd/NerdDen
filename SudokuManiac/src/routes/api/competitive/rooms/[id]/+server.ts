@@ -7,6 +7,7 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getRoom, joinRoom, toPlayerInfo } from '$lib/server/competitive/store';
 import { broadcast } from '$lib/server/competitive/sse';
+import { dbSyncPlayerJoined } from '$lib/server/competitive/db-sync';
 
 function resolvePlayer(request: Request, locals: App.Locals) {
 	if (locals.user) return { id: locals.user.id, name: locals.user.name };
@@ -45,6 +46,9 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 		type: 'player_joined',
 		player: toPlayerInfo(room.players.get(player.id)!, room.gridSize)
 	});
+
+	// Persist to DB for auth users
+	if (locals.user) dbSyncPlayerJoined(room.id, locals.user.id);
 
 	return json({ id: room.id, code: room.code });
 };

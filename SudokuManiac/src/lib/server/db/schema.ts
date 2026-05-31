@@ -237,8 +237,13 @@ export const roomParticipants = pgTable(
 		finishPosition: integer('finish_position'),
 		/** ELO delta earned in this match (+/-) */
 		eloDelta: integer('elo_delta'),
+		/** 'active' while playing, 'finished' on solve, 'abandoned' on explicit leave */
+		status: text('status', { enum: ['active', 'finished', 'abandoned'] })
+			.notNull()
+			.default('active'),
 		joinedAt: timestamp('joined_at').defaultNow().notNull(),
-		finishedAt: timestamp('finished_at')
+		finishedAt: timestamp('finished_at'),
+		abandonedAt: timestamp('abandoned_at')
 	},
 	(table) => [
 		unique('room_participants_unique').on(table.roomId, table.userId),
