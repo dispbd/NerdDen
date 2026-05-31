@@ -6,7 +6,12 @@
  * When it fires, the turn ends automatically.
  */
 
-import type { ServerWebSocket } from 'bun';
+/** Minimal subset of Bun's ServerWebSocket used here (replaced for Node compat). */
+interface ServerWebSocket<T> {
+	data: T;
+	readyState: number;
+	send(data: string): void;
+}
 import { auth } from '$lib/server/auth';
 import {
 	createTeam,

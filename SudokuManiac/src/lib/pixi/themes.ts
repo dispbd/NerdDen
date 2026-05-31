@@ -10,6 +10,7 @@ export interface BoardTheme {
 	cellHighlighted: number; // same row/col/box as selected
 	cellError: number;
 	cellGiven: number; // locked (pre-filled) cell bg
+	cellOpponentSelected?: number; // opponent’s active cell (shown in read-only board)
 	gridLine: number;
 	gridLineThick: number; // box borders
 	digitGiven: number;
@@ -48,6 +49,7 @@ export const notebookTheme: BoardTheme = {
 	cellHighlighted: 0xf0f7ff,
 	cellError: 0xffe8e8,
 	cellGiven: 0xffffff,         // given cells are plain white
+	cellOpponentSelected: 0xffd54f, // amber — opponent cursor
 	gridLine: 0xcccccc,          // light gray thin lines
 	gridLineThick: 0x0a0a0a,     // near-black box borders
 	digitGiven: 0x0a0a0a,        // black

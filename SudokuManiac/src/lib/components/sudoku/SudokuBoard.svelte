@@ -19,6 +19,12 @@
 		/** Explicit pixel size. Pass 0 (or omit) to auto-size to the container width. */
 		size?: number;
 		gridSize?: GridSize;
+		/** Read-only mode — disables all input (for opponent board display) */
+		readonly?: boolean;
+		/** Opponent's selected cell row (-1 = none) */
+		opponentRow?: number;
+		/** Opponent's selected cell col (-1 = none) */
+		opponentCol?: number;
 		onCellSelect?: (row: number, col: number) => void;
 		onSolved?: () => void;
 	}
@@ -31,6 +37,9 @@
 		theme = 'light',
 		size = 0,
 		gridSize = 9,
+		readonly = false,
+		opponentRow = -1,
+		opponentCol = -1,
 		onCellSelect,
 		onSolved
 	}: Props = $props();
@@ -60,6 +69,7 @@
 		}
 
 		board.on('cellSelect', ({ row, col }) => {
+			if (readonly) return; // no interaction in read-only mode
 			onCellSelect?.(row, col);
 			if (activeDigit > 0) board?.setDigit(activeDigit);
 		});
@@ -89,6 +99,7 @@
 		}
 	});
 	$effect(() => { board?.setTheme(resolveTheme(theme)); });
+	$effect(() => { board?.setOpponentSelection(opponentRow, opponentCol); });
 
 	export function placeDigit(num: number) { board?.setDigit(num); }
 	export function getCurrentGrid(): Grid | null { return board?.getPlayerGrid() ?? null; }

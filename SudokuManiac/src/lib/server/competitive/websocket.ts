@@ -1,12 +1,10 @@
 /**
- * WebSocket handler for competitive mode.
- * Bun's native WebSocket API is used via SvelteKit's handleWebsocket hook.
- *
- * Each connection is identified by userId (from session cookie) + roomId.
- * The in-process Map is sufficient for a single-server deployment.
+ * Competitive WebSocket handler — replaced by SSE + REST endpoints.
+ * This file is kept as an empty stub to avoid import errors.
  */
 
-import type { ServerWebSocket } from 'bun';
+export {};
+
 import { auth } from '$lib/server/auth';
 import {
 	getRoomWithParticipants,

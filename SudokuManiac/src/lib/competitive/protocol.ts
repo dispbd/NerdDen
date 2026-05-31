@@ -20,6 +20,11 @@ export interface PlayerInfo {
 	/** null while still playing */
 	finishPosition: number | null;
 	eloRating: number;
+	/** Opponent’s selected cell coordinates (-1 = none) */
+	selectedRow: number;
+	selectedCol: number;
+	/** Opponent’s committed grid state (given + player-entered digits) */
+	gridState: number[][] | null;
 }
 
 // ─── Client → Server ─────────────────────────────────────────────────────────
@@ -73,6 +78,7 @@ export type ClientMessage =
 export interface WsRoomState {
 	type: 'room_state';
 	roomId: string;
+	code: string;
 	status: RoomStatus;
 	hostId: string;
 	difficulty: Difficulty;
@@ -106,7 +112,11 @@ export interface WsGameStarted {
 export interface WsPlayerProgress {
 	type: 'player_progress';
 	userId: string;
+	name: string;
 	progress: number;
+	selectedRow: number;
+	selectedCol: number;
+	gridState: number[][] | null;
 }
 
 /** A player finished — broadcast to all */

@@ -1,41 +1,50 @@
 /**
  * GET  /api/competitive/rooms/[id]  — get room state
- * POST /api/competitive/rooms/[id]  — join room (by id) or start (action=start)
+ * POST /api/competitive/rooms/[id]  — join room by id (guests welcome)
  */
 
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import {
-	getRoomWithParticipants,
-	joinRoom,
-	startRoom
-} from '$lib/server/competitive/rooms';
+import { getRoom, joinRoom, toPlayerInfo } from '$lib/server/competitive/store';
+import { broadcast } from '$lib/server/competitive/sse';
 
-export const GET: RequestHandler = async ({ params, locals }) => {
-	if (!locals.user) error(401, 'Sign in to view room');
+function resolvePlayer(request: Request, locals: App.Locals) {
+	if (locals.user) return { id: locals.user.id, name: locals.user.name };
+	const id = request.headers.get('x-player-id');
+	const name = request.headers.get('x-player-name') ?? 'Guest';
+	if (!id) return null;
+	return { id, name };
+}
 
-	try {
-		const room = await getRoomWithParticipants(params.id);
-		return json(room);
-	} catch {
-		error(404, 'Room not found');
-	}
+export const GET: RequestHandler = async ({ params }) => {
+	const room = getRoom(params.id);
+	if (!room) error(404, 'Room not found');
+	return json({
+		id: room.id,
+		code: room.code,
+		status: room.status,
+		hostId: room.hostId,
+		difficulty: room.difficulty,
+		gridSize: room.gridSize,
+		maxPlayers: room.maxPlayers,
+		players: [...room.players.values()].map((p) => toPlayerInfo(p, room.gridSize))
+	});
 };
 
 export const POST: RequestHandler = async ({ params, request, locals }) => {
-	if (!locals.user) error(401, 'Sign in to join room');
+	const room = getRoom(params.id);
+	if (!room) error(404, 'Room not found');
 
-	const body = await request.json().catch(() => ({}));
-	const action = (body as { action?: string }).action;
+	const player = resolvePlayer(request, locals);
+	if (!player) error(400, 'Player ID required (send x-player-id header)');
 
-	if (action === 'start') {
-		const result = await startRoom(params.id, locals.user.id);
-		if ('error' in result) error(400, result.error);
-		return json(result);
-	}
+	const result = joinRoom(room, player.id, player.name);
+	if (result && 'error' in result) error(400, result.error);
 
-	// Default action: join
-	const result = await joinRoom(params.id, locals.user.id);
-	if ('error' in result) error(400, result.error);
-	return json(result);
+	broadcast(params.id, 'player_joined', {
+		type: 'player_joined',
+		player: toPlayerInfo(room.players.get(player.id)!, room.gridSize)
+	});
+
+	return json({ id: room.id, code: room.code });
 };

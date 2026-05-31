@@ -40,6 +40,8 @@ export class SudokuBoard {
 
 	private selectedRow = -1;
 	private selectedCol = -1;
+	private opponentRow = -1;
+	private opponentCol = -1;
 
 	private theme: BoardTheme;
 	private cellSize = 0;
@@ -135,6 +137,13 @@ export class SudokuBoard {
 	setErrors(errorCells: [number, number][]): void {
 		this.errors = new Set(errorCells.map(([r, c]) => `${r},${c}`));
 		this.renderAllCells();
+	}
+
+	/** Show where the opponent has selected (read-only highlight) */
+	setOpponentSelection(row: number, col: number): void {
+		this.opponentRow = row;
+		this.opponentCol = col;
+		this.renderHighlights();
 	}
 
 	/** Switch theme at runtime */
@@ -322,6 +331,8 @@ export class SudokuBoard {
 	private getCellColor(r: number, c: number): number {
 		const key = `${r},${c}`;
 		if (r === this.selectedRow && c === this.selectedCol) return this.theme.cellSelected;
+		if (r === this.opponentRow && c === this.opponentCol)
+			return this.theme.cellOpponentSelected ?? 0xffe0b2;
 		if (this.isHighlighted(r, c)) return this.theme.cellHighlighted;
 		if (this.errors.has(key)) return this.theme.cellError;
 		if (this.puzzle.length && this.puzzle[r][c] !== 0) return this.theme.cellGiven;
