@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
+	import { page } from '$app/stores';
 	import {
 		createRoomConnection,
 		getOrCreateGuestId,
@@ -38,6 +39,10 @@
 		}>
 	>([]);
 	let lobbyError = $state('');
+	/** Code from ?room= URL param — triggers invite prompt on load */
+	let inviteCode = $state('');
+	/** Transient 'copied!' toast visible for a moment */
+	let copiedToast = $state(false);
 
 	// ─── Layout mode ─────────────────────────────────────────────────────────────
 	type LayoutMode = 'split' | 'pip';
@@ -128,23 +133,23 @@
 		});
 		if (!res.ok) { lobbyError = await res.text(); return; }
 		const created = await res.json();
-		enterRoom(created.id);
+		enterRoom(created.id, created.code);
 	}
 
-	async function joinByCode() {
+	async function joinByCode(code = joinCode) {
 		lobbyError = '';
 		const res = await fetch('/api/competitive/rooms/join', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
-				code: joinCode.trim().toUpperCase(),
+				code: code.trim().toUpperCase(),
 				guestId: data.user ? undefined : guestId,
 				guestName: data.user ? undefined : guestName
 			})
 		});
 		if (!res.ok) { lobbyError = await res.text(); return; }
 		const joined = await res.json();
-		enterRoom(joined.id);
+		enterRoom(joined.id, joined.code);
 	}
 
 	async function joinById(roomId: string) {
@@ -158,9 +163,14 @@
 		enterRoom(joined.id);
 	}
 
-	function enterRoom(roomId: string) {
+	function enterRoom(roomId: string, code?: string) {
 		conn.connect(roomId);
 		view = 'room';
+		// Put the room code in the URL so the host can share the tab directly
+		const c = code ?? room.roomCode;
+		if (c && typeof history !== 'undefined') {
+			history.replaceState({}, '', `?room=${c}`);
+		}
 	}
 
 	function startGame() {
@@ -195,7 +205,18 @@
 		selectedRow = -1;
 		selectedCol = -1;
 		clearProgress();
+		if (typeof history !== 'undefined') history.replaceState({}, '', location.pathname);
 		loadOpenRooms();
+	}
+
+	/** Copy the invite link and show a brief toast. */
+	function copyInviteLink() {
+		if (!room.roomCode) return;
+		const url = `${location.origin}/sudoku/competitive?room=${room.roomCode}`;
+		navigator.clipboard.writeText(url).then(() => {
+			copiedToast = true;
+			setTimeout(() => (copiedToast = false), 2000);
+		});
 	}
 
 	function saveName() {
@@ -212,6 +233,12 @@
 		guestName = getOrCreateGuestName();
 		nameInput = guestName;
 		loadOpenRooms();
+		// If opened via invite link, pre-fill the code and show invite prompt
+		const urlCode = new URL(location.href).searchParams.get('room');
+		if (urlCode) {
+			inviteCode = urlCode.toUpperCase();
+			joinCode = inviteCode;
+		}
 	});
 	onDestroy(() => conn.disconnect());
 </script>
@@ -221,8 +248,37 @@
 <main class="min-h-screen bg-base-200 flex flex-col items-center gap-8 py-12 px-4">
 	<h1 class="text-4xl font-bold">Online Mode</h1>
 
+	<!-- ── Invite prompt (opened via share link) ── -->
+	{#if inviteCode}
+	<section class="card bg-primary/10 border border-primary/30 shadow-md w-full max-w-md p-6 flex flex-col gap-4">
+		<div class="flex items-center gap-3">
+			<span class="text-2xl">🎮</span>
+			<div>
+				<p class="font-bold text-lg">You've been invited!</p>
+				<p class="text-sm text-base-content/60">Room code: <span class="font-mono font-bold tracking-widest">{inviteCode}</span></p>
+			</div>
+		</div>
+		{#if !data.user}
+		<div class="flex items-center gap-2">
+			<span class="text-sm text-base-content/60 shrink-0">Your name:</span>
+			<input
+				class="input input-sm input-bordered flex-1"
+				bind:value={guestName}
+				onchange={() => setGuestName(guestName)}
+				maxlength="20"
+			/>
+		</div>
+		{/if}
+		{#if lobbyError}<p class="text-error text-sm">{lobbyError}</p>{/if}
+		<div class="flex gap-2">
+			<button class="btn btn-primary flex-1" onclick={() => joinByCode(inviteCode)}>Join Room</button>
+			<button class="btn btn-ghost btn-sm" onclick={() => { inviteCode = ''; joinCode = ''; history.replaceState({}, '', location.pathname); }}>✕</button>
+		</div>
+	</section>
+	{/if}
+
 	<!-- Guest identity banner -->
-	{#if !data.user}
+	{#if !data.user && !inviteCode}
 	<section class="card bg-base-100 shadow-sm w-full max-w-md p-4 flex items-center gap-3">
 		<span class="text-base-content/60 text-sm">Playing as:</span>
 		{#if editingName}
@@ -240,7 +296,7 @@
 	</section>
 	{/if}
 
-	{#if lobbyError}
+	{#if lobbyError && !inviteCode}
 	<p class="text-error text-sm">{lobbyError}</p>
 	{/if}
 
@@ -305,14 +361,25 @@
 <main class="min-h-screen bg-base-200 flex flex-col items-center gap-8 py-12 px-4">
 	<h1 class="text-3xl font-bold">Room <span class="font-mono text-primary">{room.roomCode}</span></h1>
 
-	<!-- Invite code -->
+	<!-- Invite link -->
 	{#if room.roomCode}
-	<section class="card bg-base-100 shadow-sm w-full max-w-md p-4 flex flex-col gap-2">
-		<p class="text-sm text-base-content/60">Share this code to invite a friend:</p>
-		<div class="flex items-center gap-3">
-			<span class="font-mono text-3xl tracking-widest font-bold text-primary">{room.roomCode}</span>
-			<button class="btn btn-xs btn-ghost" onclick={() => navigator.clipboard.writeText(room.roomCode ?? '')}>📋 Copy</button>
+	<section class="card bg-base-100 shadow-md w-full max-w-md p-5 flex flex-col gap-3">
+		<p class="text-sm font-medium">Invite a friend — share this link:</p>
+		<div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-2">
+			<span class="text-xs text-base-content/50 truncate flex-1 select-all">
+				{typeof location !== 'undefined' ? `${location.origin}/sudoku/competitive?room=${room.roomCode}` : `…?room=${room.roomCode}`}
+			</span>
 		</div>
+		<button
+			class="btn btn-primary w-full gap-2 {copiedToast ? 'btn-success' : ''}"
+			onclick={copyInviteLink}>
+			{#if copiedToast}
+				✅ Copied!
+			{:else}
+				📋 Copy invite link
+			{/if}
+		</button>
+		<p class="text-xs text-base-content/40 text-center">Or share the code: <span class="font-mono font-bold tracking-widest text-primary">{room.roomCode}</span></p>
 	</section>
 	{/if}
 
