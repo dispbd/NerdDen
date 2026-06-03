@@ -11,6 +11,8 @@
 	import Numpad from '$lib/components/sudoku/Numpad.svelte';
 	import GameTimer from '$lib/components/sudoku/GameTimer.svelte';
 	import SaveSlotCard from '$lib/components/sudoku/SaveSlotCard.svelte';
+	import DifficultyPicker from '$lib/components/sudoku/DifficultyPicker.svelte';
+	import GridSizePicker from '$lib/components/sudoku/GridSizePicker.svelte';
 	import { generatePuzzle } from '$lib/games/sudoku/generator.js';
 	import type { Difficulty, Grid, GridSize, SaveSlot } from '$lib/games/sudoku/shared.js';
 	import {
@@ -384,31 +386,13 @@
 			<h2 class="m-0 text-base font-semibold text-gray-500 uppercase tracking-wide">{m.sudoku_quick_play()}</h2>
 
 			<difficulty-grid class="grid grid-cols-3 gap-2 w-full max-w-sm">
-				{#each DIFFICULTIES as d (d)}
-					<button
-						class="px-2 py-2.5 rounded-lg border-2 font-semibold cursor-pointer transition-all
-							{difficulty === d
-							? 'border-blue-600 bg-blue-100 text-blue-700'
-							: 'border-transparent bg-blue-50 hover:bg-blue-100'}"
-						onclick={() => (difficulty = d)}
-					>
-						{diffLabel(d)}
-					</button>
-				{/each}
+				<DifficultyPicker value={difficulty} onchange={(d) => (difficulty = d)} labelFn={diffLabel} />
 			</difficulty-grid>
 
 			<settings-row class="flex flex-col items-center gap-2">
 				<span class="text-sm font-semibold text-gray-600">{m.sudoku_grid_size()}</span>
 				<size-selector class="flex gap-2">
-					{#each GRID_SIZES as s (s)}
-						<button
-							class="px-4 py-2 rounded-lg border-2 font-semibold cursor-pointer transition-all
-								{gridSize === s
-								? 'border-blue-600 bg-blue-100 text-blue-700'
-								: 'border-transparent bg-blue-50 hover:bg-blue-100'}"
-							onclick={() => (gridSize = s)}
-						>{s}×{s}</button>
-					{/each}
+					<GridSizePicker value={gridSize} onchange={(s) => (gridSize = s)} />
 				</size-selector>
 			</settings-row>
 

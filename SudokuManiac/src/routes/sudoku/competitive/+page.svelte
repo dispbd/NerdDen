@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onDestroy, onMount, tick } from 'svelte';
-	import { page } from '$app/stores';
 	import {
 		createRoomConnection,
 		getOrCreateGuestId,
@@ -13,6 +12,8 @@
 	import SudokuBoardComponent from '$lib/components/sudoku/SudokuBoard.svelte';
 	import GameTimer from '$lib/components/sudoku/GameTimer.svelte';
 	import Numpad from '$lib/components/sudoku/Numpad.svelte';
+	import DifficultyPicker from '$lib/components/sudoku/DifficultyPicker.svelte';
+	import GridSizePicker from '$lib/components/sudoku/GridSizePicker.svelte';
 	import type { PageData } from './$types';
 	import type { Difficulty, GridSize } from '$lib/games/sudoku/shared.js';
 
@@ -267,9 +268,6 @@
 		editingName = false;
 	}
 
-	const DIFFICULTIES: Difficulty[] = ['beginner', 'easy', 'medium', 'hard', 'expert', 'extreme'];
-	const GRID_SIZES: GridSize[] = [4, 6, 9];
-
 	onMount(() => {
 		guestId = getOrCreateGuestId();
 		guestName = getOrCreateGuestName();
@@ -321,128 +319,116 @@
 
 <!-- ══════════════════ LOBBY ══════════════════ -->
 {#if view === 'lobby'}
-<main class="min-h-screen bg-base-200 flex flex-col items-center gap-8 py-12 px-4">
+<main class="min-h-screen bg-gray-100 flex flex-col items-center gap-8 py-12 px-4">
 	<h1 class="text-4xl font-bold">Online Mode</h1>
 
-	<!-- ── Rejoin prompt (active game from a previous session) ── -->
+	<!-- ── Rejoin prompt ── -->
 	{#if savedRoom}
-	<section class="card bg-warning/10 border border-warning/30 shadow-md w-full max-w-md p-6 flex flex-col gap-4">
+	<section class="bg-yellow-50 border border-yellow-300 rounded-xl shadow-md w-full max-w-md p-6 flex flex-col gap-4">
 		<div class="flex items-center gap-3">
 			<span class="text-3xl">🔄</span>
 			<div>
 				<p class="font-bold text-lg">You have an active game!</p>
-				<p class="text-sm text-base-content/60">Room: <span class="font-mono font-bold tracking-widest">{savedRoom.roomCode}</span></p>
+				<p class="text-sm text-gray-400">Room: <span class="font-mono font-bold tracking-widest">{savedRoom.roomCode}</span></p>
 			</div>
 		</div>
 		<div class="flex gap-2">
-			<button class="btn btn-warning flex-1" onclick={rejoinGame}>Return to game</button>
-			<button class="btn btn-ghost btn-sm" onclick={() => { savedRoom = null; clearSavedRoom(); }}>Dismiss</button>
+			<button class="flex-1 px-4 py-2 bg-yellow-500 text-white rounded-lg font-semibold hover:bg-yellow-600 cursor-pointer transition-colors" onclick={rejoinGame}>Return to game</button>
+			<button class="px-3 py-1.5 text-sm rounded-lg hover:bg-gray-100 cursor-pointer transition-colors" onclick={() => { savedRoom = null; clearSavedRoom(); }}>Dismiss</button>
 		</div>
 	</section>
 	{/if}
 
-	<!-- ── Invite prompt (opened via share link) ── -->
+	<!-- ── Invite prompt ── -->
 	{#if inviteCode}
-	<section class="card bg-primary/10 border border-primary/30 shadow-md w-full max-w-md p-6 flex flex-col gap-4">
+	<section class="bg-blue-50 border border-blue-200 rounded-xl shadow-md w-full max-w-md p-6 flex flex-col gap-4">
 		<div class="flex items-center gap-3">
 			<span class="text-2xl">🎮</span>
 			<div>
 				<p class="font-bold text-lg">You've been invited!</p>
-				<p class="text-sm text-base-content/60">Room code: <span class="font-mono font-bold tracking-widest">{inviteCode}</span></p>
+				<p class="text-sm text-gray-400">Room code: <span class="font-mono font-bold tracking-widest">{inviteCode}</span></p>
 			</div>
 		</div>
 		{#if !data.user}
 		<div class="flex items-center gap-2">
-			<span class="text-sm text-base-content/60 shrink-0">Your name:</span>
+			<span class="text-sm text-gray-400 shrink-0">Your name:</span>
 			<input
-				class="input input-sm input-bordered flex-1"
+				class="border border-gray-300 rounded-lg px-2 py-1 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
 				bind:value={guestName}
 				onchange={() => setGuestName(guestName)}
 				maxlength="20"
 			/>
 		</div>
 		{/if}
-		{#if lobbyError}<p class="text-error text-sm">{lobbyError}</p>{/if}
+		{#if lobbyError}<p class="text-red-500 text-sm">{lobbyError}</p>{/if}
 		<div class="flex gap-2">
-			<button class="btn btn-primary flex-1" onclick={() => joinByCode(inviteCode)}>Join Room</button>
-			<button class="btn btn-ghost btn-sm" onclick={() => { inviteCode = ''; joinCode = ''; history.replaceState({}, '', location.pathname); }}>✕</button>
+			<button class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 cursor-pointer transition-colors" onclick={() => joinByCode(inviteCode)}>Join Room</button>
+			<button class="px-3 py-1.5 text-sm rounded-lg hover:bg-gray-100 cursor-pointer transition-colors" onclick={() => { inviteCode = ''; joinCode = ''; history.replaceState({}, '', location.pathname); }}>✕</button>
 		</div>
 	</section>
 	{/if}
 
 	<!-- Guest identity banner -->
 	{#if !data.user && !inviteCode}
-	<section class="card bg-base-100 shadow-sm w-full max-w-md p-4 flex items-center gap-3">
-		<span class="text-base-content/60 text-sm">Playing as:</span>
+	<section class="bg-white rounded-xl shadow-sm w-full max-w-md p-4 flex items-center gap-3">
+		<span class="text-gray-400 text-sm">Playing as:</span>
 		{#if editingName}
 		<input
-			class="input input-sm input-bordered flex-1"
+			class="border border-gray-300 rounded-lg px-2 py-1 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
 			bind:value={nameInput}
 			onkeydown={(e) => e.key === 'Enter' && saveName()}
 			maxlength="20"
 		/>
-		<button class="btn btn-sm btn-primary" onclick={saveName}>Save</button>
+		<button class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 cursor-pointer transition-colors" onclick={saveName}>Save</button>
 		{:else}
 		<span class="font-semibold flex-1">{guestName}</span>
-		<button class="btn btn-xs btn-ghost" onclick={() => (editingName = true)}>✏️ Edit name</button>
+		<button class="px-2 py-1 text-xs rounded-lg hover:bg-gray-100 cursor-pointer transition-colors" onclick={() => (editingName = true)}>✏️ Edit name</button>
 		{/if}
 	</section>
 	{/if}
 
 	{#if lobbyError && !inviteCode}
-	<p class="text-error text-sm">{lobbyError}</p>
+	<p class="text-red-500 text-sm">{lobbyError}</p>
 	{/if}
 
 	<!-- Create room -->
-	<section class="card bg-base-100 shadow-md w-full max-w-md p-6 flex flex-col gap-4">
+	<section class="bg-white rounded-xl shadow-md w-full max-w-md p-6 flex flex-col gap-4">
 		<h2 class="text-xl font-semibold">Create Room</h2>
-		<fieldset class="flex flex-col gap-2">
-			<legend class="label-text font-medium">Difficulty</legend>
-			<div class="flex flex-wrap gap-2">
-				{#each DIFFICULTIES as d (d)}
-				<button
-					class="btn btn-sm {selectedDifficulty === d ? 'btn-primary' : 'btn-outline'}"
-					onclick={() => (selectedDifficulty = d)}>{d}</button>
-				{/each}
-			</div>
-		</fieldset>
-		<fieldset class="flex flex-col gap-2">
-			<legend class="label-text font-medium">Grid size</legend>
-			<div class="flex gap-2">
-				{#each GRID_SIZES as s (s)}
-				<button
-					class="btn btn-sm {selectedGridSize === s ? 'btn-primary' : 'btn-outline'}"
-					onclick={() => (selectedGridSize = s)}>{s}×{s}</button>
-				{/each}
-			</div>
-		</fieldset>
-		<button class="btn btn-primary" onclick={createRoom}>Create & Host</button>
+		<div class="flex flex-col gap-2">
+			<span class="text-sm font-medium text-gray-600">Difficulty</span>
+			<DifficultyPicker value={selectedDifficulty} onchange={(d) => (selectedDifficulty = d)} />
+		</div>
+		<div class="flex flex-col gap-2">
+			<span class="text-sm font-medium text-gray-600">Grid size</span>
+			<GridSizePicker value={selectedGridSize} onchange={(s) => (selectedGridSize = s)} />
+		</div>
+		<button class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 cursor-pointer transition-colors" onclick={createRoom}>Create & Host</button>
 	</section>
 
 	<!-- Join by code -->
-	<section class="card bg-base-100 shadow-md w-full max-w-md p-6 flex flex-col gap-3">
+	<section class="bg-white rounded-xl shadow-md w-full max-w-md p-6 flex flex-col gap-3">
 		<h2 class="text-xl font-semibold">Join by Code</h2>
 		<div class="flex gap-2">
 			<input
-				class="input input-bordered flex-1 uppercase tracking-widest"
+				class="border border-gray-300 rounded-lg px-3 py-2 flex-1 uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-400"
 				maxlength="6"
 				placeholder="ABC123"
 				bind:value={joinCode}
 			/>
-			<button class="btn btn-secondary" onclick={joinByCode} disabled={joinCode.length < 6}>Join</button>
+			<button class="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 cursor-pointer transition-colors" onclick={() => joinByCode()} disabled={joinCode.length < 6}>Join</button>
 		</div>
 	</section>
 
 	<!-- Open rooms -->
 	{#if openRooms.length > 0}
-	<section class="card bg-base-100 shadow-md w-full max-w-md p-6 flex flex-col gap-3">
+	<section class="bg-white rounded-xl shadow-md w-full max-w-md p-6 flex flex-col gap-3">
 		<h2 class="text-xl font-semibold">Open Rooms</h2>
 		{#each openRooms as r (r.id)}
-		<div class="flex items-center justify-between border-b border-base-300 pb-2 last:border-0 last:pb-0">
+		<div class="flex items-center justify-between border-b border-gray-200 pb-2 last:border-0 last:pb-0">
 			<span class="font-mono text-sm">{r.code}</span>
-			<span class="text-sm text-base-content/60">{r.difficulty} · {r.gridSize}×{r.gridSize}</span>
+			<span class="text-sm text-gray-400">{r.difficulty} · {r.gridSize}×{r.gridSize}</span>
 			<span class="text-sm">{r.playerCount}/{r.maxPlayers}</span>
-			<button class="btn btn-xs btn-outline" onclick={() => joinById(r.id)}>Join</button>
+			<button class="px-2 py-1 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors" onclick={() => joinById(r.id)}>Join</button>
 		</div>
 		{/each}
 	</section>
@@ -451,37 +437,33 @@
 
 <!-- ══════════════════ ROOM (waiting) ══════════════════ -->
 {:else if view === 'room'}
-<main class="min-h-screen bg-base-200 flex flex-col items-center gap-8 py-12 px-4">
-	<h1 class="text-3xl font-bold">Room <span class="font-mono text-primary">{room.roomCode}</span></h1>
+<main class="min-h-screen bg-gray-100 flex flex-col items-center gap-8 py-12 px-4">
+	<h1 class="text-3xl font-bold">Room <span class="font-mono text-blue-600">{room.roomCode}</span></h1>
 
 	<!-- Invite link -->
 	{#if room.roomCode}
-	<section class="card bg-base-100 shadow-md w-full max-w-md p-5 flex flex-col gap-3">
+	<section class="bg-white rounded-xl shadow-md w-full max-w-md p-5 flex flex-col gap-3">
 		<p class="text-sm font-medium">Invite a friend — share this link:</p>
-		<div class="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-2">
-			<span class="text-xs text-base-content/50 truncate flex-1 select-all">
+		<div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
+			<span class="text-xs text-gray-400 truncate flex-1 select-all">
 				{typeof location !== 'undefined' ? `${location.origin}/sudoku/competitive?room=${room.roomCode}` : `…?room=${room.roomCode}`}
 			</span>
 		</div>
 		<button
-			class="btn btn-primary w-full gap-2 {copiedToast ? 'btn-success' : ''}"
+			class="w-full px-4 py-2 {copiedToast ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-lg font-semibold cursor-pointer transition-colors"
 			onclick={copyInviteLink}>
-			{#if copiedToast}
-				✅ Copied!
-			{:else}
-				📋 Copy invite link
-			{/if}
+			{#if copiedToast}✅ Copied!{:else}📋 Copy invite link{/if}
 		</button>
-		<p class="text-xs text-base-content/40 text-center">Or share the code: <span class="font-mono font-bold tracking-widest text-primary">{room.roomCode}</span></p>
+		<p class="text-xs text-gray-400 text-center">Or share the code: <span class="font-mono font-bold tracking-widest text-blue-600">{room.roomCode}</span></p>
 	</section>
 	{/if}
 
 	{#if room.error}
-	<p class="text-error">{room.error}</p>
+	<p class="text-red-500">{room.error}</p>
 	{/if}
 
-	<section class="card bg-base-100 shadow-md w-full max-w-md p-6 flex flex-col gap-4">
-		<div class="flex justify-between text-sm text-base-content/60">
+	<section class="bg-white rounded-xl shadow-md w-full max-w-md p-6 flex flex-col gap-4">
+		<div class="flex justify-between text-sm text-gray-400">
 			<span>{room.difficulty} · {room.gridSize}×{room.gridSize}</span>
 			<span>{room.players.length}/{room.maxPlayers} players</span>
 		</div>
@@ -490,21 +472,21 @@
 			{#each room.players as p (p.userId)}
 			<li class="flex items-center gap-3">
 				<span class="flex-1 font-medium">{p.name}</span>
-				{#if p.userId === myId}<span class="badge badge-ghost badge-sm">You</span>{/if}
-				{#if room.hostId === p.userId}<span class="badge badge-primary badge-sm">Host</span>{/if}
+				{#if p.userId === myId}<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">You</span>{/if}
+				{#if room.hostId === p.userId}<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Host</span>{/if}
 			</li>
 			{/each}
 		</ul>
 
 		{#if room.hostId === myId}
-		<button class="btn btn-primary" onclick={startGame} disabled={room.players.length < 2}>
+		<button class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 cursor-pointer transition-colors" onclick={startGame} disabled={room.players.length < 2}>
 			{room.players.length < 2 ? 'Waiting for opponent…' : 'Start Game!'}
 		</button>
 		{:else}
-		<p class="text-center text-base-content/60">Waiting for host to start…</p>
+		<p class="text-center text-gray-400">Waiting for host to start…</p>
 		{/if}
 
-		<button class="btn btn-ghost btn-sm" onclick={backToLobby}>← Back</button>
+		<button class="px-4 py-2 text-sm rounded-lg hover:bg-gray-100 cursor-pointer transition-colors" onclick={backToLobby}>← Back</button>
 	</section>
 </main>
 
@@ -512,23 +494,25 @@
 {:else if view === 'game'}
 
 <!-- Top bar: leave / timer / layout toggle -->
-<header class="fixed top-0 left-0 right-0 z-10 bg-base-100/90 backdrop-blur-sm border-b border-base-200 flex items-center justify-between px-3 py-1.5 h-11">
+<header class="fixed top-0 left-0 right-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100 flex items-center justify-between px-3 py-1.5 h-11">
 	{#if confirmLeave}
 	<div class="flex items-center gap-2 flex-1">
-		<span class="text-sm font-medium text-error">Leave the game?</span>
-		<button class="btn btn-xs btn-error" onclick={leaveGame}>Yes, leave</button>
-		<button class="btn btn-xs btn-ghost" onclick={() => (confirmLeave = false)}>Cancel</button>
+		<span class="text-sm font-medium text-red-500">Leave the game?</span>
+		<button class="px-2 py-1 text-xs bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 cursor-pointer transition-colors" onclick={leaveGame}>Yes, leave</button>
+		<button class="px-2 py-1 text-xs rounded-lg hover:bg-gray-100 cursor-pointer transition-colors" onclick={() => (confirmLeave = false)}>Cancel</button>
 	</div>
 	{:else}
-	<button class="btn btn-xs btn-ghost" onclick={() => (confirmLeave = true)}>🚪 Leave</button>
+	<button class="px-2 py-1 text-xs rounded-lg hover:bg-gray-100 cursor-pointer transition-colors" onclick={() => (confirmLeave = true)}>🚪 Leave</button>
 	<GameTimer bind:this={timerRef} running={timerRunning} />
 	<div class="flex gap-1">
 		<button
-			class="btn btn-xs {layoutMode === 'split' ? 'btn-primary' : 'btn-outline'}"
+			class="px-2 py-1 text-xs rounded-lg border-2 font-semibold cursor-pointer transition-all
+				{layoutMode === 'split' ? 'border-blue-600 bg-blue-100 text-blue-700' : 'border-transparent bg-blue-50 hover:bg-blue-100'}"
 			onclick={() => (layoutMode = 'split')}
 			title="Split screen">⬛⬛</button>
 		<button
-			class="btn btn-xs {layoutMode === 'pip' ? 'btn-primary' : 'btn-outline'}"
+			class="px-2 py-1 text-xs rounded-lg border-2 font-semibold cursor-pointer transition-all
+				{layoutMode === 'pip' ? 'border-blue-600 bg-blue-100 text-blue-700' : 'border-transparent bg-blue-50 hover:bg-blue-100'}"
 			onclick={() => (layoutMode = 'pip')}
 			title="Full + floating">⬛◻</button>
 	</div>
@@ -538,19 +522,19 @@
 <!-- Opponent-left win overlay -->
 {#if opponentAbandonedName}
 <div class="fixed inset-0 z-30 bg-black/50 flex items-center justify-center p-4">
-	<div class="card bg-base-100 shadow-2xl max-w-sm w-full p-6 flex flex-col gap-4">
+	<div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 flex flex-col gap-4">
 		<div class="text-center">
 			<span class="text-5xl">🏆</span>
 			<h2 class="text-2xl font-bold mt-2">You win!</h2>
-			<p class="text-base-content/60 text-sm mt-1">{opponentAbandonedName} left the game early</p>
+			<p class="text-gray-400 text-sm mt-1">{opponentAbandonedName} left the game early</p>
 		</div>
 		<div class="flex flex-col gap-2">
 			<button
-				class="btn btn-primary"
+				class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 cursor-pointer transition-colors"
 				onclick={() => { opponentAbandonedName = ''; view = 'results'; }}>
 				See results
 			</button>
-			<button class="btn btn-ghost" onclick={() => (opponentAbandonedName = '')}>
+			<button class="px-4 py-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors" onclick={() => (opponentAbandonedName = '')}>
 				Keep solving (for fun)
 			</button>
 		</div>
@@ -560,10 +544,10 @@
 
 <!-- SPLIT -->
 {#if layoutMode === 'split'}
-<main class="pt-11 min-h-screen bg-base-200 flex flex-col lg:flex-row gap-2 p-2">
+<main class="pt-11 min-h-screen bg-gray-100 flex flex-col lg:flex-row gap-2 p-2">
 	<!-- My side -->
 	<section class="flex-1 flex flex-col items-center gap-2">
-		<p class="text-xs font-semibold text-base-content/60 uppercase tracking-wide">
+		<p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">
 			You{data.user ? ` · ${data.user.name}` : ` · ${guestName}`}
 		</p>
 		<SudokuBoardComponent
@@ -576,18 +560,18 @@
 			onSolved={handleSolved}
 		/>
 		<Numpad gridSize={room.gridSize} onDigit={(n) => boardRef?.placeDigit(n)} />
-		<button class="btn btn-sm btn-outline" onclick={handleRevealHint}>💡 Hint</button>
+		<button class="px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 cursor-pointer transition-colors" onclick={handleRevealHint}>💡 Hint</button>
 	</section>
 
-	<div class="hidden lg:block w-px bg-base-300 self-stretch"></div>
-	<div class="lg:hidden h-px bg-base-300 w-full"></div>
+	<div class="hidden lg:block w-px bg-gray-200 self-stretch"></div>
+	<div class="lg:hidden h-px bg-gray-200 w-full"></div>
 
 	<!-- Opponent side -->
 	<section class="flex-1 flex flex-col items-center gap-2">
 		{#if opponent}
 		<div class="flex items-center gap-2">
-			<p class="text-xs font-semibold text-base-content/60 uppercase tracking-wide">{opponent.name}</p>
-			{#if opponent.finishPosition}<span class="badge badge-success badge-sm">✓ #{opponent.finishPosition}</span>{/if}
+			<p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">{opponent.name}</p>
+			{#if opponent.finishPosition}<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">✓ #{opponent.finishPosition}</span>{/if}
 		</div>
 		<SudokuBoardComponent
 			puzzle={room.puzzle!}
@@ -600,18 +584,18 @@
 			opponentCol={opponent.selectedCol}
 		/>
 		<div class="w-full max-w-xs flex items-center gap-2 px-2">
-			<progress class="progress progress-secondary flex-1" value={opponent.progress} max="100"></progress>
+			<progress class="flex-1 h-2 accent-purple-500" value={opponent.progress} max="100"></progress>
 			<span class="text-xs w-10 text-right">{opponent.progress}%</span>
 		</div>
 		{:else}
-		<p class="text-base-content/40 text-sm mt-8">Waiting for opponent…</p>
+		<p class="text-gray-300 text-sm mt-8">Waiting for opponent…</p>
 		{/if}
 	</section>
 </main>
 
 <!-- PiP -->
 {:else}
-<main class="pt-11 min-h-screen bg-base-200 flex flex-col items-center gap-2 p-2">
+<main class="pt-11 min-h-screen bg-gray-100 flex flex-col items-center gap-2 p-2">
 	<SudokuBoardComponent
 		bind:this={boardRef}
 		puzzle={room.puzzle!}
@@ -622,16 +606,16 @@
 		onSolved={handleSolved}
 	/>
 	<Numpad gridSize={room.gridSize} onDigit={(n) => boardRef?.placeDigit(n)} />
-	<button class="btn btn-sm btn-outline" onclick={handleRevealHint}>💡 Hint</button>
+	<button class="px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 cursor-pointer transition-colors" onclick={handleRevealHint}>💡 Hint</button>
 
 	{#if opponent}
-	<aside class="fixed bottom-16 right-3 z-20 w-44 rounded-xl overflow-hidden shadow-2xl border-2 border-base-300 bg-base-100 flex flex-col">
-		<header class="px-2 py-1 bg-base-200 flex items-center justify-between text-xs">
+	<aside class="fixed bottom-16 right-3 z-20 w-44 rounded-xl overflow-hidden shadow-2xl border-2 border-gray-200 bg-white flex flex-col">
+		<header class="px-2 py-1 bg-gray-100 flex items-center justify-between text-xs">
 			<span class="font-semibold truncate">{opponent.name}</span>
 			{#if opponent.finishPosition}
-			<span class="badge badge-success badge-xs">✓</span>
+			<span class="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">✓</span>
 			{:else}
-			<span class="text-base-content/50">{opponent.progress}%</span>
+			<span class="text-gray-400">{opponent.progress}%</span>
 			{/if}
 		</header>
 		<SudokuBoardComponent
@@ -652,19 +636,19 @@
 
 <!-- ══════════════════ RESULTS ══════════════════ -->
 {:else if view === 'results'}
-<main class="min-h-screen bg-base-200 flex flex-col items-center gap-8 py-12 px-4">
+<main class="min-h-screen bg-gray-100 flex flex-col items-center gap-8 py-12 px-4">
 	<h1 class="text-4xl font-bold">Results</h1>
 
 	{#if room.finalStandings}
-	<section class="card bg-base-100 shadow-md w-full max-w-md p-6">
-		<table class="table table-zebra w-full">
-			<thead><tr><th>#</th><th>Player</th><th>Time</th></tr></thead>
+	<section class="bg-white rounded-xl shadow-md w-full max-w-md p-6">
+		<table class="w-full text-left border-collapse">
+			<thead><tr class="border-b border-gray-200"><th class="pb-2 font-semibold">#</th><th class="pb-2 font-semibold">Player</th><th class="pb-2 font-semibold">Time</th></tr></thead>
 			<tbody>
 				{#each room.finalStandings as s (s.userId)}
-				<tr class={s.userId === myId ? 'font-bold' : ''}>
-					<td>{s.finishPosition ?? '—'}</td>
-					<td>{s.name}</td>
-					<td>{s.timeSpent != null ? `${s.timeSpent}s` : 'DNF'}</td>
+				<tr class="border-b border-gray-100 last:border-0 {s.userId === myId ? 'font-bold' : ''}">
+					<td class="py-2">{s.finishPosition ?? '—'}</td>
+					<td class="py-2">{s.name}</td>
+					<td class="py-2">{s.timeSpent != null ? `${s.timeSpent}s` : 'DNF'}</td>
 				</tr>
 				{/each}
 			</tbody>
@@ -672,6 +656,7 @@
 	</section>
 	{/if}
 
-	<button class="btn btn-primary" onclick={backToLobby}>Play Again</button>
+	<button class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 cursor-pointer transition-colors" onclick={backToLobby}>Play Again</button>
 </main>
 {/if}
+
