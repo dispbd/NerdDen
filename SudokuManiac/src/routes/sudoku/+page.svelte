@@ -13,6 +13,7 @@
 	import SaveSlotCard from '$lib/components/sudoku/SaveSlotCard.svelte';
 	import DifficultyPicker from '$lib/components/sudoku/DifficultyPicker.svelte';
 	import GridSizePicker from '$lib/components/sudoku/GridSizePicker.svelte';
+	import PrintModal from '$lib/components/sudoku/PrintModal.svelte';
 	import { generatePuzzle } from '$lib/games/sudoku/generator.js';
 	import type { Difficulty, Grid, GridSize, SaveSlot } from '$lib/games/sudoku/shared.js';
 	import {
@@ -42,6 +43,7 @@
 	let gameSolved = $state(false);
 	let timerRunning = $state(false);
 	let boardRef = $state<ReturnType<typeof SudokuBoardComponent> | null>(null);
+	let showPrintModal = $state(false);
 	let timerRef = $state<ReturnType<typeof GameTimer> | null>(null);
 
 	/** ID of the current DB session row (auth users only) */
@@ -339,6 +341,10 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
+{#if showPrintModal}
+	<PrintModal onclose={() => (showPrintModal = false)} diffLabelFn={diffLabel} />
+{/if}
+
 <sudoku-page class="flex flex-col items-center w-full max-w-lg mx-auto px-3 py-4 gap-4 sm:px-4 sm:py-6 sm:gap-6">
 	<h1 class="text-4xl font-extrabold m-0">SudokuManiac <img src="/sudoku-maniac.webp" alt="SudokuManiac" class="inline-block size-7 -mt-1"></h1>
 
@@ -378,6 +384,16 @@
 				<span class="font-bold text-rose-800">{m.sudoku_competitive()}</span>
 				<span class="text-xs text-rose-500">{m.sudoku_competitive_desc()}</span>
 				</a>
+				<button
+					class="col-span-2 flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors text-left"
+					onclick={() => (showPrintModal = true)}
+				>
+					<span class="text-2xl">🖨️</span>
+					<div class="flex flex-col">
+						<span class="font-bold text-gray-700">Print Puzzles</span>
+						<span class="text-xs text-gray-400">Generate 1–9 puzzles for offline play</span>
+					</div>
+				</button>
 			</other-modes>
 
 			<divider class="w-full max-w-sm border-t border-gray-200"></divider>
@@ -396,7 +412,7 @@
 				</size-selector>
 			</settings-row>
 
-			<lobby-actions class="flex gap-3 items-center">
+			<lobby-actions class="flex gap-3 items-center justify-center">
 				<button
 					class="px-10 py-3 bg-blue-600 text-white text-lg font-bold rounded-xl border-0 cursor-pointer hover:bg-blue-700 transition-colors"
 					onclick={() => void startGame()}
@@ -480,6 +496,11 @@
 						{m.sudoku_hint({ count: hintsAvailable })}
 					</button>
 				{/if}
+				<button
+					class="px-5 py-2 border border-gray-300 rounded-lg bg-white font-semibold cursor-pointer hover:bg-gray-50 transition-colors"
+					onclick={() => (showPrintModal = true)}
+					title="Print puzzles"
+				>🖨️ Print</button>
 				<button
 					class="px-5 py-2 border border-gray-300 rounded-lg bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
 					onclick={async () => {
