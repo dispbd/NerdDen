@@ -11,6 +11,7 @@
 	import Numpad from '$lib/components/sudoku/Numpad.svelte';
 	import GameTimer from '$lib/components/sudoku/GameTimer.svelte';
 	import SaveSlotCard from '$lib/components/sudoku/SaveSlotCard.svelte';
+	import { generatePuzzle } from '$lib/games/sudoku/generator.js';
 	import type { Difficulty, Grid, GridSize, SaveSlot } from '$lib/games/sudoku/shared.js';
 	import {
 		loadGuestSaves,
@@ -159,10 +160,7 @@
 			localSessionId = null;
 		}
 
-		const genRes = await fetch(
-			`/api/sudoku/generate?difficulty=${diff ?? difficulty}&gridSize=${gridSize}`
-		);
-		const generated = (await genRes.json()) as { puzzle: Grid; solution: Grid };
+		const generated = generatePuzzle(diff ?? difficulty, gridSize);
 		puzzle = generated.puzzle;
 		playerGrid = []; // new game — board initialises player grid from puzzle
 		solution = generated.solution;
