@@ -396,8 +396,8 @@
 				>
 					<span class="text-2xl">🖨️</span>
 					<div class="flex flex-col">
-						<span class="font-bold text-gray-700">Print Puzzles</span>
-						<span class="text-xs text-gray-400">Generate 1–9 puzzles for offline play</span>
+						<span class="font-bold text-gray-700">{m.sudoku_print_puzzles()}</span>
+						<span class="text-xs text-gray-400">{m.sudoku_print_desc()}</span>
 					</div>
 				</button>
 			</other-modes>
@@ -423,13 +423,13 @@
 					class="px-10 py-3 bg-blue-600 text-white text-lg font-bold rounded-xl border-0 cursor-pointer hover:bg-blue-700 transition-colors"
 					onclick={() => void startGame()}
 				>
-					Start Game
+					{m.sudoku_start_game()}
 				</button>
 				<button
 					class="px-6 py-3 bg-violet-600 text-white text-lg font-bold rounded-xl border-0 cursor-pointer hover:bg-violet-700 transition-colors"
 					onclick={startRandom}
 				>
-					🎲 Random
+					{m.sudoku_random()}
 				</button>
 			</lobby-actions>
 		</game-lobby>
@@ -506,7 +506,7 @@
 					class="px-5 py-2 border border-gray-300 rounded-lg bg-white font-semibold cursor-pointer hover:bg-gray-50 transition-colors"
 					onclick={() => (showPrintModal = true)}
 					title="Print puzzles"
-				>🖨️ Print</button>
+			>{m.sudoku_print()}</button>
 				<button
 					class="px-5 py-2 border border-gray-300 rounded-lg bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
 					onclick={async () => {

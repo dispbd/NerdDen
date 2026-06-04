@@ -8,6 +8,7 @@
 	import type { Difficulty, GridSize, Grid } from '$lib/games/sudoku/shared.js';
 	import { generatePuzzle, getBoxDim } from '$lib/games/sudoku/generator.js';
 	import { untrack } from 'svelte';
+	import { m } from '$lib/paraglide/messages.js';
 	import DifficultyPicker from './DifficultyPicker.svelte';
 	import GridSizePicker from './GridSizePicker.svelte';
 
@@ -33,19 +34,19 @@
 
 	// ── Color themes ──────────────────────────────────────────────────────────
 	const THEME_LIST = [
+		{ id: 'red',    label: 'Red',    swatch: '#ef4444', boxBorder: '#b91c1c', cellBorder: '#fecaca', givenColor: '#7f1d1d', givenBg: '#fee2e2'     },
 		{ id: 'classic', label: 'Classic', swatch: '#374151', boxBorder: '#222',    cellBorder: '#bbb',    givenColor: '#111',    givenBg: 'transparent' },
 		{ id: 'blue',    label: 'Blue',    swatch: '#1d4ed8', boxBorder: '#1d4ed8', cellBorder: '#bfdbfe', givenColor: '#1e3a8a', givenBg: '#dbeafe'     },
-		{ id: 'red',    label: 'Red',    swatch: '#ef4444', boxBorder: '#b91c1c', cellBorder: '#fecaca', givenColor: '#7f1d1d', givenBg: '#fee2e2'     },
 		{ id: 'forest',  label: 'Forest',  swatch: '#16a34a', boxBorder: '#166534', cellBorder: '#bbf7d0', givenColor: '#14532d', givenBg: '#dcfce7'     },
 		{ id: 'warm',    label: 'Warm',    swatch: '#d97706', boxBorder: '#92400e', cellBorder: '#fde68a', givenColor: '#78350f', givenBg: '#fef3c7'     },
 	] as const;
 	type ColorTheme = (typeof THEME_LIST)[number]['id'];
-	let colorTheme = $state<ColorTheme>('classic');
+	let colorTheme = $state<ColorTheme>('red');
 
 	// ── Fonts ─────────────────────────────────────────────────────────────────
-	const FONT_LIST = [
-		{ id: 'system',  label: 'Sans-serif', family: 'Arial, sans-serif',        googleFont: null              },
+	const FONT_LIST = [		
 		{ id: 'caveat',  label: 'Caveat',     family: "'Caveat', cursive",         googleFont: 'Caveat:wght@600' },
+		{ id: 'system',  label: 'Sans-serif', family: 'Arial, sans-serif',        googleFont: null              },
 		{ id: 'courier', label: 'Courier',    family: "'Courier New', monospace",  googleFont: null              },
 	] as const;
 	type FontId = (typeof FONT_LIST)[number]['id'];
@@ -182,7 +183,7 @@
 
 		<!-- header -->
 		<div class="flex items-center justify-between">
-			<h2 class="text-xl font-bold">🖨️ Print Sudoku</h2>
+			<h2 class="text-xl font-bold">{m.print_title()}</h2>
 			<button
 				class="p-1.5 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors text-gray-400 hover:text-gray-600 text-lg leading-none"
 				onclick={onclose}
@@ -194,14 +195,14 @@
 		{#if initialPuzzle}
 			<div class="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm">
 				<span class="text-blue-500 text-base">★</span>
-				<span class="text-blue-700">Текущий пазл включён как <strong>#1</strong></span>
+				<span class="text-blue-700">{m.print_current_banner()}</span>
 			</div>
 		{/if}
 
 		<!-- count -->
 		<div class="flex flex-col gap-2">
 			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-				{initialPuzzle ? 'Всего пазлов' : 'Количество пазлов'}
+				{initialPuzzle ? m.print_total_puzzles() : m.print_puzzle_count()}
 			</span>
 			<div class="grid grid-cols-9 gap-1">
 				{#each [1, 2, 3, 4, 5, 6, 7, 8, 9] as n (n)}
@@ -213,10 +214,10 @@
 				{/each}
 			</div>
 			{#if initialPuzzle && count > 1}
-				<p class="text-xs text-gray-400">Текущий + {count - 1} {count - 1 === 1 ? 'новый' : 'новых'}</p>
+				<p class="text-xs text-gray-400">{m.print_current_plus({ n: count - 1 })}</p>
 			{/if}
 			{#if slowWarning}
-				<p class="text-xs text-amber-600">⚠️ Генерация {additionalCount} {difficulty} пазлов может занять время.</p>
+				<p class="text-xs text-amber-600">⚠️ {m.print_slow_warning({ count: additionalCount, difficulty })}</p>
 			{/if}
 		</div>
 
@@ -224,13 +225,13 @@
 		{#if !initialPuzzle || count > 1}
 			<div class="flex flex-col gap-2">
 				<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-					{initialPuzzle ? 'Сложность (дополнительных)' : 'Сложность'}
+					{initialPuzzle ? m.print_difficulty_additional() : m.print_difficulty()}
 				</span>
 				<DifficultyPicker value={difficulty} onchange={(d) => (difficulty = d)} labelFn={diffLabelFn} />
 			</div>
 			<div class="flex flex-col gap-2">
 				<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-					{initialPuzzle ? 'Размер сетки (дополнительных)' : 'Размер сетки'}
+					{initialPuzzle ? m.print_grid_size_additional() : m.sudoku_grid_size()}
 				</span>
 				<GridSizePicker value={gridSize} onchange={(s) => (gridSize = s)} />
 			</div>
@@ -238,7 +239,7 @@
 
 		<!-- color theme -->
 		<div class="flex flex-col gap-2">
-			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Цветовая тема</span>
+			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{m.print_color_theme()}</span>
 			<div class="flex flex-wrap gap-2">
 				{#each THEME_LIST as t (t.id)}
 					<button
@@ -255,7 +256,7 @@
 
 		<!-- font -->
 		<div class="flex flex-col gap-2">
-			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Шрифт</span>
+			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{m.print_font()}</span>
 			<div class="flex gap-2 flex-wrap">
 				{#each FONT_LIST as f (f.id)}
 					<button
@@ -275,15 +276,15 @@
 				disabled={generating}
 			>
 				{#if generating}
-					Генерация {progress}/{count}…
+					{m.print_generating({ progress, count })}
 				{:else}
-					Генерировать &amp; печатать
+					{m.print_generate()}
 				{/if}
 			</button>
 			<button
 				class="px-4 py-2.5 rounded-lg border-2 border-gray-200 font-semibold hover:bg-gray-100 cursor-pointer transition-colors"
 				onclick={onclose}
-			>Отмена</button>
+			>{m.print_cancel()}</button>
 		</div>
 	</div>
 </div>
