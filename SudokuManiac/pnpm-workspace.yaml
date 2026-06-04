@@ -19,3 +19,9 @@ minimumReleaseAgeExclude:
   - better-auth@1.6.12
   - eslint@10.4.1
   - svelte@5.56.0
+  - '@ai-sdk/gateway@3.0.124'
+  - '@sveltejs/kit@2.63.0'
+  - '@sveltejs/load-config@0.1.1'
+  - ai@6.0.196
+  - pixi.js@8.19.0
+  - svelte-check@4.6.0
