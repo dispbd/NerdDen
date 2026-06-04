@@ -319,7 +319,7 @@
 
 <!-- ══════════════════ LOBBY ══════════════════ -->
 {#if view === 'lobby'}
-<main class="min-h-screen bg-gray-100 flex flex-col items-center gap-8 py-12 px-4">
+<competitive-page class="min-h-screen flex flex-col items-center gap-8 py-12 px-4">
 	<h1 class="text-4xl font-bold">Online Mode</h1>
 
 	<!-- ── Rejoin prompt ── -->
@@ -433,11 +433,11 @@
 		{/each}
 	</section>
 	{/if}
-</main>
+</competitive-page>
 
 <!-- ══════════════════ ROOM (waiting) ══════════════════ -->
 {:else if view === 'room'}
-<main class="min-h-screen bg-gray-100 flex flex-col items-center gap-8 py-12 px-4">
+<competitive-page-room class="min-h-screen flex flex-col items-center gap-8 py-12 px-4">
 	<h1 class="text-3xl font-bold">Room <span class="font-mono text-blue-600">{room.roomCode}</span></h1>
 
 	<!-- Invite link -->
@@ -488,7 +488,7 @@
 
 		<button class="px-4 py-2 text-sm rounded-lg hover:bg-gray-100 cursor-pointer transition-colors" onclick={backToLobby}>← Back</button>
 	</section>
-</main>
+</competitive-page-room>
 
 <!-- ══════════════════ GAME ══════════════════ -->
 {:else if view === 'game'}

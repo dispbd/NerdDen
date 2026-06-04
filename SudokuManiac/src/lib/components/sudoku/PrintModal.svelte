@@ -1,105 +1,156 @@
 <!--
-  PrintModal.svelte — lets the user pick difficulty, grid size, and count (1–9),
-  then generates the puzzles and opens a browser print dialog in a new window
-  so the current session is never disrupted.
+  PrintModal.svelte
+  - When `initialPuzzle` is provided (called from active game): pre-loads current puzzle as #1.
+  - Count picker = total puzzles (current + N-1 additional).
+  - Color theme + font choice applied to the generated print window.
 -->
 <script lang="ts">
-	import type { Difficulty, GridSize } from '$lib/games/sudoku/shared.js';
+	import type { Difficulty, GridSize, Grid } from '$lib/games/sudoku/shared.js';
 	import { generatePuzzle, getBoxDim } from '$lib/games/sudoku/generator.js';
 	import DifficultyPicker from './DifficultyPicker.svelte';
 	import GridSizePicker from './GridSizePicker.svelte';
 
-	let { onclose, diffLabelFn = (d: Difficulty) => d as string }: {
+	let {
+		onclose,
+		diffLabelFn = (d: Difficulty) => d as string,
+		initialPuzzle = null
+	}: {
 		onclose: () => void;
 		diffLabelFn?: (d: Difficulty) => string;
+		initialPuzzle?: { puzzle: Grid; difficulty: Difficulty; gridSize: GridSize } | null;
 	} = $props();
 
-	let difficulty = $state<Difficulty>('medium');
-	let gridSize = $state<GridSize>(9);
-	let count = $state(4);
+	let difficulty = $derived<Difficulty>(initialPuzzle?.difficulty ?? 'medium');
+	let gridSize = $derived<GridSize>(initialPuzzle?.gridSize ?? 9);
+	// count = total puzzles (including initial if present)
+	let count = $derived(initialPuzzle ? 1 : 4);
+	const additionalCount = $derived(initialPuzzle ? count - 1 : count);
+
 	let generating = $state(false);
 	let progress = $state(0);
 
-	async function handlePrint() {
-		generating = true;
-		progress = 0;
-		// Yield to UI so the spinner renders before the heavy computation starts.
-		await new Promise<void>((r) => setTimeout(r, 20));
+	// ── Color themes ──────────────────────────────────────────────────────────
+	const THEME_LIST = [
+		{ id: 'classic', label: 'Classic', swatch: '#374151', boxBorder: '#222',    cellBorder: '#bbb',    givenColor: '#111',    givenBg: 'transparent' },
+		{ id: 'blue',    label: 'Blue',    swatch: '#1d4ed8', boxBorder: '#1d4ed8', cellBorder: '#bfdbfe', givenColor: '#1e3a8a', givenBg: '#dbeafe'     },
+		{ id: 'red',    label: 'Red',    swatch: '#ef4444', boxBorder: '#b91c1c', cellBorder: '#fecaca', givenColor: '#7f1d1d', givenBg: '#fee2e2'     },
+		{ id: 'forest',  label: 'Forest',  swatch: '#16a34a', boxBorder: '#166534', cellBorder: '#bbf7d0', givenColor: '#14532d', givenBg: '#dcfce7'     },
+		{ id: 'warm',    label: 'Warm',    swatch: '#d97706', boxBorder: '#92400e', cellBorder: '#fde68a', givenColor: '#78350f', givenBg: '#fef3c7'     },
+	] as const;
+	type ColorTheme = (typeof THEME_LIST)[number]['id'];
+	let colorTheme = $state<ColorTheme>('classic');
 
-		const puzzles: { puzzle: number[][] }[] = [];
-		for (let i = 0; i < count; i++) {
-			puzzles.push(generatePuzzle(difficulty, gridSize));
-			progress = i + 1;
-			// Yield between puzzles so the progress counter updates.
-			await new Promise<void>((r) => setTimeout(r, 0));
-		}
+	// ── Fonts ─────────────────────────────────────────────────────────────────
+	const FONT_LIST = [
+		{ id: 'system',  label: 'Sans-serif', family: 'Arial, sans-serif',        googleFont: null              },
+		{ id: 'caveat',  label: 'Caveat',     family: "'Caveat', cursive",         googleFont: 'Caveat:wght@600' },
+		{ id: 'courier', label: 'Courier',    family: "'Courier New', monospace",  googleFont: null              },
+	] as const;
+	type FontId = (typeof FONT_LIST)[number]['id'];
+	let fontId = $state<FontId>('system');
 
-		const { rows: bRows, cols: bCols } = getBoxDim(gridSize);
+	const slowWarning = $derived(
+		additionalCount >= 5 && gridSize === 9 && (difficulty === 'expert' || difficulty === 'extreme')
+	);
 
-		// --- Print layout constants ---
-		// How many puzzles to show per row on the page.
-		const cols = gridSize === 4 ? 3 : 2;
-		// Cell dimensions in mm so the grid scales predictably on paper.
-		const cellMm = gridSize === 9 ? 10 : gridSize === 6 ? 13 : 17;
-		const fontMm = cellMm * 0.48;
-		const borderHeavy = '3px solid #222';
-		const borderLight = '1px solid #bbb';
+	// ── Print HTML builder ────────────────────────────────────────────────────
+	type PuzzleEntry = { puzzle: Grid; difficulty: Difficulty; gridSize: GridSize; isInitial: boolean };
 
-		function puzzleHtml(pz: number[][], idx: number): string {
+	function buildPrintHtml(allPuzzles: PuzzleEntry[]): string {
+		const theme = THEME_LIST.find((t) => t.id === colorTheme)!;
+		const font  = FONT_LIST.find((f) => f.id === fontId)!;
+
+		function puzzleHtml(entry: PuzzleEntry, idx: number): string {
+			const { puzzle: pz, difficulty: d, gridSize: gs, isInitial } = entry;
+			const { rows: bRows, cols: bCols } = getBoxDim(gs);
+			const cellMm = gs === 9 ? 10 : gs === 6 ? 13 : 17;
+			const fontMm = (cellMm * 0.52).toFixed(1);
+
 			let tbody = '';
-			for (let r = 0; r < gridSize; r++) {
+			for (let r = 0; r < gs; r++) {
 				let cells = '';
-				for (let c = 0; c < gridSize; c++) {
+				for (let c = 0; c < gs; c++) {
 					const v = pz[r][c];
-					// Thick borders mark box boundaries; outer border handled by <table>.
-					const bb = (r + 1) % bRows === 0 && r < gridSize - 1 ? borderHeavy : borderLight;
-					const br = (c + 1) % bCols === 0 && c < gridSize - 1 ? borderHeavy : borderLight;
-					cells += `<td style="width:${cellMm}mm;height:${cellMm}mm;border-bottom:${bb};border-right:${br};`
-						+ `border-top:${borderLight};border-left:${borderLight};`
+					const given = v !== 0;
+					const bB = (r + 1) % bRows === 0 && r < gs - 1 ? `3px solid ${theme.boxBorder}` : `1px solid ${theme.cellBorder}`;
+					const bR = (c + 1) % bCols === 0 && c < gs - 1 ? `3px solid ${theme.boxBorder}` : `1px solid ${theme.cellBorder}`;
+					cells += `<td style="`
+						+ `width:${cellMm}mm;height:${cellMm}mm;`
+						+ `border-top:1px solid ${theme.cellBorder};border-left:1px solid ${theme.cellBorder};`
+						+ `border-bottom:${bB};border-right:${bR};`
 						+ `text-align:center;vertical-align:middle;`
-						+ `font-size:${fontMm.toFixed(1)}mm;font-weight:600;color:#111;">${v || ''}</td>`;
+						+ `font-size:${fontMm}mm;font-weight:${given ? 700 : 400};`
+						+ `color:${given ? theme.givenColor : '#ccc'};`
+						+ `background:${given ? theme.givenBg : 'transparent'};`
+						+ `">${v || ''}</td>`;
 				}
 				tbody += `<tr>${cells}</tr>`;
 			}
-			const label = `#${idx + 1} &nbsp;&middot;&nbsp; ${difficulty} &nbsp;&middot;&nbsp; ${gridSize}&times;${gridSize}`;
-			return `<div style="break-inside:avoid;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 6px;">
-  <div style="font-size:9pt;color:#999;text-transform:capitalize;letter-spacing:0.04em;">${label}</div>
-  <table style="border-collapse:collapse;border:3px solid #222;">${tbody}</table>
-</div>`;
+
+			const star = isInitial ? '&#9733; ' : '';
+			const label = `${star}#${idx + 1} &middot; ${d} &middot; ${gs}&times;${gs}`;
+			return [
+				`<div style="break-inside:avoid;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 6px;">`,
+				`<div style="font-size:8.5pt;color:${theme.boxBorder};opacity:0.8;text-transform:capitalize;letter-spacing:.04em;">${label}</div>`,
+				`<table style="border-collapse:collapse;border:3px solid ${theme.boxBorder};">${tbody}</table>`,
+				`</div>`,
+			].join('');
 		}
 
-		const html = `<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8">
-<title>Sudoku &mdash; Print</title>
-<style>
-@page { margin: 12mm; size: A4 portrait; }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #fff; }
-.wrap { display: grid; grid-template-columns: repeat(${cols}, 1fr); }
-</style>
-</head><body>
-<div class="wrap">
-${puzzles.map((p, i) => puzzleHtml(p.puzzle, i)).join('\n')}
-</div>
-</body></html>`;
+		const primarySize = allPuzzles[0]?.gridSize ?? 9;
+		const cols = primarySize === 4 ? 3 : 2;
 
+		const googleLink = font.googleFont
+			? `<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=${font.googleFont}&display=swap" rel="stylesheet">`
+			: '';
+
+		return [
+			`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">`,
+			`<title>Sudoku &mdash; Print</title>`,
+			googleLink,
+			`<style>`,
+			`@page{margin:12mm;size:A4 portrait;}`,
+			`*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}`,
+			`body{font-family:${font.family};background:#fff;}`,
+			`.wrap{display:grid;grid-template-columns:repeat(${cols},1fr);}`,
+			`</style></head><body>`,
+			`<div class="wrap">${allPuzzles.map((p, i) => puzzleHtml(p, i)).join('')}</div>`,
+			`<script>document.fonts.ready.then(()=>window.print());</scr` + `ipt>`,
+			`</body></html>`,
+		].join('');
+	}
+
+	// ── Generate & open print window ──────────────────────────────────────────
+	async function handlePrint() {
+		generating = true;
+		progress = 0;
+		await new Promise<void>((r) => setTimeout(r, 20));
+
+		const allPuzzles: PuzzleEntry[] = [];
+
+		if (initialPuzzle) {
+			allPuzzles.push({ ...initialPuzzle, isInitial: true });
+			progress = 1;
+		}
+
+		for (let i = 0; i < additionalCount; i++) {
+			const gen = generatePuzzle(difficulty, gridSize);
+			allPuzzles.push({ ...gen, isInitial: false });
+			progress = allPuzzles.length;
+			await new Promise<void>((r) => setTimeout(r, 0));
+		}
+
+		const html = buildPrintHtml(allPuzzles);
 		const win = window.open('', '_blank');
 		if (win) {
 			win.document.write(html);
 			win.document.close();
 			win.focus();
-			// Small delay for the browser to finish rendering before the dialog opens.
-			setTimeout(() => win.print(), 300);
 		}
 
 		generating = false;
 		onclose();
 	}
-
-	const slowWarning = $derived(
-		count >= 6 && gridSize === 9 && (difficulty === 'expert' || difficulty === 'extreme')
-	);
 </script>
 
 <!-- backdrop -->
@@ -109,7 +160,8 @@ ${puzzles.map((p, i) => puzzleHtml(p.puzzle, i)).join('\n')}
 	aria-modal="true"
 	aria-label="Print Sudoku"
 >
-	<div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col gap-5 p-6">
+	<div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col gap-5 p-6 max-h-[90dvh] overflow-y-auto">
+
 		<!-- header -->
 		<div class="flex items-center justify-between">
 			<h2 class="text-xl font-bold">🖨️ Print Sudoku</h2>
@@ -120,35 +172,81 @@ ${puzzles.map((p, i) => puzzleHtml(p.puzzle, i)).join('\n')}
 			>✕</button>
 		</div>
 
-		<!-- difficulty -->
-		<div class="flex flex-col gap-2">
-			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Difficulty</span>
-			<DifficultyPicker value={difficulty} onchange={(d) => (difficulty = d)} labelFn={diffLabelFn} />
-		</div>
-
-		<!-- grid size -->
-		<div class="flex flex-col gap-2">
-			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Grid size</span>
-			<GridSizePicker value={gridSize} onchange={(s) => (gridSize = s)} />
-		</div>
+		<!-- current puzzle banner -->
+		{#if initialPuzzle}
+			<div class="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+				<span class="text-blue-500 text-base">★</span>
+				<span class="text-blue-700">Текущий пазл включён как <strong>#1</strong></span>
+			</div>
+		{/if}
 
 		<!-- count -->
 		<div class="flex flex-col gap-2">
-			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Number of puzzles</span>
+			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+				{initialPuzzle ? 'Всего пазлов' : 'Количество пазлов'}
+			</span>
 			<div class="grid grid-cols-9 gap-1">
 				{#each [1, 2, 3, 4, 5, 6, 7, 8, 9] as n (n)}
 					<button
 						class="py-2 rounded-lg border-2 font-semibold cursor-pointer transition-all text-sm
-							{count === n
-							? 'border-blue-600 bg-blue-100 text-blue-700'
-							: 'border-transparent bg-blue-50 hover:bg-blue-100'}"
+							{count === n ? 'border-blue-600 bg-blue-100 text-blue-700' : 'border-transparent bg-blue-50 hover:bg-blue-100'}"
 						onclick={() => (count = n)}
 					>{n}</button>
 				{/each}
 			</div>
-			{#if slowWarning}
-				<p class="text-xs text-amber-600">⚠️ Generating {count} {difficulty} puzzles may take a moment.</p>
+			{#if initialPuzzle && count > 1}
+				<p class="text-xs text-gray-400">Текущий + {count - 1} {count - 1 === 1 ? 'новый' : 'новых'}</p>
 			{/if}
+			{#if slowWarning}
+				<p class="text-xs text-amber-600">⚠️ Генерация {additionalCount} {difficulty} пазлов может занять время.</p>
+			{/if}
+		</div>
+
+		<!-- difficulty + grid size — only when generating additional puzzles -->
+		{#if !initialPuzzle || count > 1}
+			<div class="flex flex-col gap-2">
+				<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+					{initialPuzzle ? 'Сложность (дополнительных)' : 'Сложность'}
+				</span>
+				<DifficultyPicker value={difficulty} onchange={(d) => (difficulty = d)} labelFn={diffLabelFn} />
+			</div>
+			<div class="flex flex-col gap-2">
+				<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+					{initialPuzzle ? 'Размер сетки (дополнительных)' : 'Размер сетки'}
+				</span>
+				<GridSizePicker value={gridSize} onchange={(s) => (gridSize = s)} />
+			</div>
+		{/if}
+
+		<!-- color theme -->
+		<div class="flex flex-col gap-2">
+			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Цветовая тема</span>
+			<div class="flex flex-wrap gap-2">
+				{#each THEME_LIST as t (t.id)}
+					<button
+						class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 text-sm font-semibold cursor-pointer transition-all
+							{colorTheme === t.id ? 'border-gray-700 bg-gray-100' : 'border-transparent bg-gray-50 hover:bg-gray-100'}"
+						onclick={() => (colorTheme = t.id)}
+					>
+						<span class="inline-block w-3.5 h-3.5 rounded-full border border-white/60 shadow-sm shrink-0" style="background:{t.swatch}"></span>
+						{t.label}
+					</button>
+				{/each}
+			</div>
+		</div>
+
+		<!-- font -->
+		<div class="flex flex-col gap-2">
+			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Шрифт</span>
+			<div class="flex gap-2 flex-wrap">
+				{#each FONT_LIST as f (f.id)}
+					<button
+						class="px-3 py-1.5 rounded-lg border-2 text-sm cursor-pointer transition-all
+							{fontId === f.id ? 'border-blue-600 bg-blue-100 text-blue-700 font-semibold' : 'border-transparent bg-blue-50 hover:bg-blue-100 font-medium'}"
+						onclick={() => (fontId = f.id)}
+					>{f.label}</button>
+				{/each}
+			</div>
 		</div>
 
 		<!-- actions -->
@@ -159,15 +257,15 @@ ${puzzles.map((p, i) => puzzleHtml(p.puzzle, i)).join('\n')}
 				disabled={generating}
 			>
 				{#if generating}
-					Generating {progress}/{count}…
+					Генерация {progress}/{count}…
 				{:else}
-					Generate &amp; Print
+					Генерировать &amp; печатать
 				{/if}
 			</button>
 			<button
 				class="px-4 py-2.5 rounded-lg border-2 border-gray-200 font-semibold hover:bg-gray-100 cursor-pointer transition-colors"
 				onclick={onclose}
-			>Cancel</button>
+			>Отмена</button>
 		</div>
 	</div>
 </div>

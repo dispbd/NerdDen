@@ -342,7 +342,11 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if showPrintModal}
-	<PrintModal onclose={() => (showPrintModal = false)} diffLabelFn={diffLabel} />
+	<PrintModal
+		onclose={() => (showPrintModal = false)}
+		diffLabelFn={diffLabel}
+		initialPuzzle={gameStarted && puzzle.length > 0 ? { puzzle, difficulty, gridSize } : null}
+	/>
 {/if}
 
 <sudoku-page class="flex flex-col items-center w-full max-w-lg mx-auto px-3 py-4 gap-4 sm:px-4 sm:py-6 sm:gap-6">
@@ -401,7 +405,7 @@
 			<!-- Quick Play -->
 			<h2 class="m-0 text-base font-semibold text-gray-500 uppercase tracking-wide">{m.sudoku_quick_play()}</h2>
 
-			<difficulty-grid class="grid grid-cols-3 gap-2 w-full max-w-sm">
+			<difficulty-grid class="max-w-sm">
 				<DifficultyPicker value={difficulty} onchange={(d) => (difficulty = d)} labelFn={diffLabel} />
 			</difficulty-grid>
 
