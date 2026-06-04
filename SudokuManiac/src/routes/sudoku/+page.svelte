@@ -345,7 +345,9 @@
 	<PrintModal
 		onclose={() => (showPrintModal = false)}
 		diffLabelFn={diffLabel}
-		initialPuzzle={gameStarted && puzzle.length > 0 ? { puzzle, difficulty, gridSize } : null}
+		initialPuzzle={gameStarted && puzzle.length > 0
+			? { puzzle, playerGrid: boardRef?.getCurrentGrid?.() ?? playerGrid, difficulty, gridSize }
+			: null}
 	/>
 {/if}
 

@@ -7,6 +7,7 @@
 <script lang="ts">
 	import type { Difficulty, GridSize, Grid } from '$lib/games/sudoku/shared.js';
 	import { generatePuzzle, getBoxDim } from '$lib/games/sudoku/generator.js';
+	import { untrack } from 'svelte';
 	import DifficultyPicker from './DifficultyPicker.svelte';
 	import GridSizePicker from './GridSizePicker.svelte';
 
@@ -17,13 +18,14 @@
 	}: {
 		onclose: () => void;
 		diffLabelFn?: (d: Difficulty) => string;
-		initialPuzzle?: { puzzle: Grid; difficulty: Difficulty; gridSize: GridSize } | null;
+		initialPuzzle?: { puzzle: Grid; playerGrid?: Grid; difficulty: Difficulty; gridSize: GridSize } | null;
 	} = $props();
 
-	let difficulty = $derived<Difficulty>(initialPuzzle?.difficulty ?? 'medium');
-	let gridSize = $derived<GridSize>(initialPuzzle?.gridSize ?? 9);
+	// Snapshot prop values at mount (modal is always recreated, never reused)
+	let difficulty = $state<Difficulty>(untrack(() => initialPuzzle?.difficulty ?? 'medium'));
+	let gridSize = $state<GridSize>(untrack(() => initialPuzzle?.gridSize ?? 9));
 	// count = total puzzles (including initial if present)
-	let count = $derived(initialPuzzle ? 1 : 4);
+	let count = $state(untrack(() => initialPuzzle != null ? 1 : 4));
 	const additionalCount = $derived(initialPuzzle ? count - 1 : count);
 
 	let generating = $state(false);
@@ -54,35 +56,51 @@
 	);
 
 	// ── Print HTML builder ────────────────────────────────────────────────────
-	type PuzzleEntry = { puzzle: Grid; difficulty: Difficulty; gridSize: GridSize; isInitial: boolean };
+	type PuzzleEntry = { puzzle: Grid; playerGrid?: Grid; difficulty: Difficulty; gridSize: GridSize; isInitial: boolean };
 
 	function buildPrintHtml(allPuzzles: PuzzleEntry[]): string {
 		const theme = THEME_LIST.find((t) => t.id === colorTheme)!;
 		const font  = FONT_LIST.find((f) => f.id === fontId)!;
 
 		function puzzleHtml(entry: PuzzleEntry, idx: number): string {
-			const { puzzle: pz, difficulty: d, gridSize: gs, isInitial } = entry;
+			const { puzzle: pz, playerGrid: pg, difficulty: d, gridSize: gs, isInitial } = entry;
 			const { rows: bRows, cols: bCols } = getBoxDim(gs);
 			const cellMm = gs === 9 ? 10 : gs === 6 ? 13 : 17;
 			const fontMm = (cellMm * 0.52).toFixed(1);
+
+			// player-filled: same hue as theme but at 55% opacity
+			const playerColor = theme.id === 'classic' ? '#6b7280' : theme.givenColor;
 
 			let tbody = '';
 			for (let r = 0; r < gs; r++) {
 				let cells = '';
 				for (let c = 0; c < gs; c++) {
-					const v = pz[r][c];
-					const given = v !== 0;
+					const original  = pz[r][c];           // 0 = blank in original puzzle
+					const filled    = pg?.[r]?.[c] ?? 0;  // what the player typed
+					const isGiven   = original !== 0;
+					const isPlayer  = !isGiven && filled !== 0;
+					const displayVal = isGiven ? original : (isPlayer ? filled : 0);
+
 					const bB = (r + 1) % bRows === 0 && r < gs - 1 ? `3px solid ${theme.boxBorder}` : `1px solid ${theme.cellBorder}`;
 					const bR = (c + 1) % bCols === 0 && c < gs - 1 ? `3px solid ${theme.boxBorder}` : `1px solid ${theme.cellBorder}`;
+
+					let color: string, bg: string, fw: number, opacity: string;
+					if (isGiven) {
+						color = theme.givenColor; bg = theme.givenBg; fw = 700; opacity = '1';
+					} else if (isPlayer) {
+						color = playerColor; bg = 'transparent'; fw = 500; opacity = '0.55';
+					} else {
+						color = '#ccc'; bg = 'transparent'; fw = 400; opacity = '1';
+					}
+
 					cells += `<td style="`
 						+ `width:${cellMm}mm;height:${cellMm}mm;`
 						+ `border-top:1px solid ${theme.cellBorder};border-left:1px solid ${theme.cellBorder};`
 						+ `border-bottom:${bB};border-right:${bR};`
 						+ `text-align:center;vertical-align:middle;`
-						+ `font-size:${fontMm}mm;font-weight:${given ? 700 : 400};`
-						+ `color:${given ? theme.givenColor : '#ccc'};`
-						+ `background:${given ? theme.givenBg : 'transparent'};`
-						+ `">${v || ''}</td>`;
+						+ `font-size:${fontMm}mm;font-weight:${fw};opacity:${opacity};`
+						+ `color:${color};background:${bg};`
+						+ `">${displayVal || ''}</td>`;
 				}
 				tbody += `<tr>${cells}</tr>`;
 			}
