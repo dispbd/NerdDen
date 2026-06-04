@@ -50,7 +50,7 @@
 		{ id: 'courier', label: 'Courier',    family: "'Courier New', monospace",  googleFont: null              },
 	] as const;
 	type FontId = (typeof FONT_LIST)[number]['id'];
-	let fontId = $state<FontId>('system');
+	let fontId = $state<FontId>('caveat');
 
 	const slowWarning = $derived(
 		additionalCount >= 5 && gridSize === 9 && (difficulty === 'expert' || difficulty === 'extreme')
