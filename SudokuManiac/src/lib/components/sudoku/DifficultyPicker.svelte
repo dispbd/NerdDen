@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Difficulty } from '$lib/games/sudoku/shared.js';
+	import Chip from '$lib/components/shared/Chip.svelte';
 
 	const DIFFICULTIES: Difficulty[] = ['beginner', 'easy', 'medium', 'hard', 'expert', 'extreme'];
 
@@ -14,14 +15,15 @@
 	} = $props();
 </script>
 
-<div class="grid grid-cols-3 gap-2 w-full">
+<div class="flex w-full flex-wrap gap-2.5">
 	{#each DIFFICULTIES as d (d)}
-		<button
-			class="px-2 py-2.5 rounded-lg border-2 font-semibold cursor-pointer transition-all capitalize
-				{value === d
-				? 'border-blue-600 bg-blue-100 text-blue-700'
-				: 'border-transparent bg-blue-50 hover:bg-blue-100'}"
+		<Chip
+			active={value === d}
+			accent="var(--color-terracotta)"
+			class="kraft-radius-sm px-4 py-1.5 text-lg sm:text-xl"
 			onclick={() => onchange(d)}
-		>{labelFn(d)}</button>
+		>
+			{labelFn(d)}
+		</Chip>
 	{/each}
 </div>
