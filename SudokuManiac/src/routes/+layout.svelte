@@ -12,6 +12,16 @@
 	const client = createAuthClient();
 	const session = client.useSession();
 
+	// Full-screen Kraft views render their own in-page top bar (KraftTopBar) and
+	// hide the global Header / footer chrome.
+	const FULLSCREEN_ROUTES = new Set([
+		'/profile/[id]',
+		'/leaderboard',
+		'/sudoku/competitive',
+		'/sudoku/custom'
+	]);
+	const fullScreen = $derived(FULLSCREEN_ROUTES.has(page.route.id ?? ''));
+
 	const MERGE_KEY = 'sudoku_guest_merged';
 
 	// When a user signs in, merge any guest progress to the server (once).
@@ -59,16 +69,20 @@
 </script>
 
 <nerd-den-app class="flex min-h-screen flex-col">
-	<Header />
-	<main class="m-auto my-0 box-border flex w-full max-w-5xl flex-1 flex-col p-4">
+	{#if fullScreen}
 		{@render children()}
-	</main>
+	{:else}
+		<Header />
+		<main class="m-auto my-0 box-border flex w-full max-w-5xl flex-1 flex-col p-4">
+			{@render children()}
+		</main>
 
-	<footer class="flex flex-col items-center justify-center p-3 sm:px-0">
-		<p class="text-sm text-gray-500">
-			Made with ❤️ by <a class="font-bold" href="https://svelte.dev">Svelte</a>
-		</p>
-	</footer>
+		<footer class="flex flex-col items-center justify-center p-3 sm:px-0">
+			<p class="text-sm text-muted">
+				Made with ❤️ on <a class="font-bold text-navy" href="https://svelte.dev">Svelte</a>
+			</p>
+		</footer>
+	{/if}
 </nerd-den-app>
 
 <div style="display:none">

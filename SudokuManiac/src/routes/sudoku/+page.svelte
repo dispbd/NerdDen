@@ -77,6 +77,18 @@
 			const gStats = loadGuestStats();
 			hintsAvailable = gStats.hintsAvailable;
 		}
+
+		// Auto-start from Custom mode handoff (/sudoku/custom → /sudoku?…&autostart=1)
+		const sp = new URLSearchParams(location.search);
+		if (sp.get('autostart') === '1') {
+			const d = sp.get('difficulty') as Difficulty | null;
+			const s = Number(sp.get('size'));
+			if (s === 4 || s === 6 || s === 9) gridSize = s as GridSize;
+			const diff = d && DIFFICULTIES.includes(d) ? d : difficulty;
+			// Clean the URL so a refresh doesn't restart the game
+			history.replaceState(null, '', location.pathname);
+			void startGame(diff);
+		}
 	});
 
 	async function restoreTimerOffset(seconds: number) {
@@ -154,7 +166,7 @@
 		saves = saves.filter((s) => s.id !== slot.id);
 	}
 
-	async function startGame(diff?: Difficulty) {
+	async function startGame(diff: Difficulty | undefined) {
 		// Stash / clean up previous sessions
 		if (sessionId) {
 			await stashCurrentDbSession(); // saves progress, adds to saves list

@@ -45,20 +45,27 @@
 	}}
 />
 
-<header class="relative flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white/90 backdrop-blur-sm z-30">
-	<a href={resolve('/')} class="text-xl font-extrabold text-blue-700 no-underline hover:text-blue-800 transition-colors">
-		NerdDen <img src="/sudoku-maniac.webp" alt="SudokuManiac" class="inline-block size-7 -mt-1">
+<header
+	class="relative z-30 flex min-h-[66px] items-center justify-between border-b-[1.5px] border-dashed border-dash bg-paper-card px-4 py-3"
+>
+	<a
+		href={resolve('/')}
+		class="flex items-center gap-2 font-display text-xl font-bold text-ink no-underline"
+	>
+		NerdDen <img src="/sudoku-maniac.webp" alt="SudokuManiac" class="inline-block size-7" style="image-rendering:pixelated" />
 	</a>
 
 	<!-- Desktop nav -->
 	<nav class="hidden md:block">
-		<ul class="flex gap-6 list-none m-0 p-0">
+		<ul class="m-0 flex list-none gap-6 p-0">
 			{#each NAV_LINKS as link (link.label)}
 				<li>
 					<a
 						href={link.href}
 						aria-current={isActive(link.href) ? 'page' : undefined}
-						class="font-semibold text-sm no-underline transition-colors {isActive(link.href) ? 'text-blue-600' : 'text-gray-600 hover:text-blue-500'}"
+						class="text-sm font-semibold no-underline transition-colors {isActive(link.href)
+							? 'text-terracotta'
+							: 'text-ink-soft hover:text-terracotta'}"
 					>
 						{link.label}
 					</a>
@@ -67,23 +74,25 @@
 		</ul>
 	</nav>
 
-	<header-auth class="hidden md:flex items-center gap-3">
+	<header-auth class="hidden items-center gap-3 md:flex">
 		<!-- Language switcher -->
 		<lang-switcher class="relative">
 			<button
 				onclick={() => (langOpen = !langOpen)}
-				class="flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-blue-600 cursor-pointer border-0 bg-transparent p-0 transition-colors"
+				class="flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold text-ink-soft transition-colors hover:text-terracotta"
 				aria-label={m.lang_switcher_label()}
 			>
 				🌐 <span class="uppercase">{currentLocale}</span>
 			</button>
 			{#if langOpen}
-				<lang-dropdown class="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-50 min-w-32">
+				<lang-dropdown
+					class="absolute top-full right-0 z-50 mt-1 min-w-32 overflow-hidden rounded-[12px] border-[1.5px] border-ink bg-surface shadow-card"
+				>
 					{#each locales as locale (locale)}
 						<button
 							onclick={() => { setLocale(locale); langOpen = false; }}
-							class="flex w-full px-4 py-2 text-sm text-left cursor-pointer border-0 bg-transparent transition-colors
-								{locale === currentLocale ? 'font-bold text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'}"
+							class="flex w-full cursor-pointer border-0 bg-transparent px-4 py-2 text-left text-sm transition-colors
+								{locale === currentLocale ? 'bg-cell-selected-bg font-bold text-terracotta' : 'text-ink-soft hover:bg-surface-2'}"
 						>
 							{LOCALE_LABELS[locale] ?? locale}
 						</button>
@@ -93,20 +102,23 @@
 		</lang-switcher>
 
 		{#if $session?.data?.user}
-			<a href="/profile" class="text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors no-underline">
+			<a href="/profile" class="text-sm font-semibold text-ink no-underline transition-colors hover:text-terracotta">
 				{$session.data.user.name}
 			</a>
 			<button
 				onclick={signOut}
-				class="text-sm font-semibold text-gray-500 hover:text-red-500 transition-colors cursor-pointer border-0 bg-transparent p-0"
+				class="cursor-pointer border-0 bg-transparent p-0 text-sm font-semibold text-muted transition-colors hover:text-terracotta-ink"
 			>
 				{m.nav_sign_out()}
 			</button>
 		{:else}
-			<a href="/sign-in" class="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors no-underline">
+			<a href="/sign-in" class="text-sm font-semibold text-navy no-underline transition-colors hover:text-ink">
 				{m.nav_sign_in()}
 			</a>
-			<a href="/sign-up" class="px-3 py-1.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors no-underline">
+			<a
+				href="/sign-up"
+				class="btn-primary kraft-radius-sm px-4 py-1.5 text-base no-underline"
+			>
 				{m.nav_sign_up()}
 			</a>
 		{/if}
@@ -118,38 +130,44 @@
 		onclick={() => (mobileOpen = !mobileOpen)}
 		aria-label="Menu"
 		aria-expanded={mobileOpen}
-		class="md:hidden flex flex-col justify-center gap-1.5 w-10 h-10 border-0 bg-transparent cursor-pointer p-2"
+		class="flex h-10 w-10 cursor-pointer flex-col justify-center gap-1.5 border-0 bg-transparent p-2 md:hidden"
 	>
-		<span class="block h-0.5 w-full bg-gray-700 transition-all {mobileOpen ? 'translate-y-2 rotate-45' : ''}"></span>
-		<span class="block h-0.5 w-full bg-gray-700 transition-all {mobileOpen ? 'opacity-0' : ''}"></span>
-		<span class="block h-0.5 w-full bg-gray-700 transition-all {mobileOpen ? '-translate-y-2 -rotate-45' : ''}"></span>
+		<span class="block h-0.5 w-full bg-ink transition-all {mobileOpen ? 'translate-y-2 rotate-45' : ''}"></span>
+		<span class="block h-0.5 w-full bg-ink transition-all {mobileOpen ? 'opacity-0' : ''}"></span>
+		<span class="block h-0.5 w-full bg-ink transition-all {mobileOpen ? '-translate-y-2 -rotate-45' : ''}"></span>
 	</button>
 </header>
 
 <!-- Mobile menu drawer -->
 {#if mobileOpen}
-	<mobile-menu class="md:hidden fixed inset-x-0 top-14.25 bg-white border-b border-gray-200 shadow-lg z-20 flex flex-col">
-		<nav class="flex flex-col px-4 py-3 gap-1">
+	<mobile-menu
+		class="fixed inset-x-0 top-[66px] z-20 flex flex-col border-b-[1.5px] border-dashed border-dash bg-paper-card shadow-card md:hidden"
+	>
+		<nav class="flex flex-col gap-1 px-4 py-3">
 			{#each NAV_LINKS as link (link.label)}
 				<a
 					href={link.href}
 					onclick={() => (mobileOpen = false)}
 					aria-current={isActive(link.href) ? 'page' : undefined}
-					class="py-3 px-2 font-semibold text-base no-underline border-b border-gray-100 last:border-0 transition-colors {isActive(link.href) ? 'text-blue-600' : 'text-gray-700 hover:text-blue-500'}"
+					class="border-b-[1.5px] border-dashed border-dash px-2 py-3 text-base font-semibold no-underline transition-colors last:border-0 {isActive(link.href)
+						? 'text-terracotta'
+						: 'text-ink hover:text-terracotta'}"
 				>
 					{link.label}
 				</a>
 			{/each}
 		</nav>
 
-		<mobile-auth class="flex flex-col px-4 pb-4 gap-3">
+		<mobile-auth class="flex flex-col gap-3 px-4 pb-4">
 			<!-- Language row -->
 			<lang-row class="flex flex-wrap gap-2 pt-2">
 				{#each locales as locale (locale)}
 					<button
 						onclick={() => { setLocale(locale); mobileOpen = false; }}
-						class="px-3 py-1.5 rounded-full text-sm font-semibold border cursor-pointer transition-colors
-							{locale === currentLocale ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'}"
+						class="kraft-radius-sm cursor-pointer border-[1.5px] px-3 py-1.5 text-sm font-semibold transition-colors
+							{locale === currentLocale
+							? 'border-ink bg-terracotta text-surface-2'
+							: 'border-ink bg-transparent text-ink-soft'}"
 					>
 						{LOCALE_LABELS[locale] ?? locale}
 					</button>
@@ -158,20 +176,28 @@
 
 			{#if $session?.data?.user}
 				<mobile-user class="flex items-center justify-between">
-					<span class="text-sm font-semibold text-gray-700">{$session.data.user.name}</span>
+					<span class="text-sm font-semibold text-ink">{$session.data.user.name}</span>
 					<button
 						onclick={() => { void signOut(); mobileOpen = false; }}
-						class="text-sm font-semibold text-red-500 cursor-pointer border-0 bg-transparent p-0"
+						class="cursor-pointer border-0 bg-transparent p-0 text-sm font-semibold text-terracotta-ink"
 					>
 						{m.nav_sign_out()}
 					</button>
 				</mobile-user>
 			{:else}
 				<mobile-auth-links class="flex gap-3">
-					<a href={resolve('/sign-in')} onclick={() => (mobileOpen = false)} class="flex-1 text-center py-2.5 border border-blue-600 text-blue-600 font-semibold rounded-lg no-underline hover:bg-blue-50 transition-colors">
+					<a
+						href={resolve('/sign-in')}
+						onclick={() => (mobileOpen = false)}
+						class="btn-secondary kraft-radius-sm flex-1 py-2.5 text-center text-base no-underline"
+					>
 						{m.nav_sign_in()}
 					</a>
-					<a href={resolve('/sign-up')} onclick={() => (mobileOpen = false)} class="flex-1 text-center py-2.5 bg-blue-600 text-white font-semibold rounded-lg no-underline hover:bg-blue-700 transition-colors">
+					<a
+						href={resolve('/sign-up')}
+						onclick={() => (mobileOpen = false)}
+						class="btn-primary kraft-radius-sm flex-1 py-2.5 text-center text-base no-underline"
+					>
 						{m.nav_sign_up()}
 					</a>
 				</mobile-auth-links>
@@ -179,4 +205,3 @@
 		</mobile-auth>
 	</mobile-menu>
 {/if}
-
