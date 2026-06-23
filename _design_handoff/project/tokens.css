@@ -1,0 +1,88 @@
+/*
+  NerdDen — Design tokens "Kraft Draft" (Direction 01)
+  ============================================================
+  Ready to drop into src/routes/layout.css (Tailwind v4 @theme) or
+  into :root as plain CSS variables. Values are final (hi-fi).
+
+  Fonts (Google Fonts / @fontsource):
+    - Bricolage Grotesque — headings (H1–H3), 700
+    - Hanken Grotesk      — all interface text, 400/500/600/700
+    - Caveat              — ONLY digits, field values and button labels, 700
+*/
+
+@theme {
+  /* ---- Palette: paper / ink ---- */
+  --color-paper:        #ECE3D2; /* page / app background */
+  --color-paper-card:   #F1E9D9; /* top bar, large surfaces */
+  --color-surface:      #F7F1E4; /* cards */
+  --color-surface-2:    #FBF6EC; /* "sheet" inside a card, avatars */
+  --color-board-cell:   #FFFFFF; /* board cell background */
+  --color-ink:          #322C24; /* primary line & given-text color */
+  --color-ink-soft:     #6B6151; /* secondary text */
+  --color-muted:        #9A917D; /* captions, labels */
+  --color-muted-2:      #B3AA96; /* very quiet captions / disabled */
+
+  /* ---- Accents (muted artisan) ---- */
+  --color-terracotta:   #C2724F; /* primary accent / primary button */
+  --color-terracotta-ink:#9A4A2E;/* terracotta text on paper (contrast) */
+  --color-navy:         #3E5C76; /* secondary accent / action links */
+  --color-mustard:      #C29A45; /* counters, hint badges */
+  --color-forest:       #5F7657; /* success, progress, statuses */
+
+  /* ---- Markers (color of player-entered digits) ---- */
+  --color-marker-red:   #B5462E;
+  --color-marker-blue:  #3E5C76;
+  --color-marker-green: #5B7355;
+
+  /* ---- Board states ---- */
+  --color-cell-selected-bg:  #ECCBB9; /* selected cell background */
+  --color-cell-selected-ring:#C2724F; /* selected cell ring, inset 2.5px */
+  --color-cell-peer-bg:      #EFE7D4; /* row/column/box of the selected cell */
+  --color-cell-same-bg:      #DBE5EE; /* cells holding the same digit */
+  --color-cell-error-bg:     #F4D7CF; /* cell with an error */
+  --color-cell-error-ink:    #C81E1E; /* error digit */
+  --color-grid-line-thin:    #DCD5C6; /* thin grid lines (1px) */
+
+  /* ---- Dark theme ---- */
+  --color-dark-paper:    #2A2520;
+  --color-dark-surface:  #342E26;
+  --color-dark-border:   #4A4236;
+  --color-dark-ink:      #ECE3D2;
+  --color-dark-muted:    #9B917F;
+  --color-dark-terracotta:#D08260; /* dark-theme accents slightly lighter */
+  --color-dark-navy:     #5D83A3;
+  --color-dark-mustard:  #CBA85A;
+  --color-dark-forest:   #7D9670;
+
+  /* ---- Typography ---- */
+  --font-display: 'Bricolage Grotesque', sans-serif;
+  --font-sans:    'Hanken Grotesk', sans-serif;
+  --font-hand:    'Caveat', cursive;
+
+  /* ---- Radii ----
+     Base "soft" radii. IMPORTANT: a signature trick of this direction is
+     the slightly UNEVEN corners on buttons/cards (hand-drawn draft feel),
+     set inline, e.g.:
+       border-radius: 15px 12px 16px 11px / 12px 16px 11px 15px;
+     Below are neutral values for elements that don't need the unevenness. */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   18px;
+  --radius-pill: 999px;
+
+  /* ---- Shadows ----
+     Signature "draft" shadow — a hard ink-colored offset (no blur):
+       box-shadow: 2px 3px 0 rgba(50,44,36,.85);  (primary button)
+       box-shadow: 2px 3px 0 rgba(50,44,36,.10);  (card)
+     Plus a soft shadow for large containers: */
+  --shadow-card:   2px 3px 0 rgba(50, 44, 36, .10);
+  --shadow-btn:    2px 3px 0 rgba(50, 44, 36, .85);
+  --shadow-btn-sm: 2px 2px 0 rgba(50, 44, 36, .55);
+  --shadow-float:  0 22px 50px rgba(50, 44, 36, .16);
+
+  /* ---- Borders ---- */
+  /* Divider line: 1.5px dashed #C9BFA8 (hand-drawn dashes) */
+  --border-ink: 1.5px solid #322C24;
+  --border-dashed: 1.5px dashed #C9BFA8;
+}

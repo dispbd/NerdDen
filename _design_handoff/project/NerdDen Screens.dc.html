@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Hanken+Grotesk:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{font-family:'Hanken Grotesk',sans-serif;-webkit-font-smoothing:antialiased}
+  </style>
+</helmet>
+
+<div style="width:max-content;min-width:100%;min-height:100vh;box-sizing:border-box;padding:48px;background:#e7e5df">
+
+  <!-- ===================== PROFILE ===================== -->
+  <div style="font:600 12px/1 'Hanken Grotesk';letter-spacing:.18em;text-transform:uppercase;color:#8a8474;margin:0 0 16px">Profile / XP</div>
+  <div style="display:flex;gap:56px;align-items:flex-start;margin-bottom:64px">
+
+    <!-- desktop -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Desktop · 1280</div>
+      <div style="width:1280px;background:#ECE3D2;border-radius:18px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="height:66px;background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:space-between;padding:0 24px">
+          <div style="display:flex;align-items:center;gap:16px"><button style="font-family:Caveat;font-weight:700;font-size:20px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:11px 9px 12px 10px;padding:5px 16px;cursor:pointer;white-space:nowrap">← Menu</button><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:20px;color:#322C24">Profile</div></div>
+          <button style="font-family:Caveat;font-weight:700;font-size:19px;color:#322C24;background:#F7F1E4;border:1.5px solid #322C24;border-radius:10px 12px 9px 11px;padding:5px 16px;cursor:pointer;white-space:nowrap">⚙ Settings</button>
+        </div>
+
+        <div style="display:flex;gap:26px;padding:26px">
+          <!-- identity -->
+          <div style="width:330px;flex:none;display:flex;flex-direction:column;gap:20px">
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:18px 15px 17px 14px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:22px 22px 26px;text-align:center">
+              <div style="width:104px;height:104px;margin:0 auto;border-radius:24px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/sudoku-maniac.webp" style="width:80px;height:80px;image-rendering:pixelated"></div>
+              <div style="margin-top:-12px;display:flex;justify-content:center"><span style="font:700 12px/1 'Hanken Grotesk';color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;border-radius:999px;padding:4px 14px">Level 7</span></div>
+              <div style="font-family:Caveat;font-weight:700;font-size:32px;line-height:1;color:#322C24;margin-top:12px">Player_42</div>
+              <div style="font:500 13px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:3px">on NerdDen since May 2026</div>
+              <div style="margin-top:18px;text-align:left">
+                <div style="display:flex;justify-content:space-between;font:600 11px/1 'Hanken Grotesk';color:#6B6151;margin-bottom:7px"><span>1240 XP</span><span style="color:#9a917d">to level 8 · 260</span></div>
+                <div style="height:12px;border-radius:999px;background:#e3d8c2;border:1.5px solid #322C24;overflow:hidden"><div style="width:64%;height:100%;background:#C2724F"></div></div>
+              </div>
+            </div>
+            <!-- mascots owned -->
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:15px 18px 14px 17px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:18px">
+              <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:14px">Mascots</div>
+              <div style="display:flex;gap:12px">
+                <div style="flex:1;border-radius:13px;background:#FBF6EC;border:1.5px solid #322C24;padding:10px;text-align:center"><img src="assets/sudoku-maniac.webp" style="width:44px;height:44px;image-rendering:pixelated"><div style="font:600 10px/1.2 'Hanken Grotesk';color:#322C24;margin-top:4px">Maniac</div></div>
+                <div style="flex:1;border-radius:13px;background:#efe7d6;border:1.5px dashed #b6a98c;padding:10px;text-align:center;opacity:.7"><img src="assets/mascot-owl.png" style="width:44px;height:44px"><div style="font:600 10px/1.2 'Hanken Grotesk';color:#9a917d;margin-top:4px">🔒 Owl</div></div>
+                <div style="flex:1;border-radius:13px;background:#efe7d6;border:1.5px dashed #b6a98c;padding:10px;text-align:center;opacity:.7"><img src="assets/mascot-alias.png" style="width:44px;height:44px"><div style="font:600 10px/1.2 'Hanken Grotesk';color:#9a917d;margin-top:4px">🔒 Hatter</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- stats + achievements -->
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:20px">
+            <!-- stat tiles -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+              <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:14px 11px 13px 12px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:16px"><div style="font-family:Caveat;font-weight:700;font-size:34px;line-height:.85;color:#322C24">214</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:5px">solved</div></div>
+              <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:11px 14px 12px 13px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:16px"><div style="font-family:Caveat;font-weight:700;font-size:34px;line-height:.85;color:#5F7657">06:12</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:5px">best time</div></div>
+              <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:13px 12px 14px 11px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:16px"><div style="font-family:Caveat;font-weight:700;font-size:34px;line-height:.85;color:#C2724F">12</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:5px">day streak</div></div>
+              <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:12px 13px 11px 14px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:16px"><div style="font-family:Caveat;font-weight:700;font-size:34px;line-height:.85;color:#3E5C76">87%</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:5px">no mistakes</div></div>
+            </div>
+
+            <!-- activity -->
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:16px 13px 15px 12px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:20px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d">Activity · 8 weeks</div><div style="font:500 12px/1 'Hanken Grotesk';color:#9a917d">less → more</div></div>
+              <div style="display:flex;gap:5px">
+                <sc-for list="{{ heat }}" as="col" hint-placeholder-count="8">
+                  <div style="display:flex;flex-direction:column;gap:5px">
+                    <sc-for list="{{ col }}" as="d" hint-placeholder-count="7">
+                      <span style="{{ d.style }}"></span>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <!-- achievements -->
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:13px 16px 12px 15px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:20px">
+              <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:16px">Achievements</div>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+                <div style="display:flex;gap:12px;align-items:center"><div style="width:44px;height:44px;flex:none;border-radius:13px;background:#C29A45;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-size:20px">🔥</div><div><div style="font:600 13px/1.1 'Hanken Grotesk';color:#322C24">7-day streak</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d">earned · May 18</div></div></div>
+                <div style="display:flex;gap:12px;align-items:center"><div style="width:44px;height:44px;flex:none;border-radius:13px;background:#3E5C76;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-size:20px">⚡</div><div><div style="font:600 13px/1.1 'Hanken Grotesk';color:#322C24">Lightning</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d">9×9 under 7 minutes</div></div></div>
+                <div style="display:flex;gap:12px;align-items:center"><div style="width:44px;height:44px;flex:none;border-radius:13px;background:#5F7657;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-size:20px">✓</div><div><div style="font:600 13px/1.1 'Hanken Grotesk';color:#322C24">Clean sheet</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d">10 games with no mistakes</div></div></div>
+                <div style="display:flex;gap:12px;align-items:center;opacity:.45"><div style="width:44px;height:44px;flex:none;border-radius:13px;background:#e3d8c2;border:1.5px dashed #b6a98c;display:flex;align-items:center;justify-content:center;font-size:20px">🔒</div><div><div style="font:600 13px/1.1 'Hanken Grotesk';color:#6B6151">Expert</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d">solve 5 on 'Expert'</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- mobile -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Mobile · 390</div>
+      <div style="width:390px;background:#ECE3D2;border-radius:30px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="background:#F1E9D9;padding:10px 20px 0"><div style="display:flex;align-items:center;justify-content:space-between;font:600 12px/1 'Hanken Grotesk';color:#322C24;margin-bottom:10px"><span>9:41</span><span style="letter-spacing:1px;color:#9a917d">▰▰▰ ◔</span></div></div>
+        <div style="background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:space-between;padding:0 16px 12px"><button style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:10px 8px 11px 9px;padding:4px 12px;cursor:pointer">←</button><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:18px;color:#322C24">Profile</div><button style="background:transparent;border:none;font-size:18px;cursor:pointer">⚙</button></div>
+        <div style="padding:18px 18px 26px">
+          <div style="text-align:center;margin-bottom:18px">
+            <div style="width:92px;height:92px;margin:0 auto;border-radius:22px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/sudoku-maniac.webp" style="width:70px;height:70px;image-rendering:pixelated"></div>
+            <div style="margin-top:-11px;display:flex;justify-content:center"><span style="font:700 11px/1 'Hanken Grotesk';color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;border-radius:999px;padding:4px 12px">Level 7</span></div>
+            <div style="font-family:Caveat;font-weight:700;font-size:28px;line-height:1;color:#322C24;margin-top:10px">Player_42</div>
+            <div style="margin-top:14px;text-align:left"><div style="display:flex;justify-content:space-between;font:600 11px/1 'Hanken Grotesk';color:#6B6151;margin-bottom:6px"><span>1240 XP</span><span style="color:#9a917d">to lvl 8 · 260</span></div><div style="height:11px;border-radius:999px;background:#e3d8c2;border:1.5px solid #322C24;overflow:hidden"><div style="width:64%;height:100%;background:#C2724F"></div></div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:13px 10px 12px 11px;padding:13px"><div style="font-family:Caveat;font-weight:700;font-size:28px;line-height:.85;color:#322C24">214</div><div style="font:500 11px/1.2 'Hanken Grotesk';color:#9a917d;margin-top:4px">solved</div></div>
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:10px 13px 11px 12px;padding:13px"><div style="font-family:Caveat;font-weight:700;font-size:28px;line-height:.85;color:#5F7657">06:12</div><div style="font:500 11px/1.2 'Hanken Grotesk';color:#9a917d;margin-top:4px">best</div></div>
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:12px 11px 13px 10px;padding:13px"><div style="font-family:Caveat;font-weight:700;font-size:28px;line-height:.85;color:#C2724F">12</div><div style="font:500 11px/1.2 'Hanken Grotesk';color:#9a917d;margin-top:4px">streak</div></div>
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:11px 12px 10px 13px;padding:13px"><div style="font-family:Caveat;font-weight:700;font-size:28px;line-height:.85;color:#3E5C76">87%</div><div style="font:500 11px/1.2 'Hanken Grotesk';color:#9a917d;margin-top:4px">no mistakes</div></div>
+          </div>
+          <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:12px">Achievements</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:12px 10px 13px 11px;padding:12px;display:flex;gap:12px;align-items:center"><div style="width:40px;height:40px;flex:none;border-radius:12px;background:#C29A45;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-size:18px">🔥</div><div><div style="font:600 13px/1.1 'Hanken Grotesk';color:#322C24">7-day streak</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d">earned · May 18</div></div></div>
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:10px 12px 11px 13px;padding:12px;display:flex;gap:12px;align-items:center"><div style="width:40px;height:40px;flex:none;border-radius:12px;background:#3E5C76;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-size:18px">⚡</div><div><div style="font:600 13px/1.1 'Hanken Grotesk';color:#322C24">Lightning</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d">9×9 under 7 minutes</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== LEADERBOARD ===================== -->
+  <div style="font:600 12px/1 'Hanken Grotesk';letter-spacing:.18em;text-transform:uppercase;color:#8a8474;margin:0 0 16px">Leaderboard</div>
+  <div style="display:flex;gap:56px;align-items:flex-start;margin-bottom:64px">
+
+    <!-- desktop -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Desktop · 1280</div>
+      <div style="width:1280px;background:#ECE3D2;border-radius:18px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="height:66px;background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:space-between;padding:0 24px">
+          <div style="display:flex;align-items:center;gap:16px"><button style="font-family:Caveat;font-weight:700;font-size:20px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:11px 9px 12px 10px;padding:5px 16px;cursor:pointer;white-space:nowrap">← Menu</button><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:20px;color:#322C24">Leaderboard</div></div>
+          <div style="display:flex;gap:8px">
+            <button style="font-family:Caveat;font-weight:700;font-size:18px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;border-radius:11px 9px 12px 10px;padding:5px 16px;box-shadow:2px 2px 0 rgba(50,44,36,.6);cursor:pointer">This week</button>
+            <button style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px 12px 10px 11px;padding:5px 16px;cursor:pointer">All time</button>
+            <button style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:12px 10px 11px 9px;padding:5px 16px;cursor:pointer">Friends</button>
+          </div>
+        </div>
+
+        <div style="padding:26px">
+          <!-- podium -->
+          <div style="display:flex;gap:18px;align-items:flex-end;justify-content:center;margin-bottom:26px">
+            <!-- 2nd -->
+            <div style="width:200px;text-align:center">
+              <div style="width:62px;height:62px;margin:0 auto 10px;border-radius:16px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:30px;color:#3E5C76">M</div>
+              <div style="font:600 14px/1.1 'Hanken Grotesk';color:#322C24">Maya_K</div>
+              <div style="font-family:Caveat;font-weight:700;font-size:22px;line-height:1;color:#9a917d;margin:2px 0 8px">2980 XP</div>
+              <div style="height:90px;background:#F7F1E4;border:1.5px solid #322C24;border-radius:12px 12px 0 0;box-shadow:2px 0 0 rgba(50,44,36,.08);display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:46px;color:#3E5C76">2</div>
+            </div>
+            <!-- 1st -->
+            <div style="width:210px;text-align:center">
+              <div style="font-size:24px;line-height:1;margin-bottom:4px">👑</div>
+              <div style="width:74px;height:74px;margin:0 auto 10px;border-radius:18px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:36px;color:#C2724F">L</div>
+              <div style="font:700 15px/1.1 'Hanken Grotesk';color:#322C24">Leo_99</div>
+              <div style="font-family:Caveat;font-weight:700;font-size:24px;line-height:1;color:#C2724F;margin:2px 0 8px">3640 XP</div>
+              <div style="height:124px;background:#C2724F;border:1.5px solid #322C24;border-radius:12px 12px 0 0;box-shadow:2px 0 0 rgba(50,44,36,.12);display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:58px;color:#FBF6EC">1</div>
+            </div>
+            <!-- 3rd -->
+            <div style="width:200px;text-align:center">
+              <div style="width:58px;height:58px;margin:0 auto 10px;border-radius:15px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:28px;color:#5F7657">T</div>
+              <div style="font:600 14px/1.1 'Hanken Grotesk';color:#322C24">Timur</div>
+              <div style="font-family:Caveat;font-weight:700;font-size:22px;line-height:1;color:#9a917d;margin:2px 0 8px">2710 XP</div>
+              <div style="height:72px;background:#F7F1E4;border:1.5px solid #322C24;border-radius:12px 12px 0 0;box-shadow:2px 0 0 rgba(50,44,36,.08);display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:42px;color:#5F7657">3</div>
+            </div>
+          </div>
+
+          <!-- list -->
+          <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:16px 13px 15px 12px;box-shadow:2px 3px 0 rgba(50,44,36,.10);overflow:hidden">
+            <sc-for list="{{ board }}" as="row" hint-placeholder-count="6">
+              <div style="{{ row.style }}">
+                <span style="font-family:Caveat;font-weight:700;font-size:24px;line-height:1;color:{{ row.rankColor }};width:34px;text-align:center;flex:none">{{ row.rank }}</span>
+                <div style="width:38px;height:38px;flex:none;border-radius:11px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:20px;color:#322C24">{{ row.ava }}</div>
+                <span style="flex:1;font:600 14px/1.2 'Hanken Grotesk';color:#322C24">{{ row.name }}</span>
+                <span style="font:500 12px/1.2 'Hanken Grotesk';color:#9a917d;width:80px;text-align:right">{{ row.solved }} solv.</span>
+                <span style="font-family:Caveat;font-weight:700;font-size:22px;line-height:1;color:#322C24;width:96px;text-align:right">{{ row.xp }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- mobile -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Mobile · 390</div>
+      <div style="width:390px;background:#ECE3D2;border-radius:30px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="background:#F1E9D9;padding:10px 20px 0"><div style="display:flex;align-items:center;justify-content:space-between;font:600 12px/1 'Hanken Grotesk';color:#322C24;margin-bottom:10px"><span>9:41</span><span style="letter-spacing:1px;color:#9a917d">▰▰▰ ◔</span></div></div>
+        <div style="background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:space-between;padding:0 16px 12px"><button style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:10px 8px 11px 9px;padding:4px 12px;cursor:pointer">←</button><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:18px;color:#322C24">Leaderboard</div><span style="width:30px"></span></div>
+        <div style="padding:16px 16px 24px">
+          <div style="display:flex;gap:6px;margin-bottom:16px"><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;border-radius:10px 8px 11px 9px;padding:5px 0;box-shadow:1px 2px 0 rgba(50,44,36,.6);cursor:pointer">Week</button><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:8px 11px 9px 10px;padding:5px 0;cursor:pointer">All</button><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:11px 9px 10px 8px;padding:5px 0;cursor:pointer">Friends</button></div>
+          <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:15px 12px 14px 11px;box-shadow:2px 3px 0 rgba(50,44,36,.10);overflow:hidden">
+            <sc-for list="{{ boardM }}" as="row" hint-placeholder-count="6">
+              <div style="{{ row.style }}">
+                <span style="font-family:Caveat;font-weight:700;font-size:20px;line-height:1;color:{{ row.rankColor }};width:26px;text-align:center;flex:none">{{ row.rank }}</span>
+                <div style="width:32px;height:32px;flex:none;border-radius:10px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:17px;color:#322C24">{{ row.ava }}</div>
+                <span style="flex:1;font:600 13px/1.2 'Hanken Grotesk';color:#322C24">{{ row.name }}</span>
+                <span style="font-family:Caveat;font-weight:700;font-size:19px;line-height:1;color:#322C24">{{ row.xp }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== ONLINE DUEL ===================== -->
+  <div style="font:600 12px/1 'Hanken Grotesk';letter-spacing:.18em;text-transform:uppercase;color:#8a8474;margin:0 0 16px">Online duel</div>
+  <div style="display:flex;gap:56px;align-items:flex-start;margin-bottom:64px">
+
+    <!-- desktop: matchmaking + live -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Desktop · search + match</div>
+      <div style="width:1280px;background:#ECE3D2;border-radius:18px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="height:66px;background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:space-between;padding:0 24px">
+          <div style="display:flex;align-items:center;gap:16px"><button style="font-family:Caveat;font-weight:700;font-size:20px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:11px 9px 12px 10px;padding:5px 16px;cursor:pointer;white-space:nowrap">← Menu</button><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:20px;color:#322C24">Online duel</div></div>
+          <span style="font:600 12px/1 'Hanken Grotesk';color:#5F7657;background:rgba(95,118,87,.14);border:1px solid rgba(95,118,87,.4);padding:6px 12px;border-radius:999px">● 1,248 online</span>
+        </div>
+
+        <div style="display:flex;gap:26px;padding:26px">
+          <!-- vs panel -->
+          <div style="width:340px;flex:none;background:#F7F1E4;border:1.5px solid #322C24;border-radius:18px 15px 17px 14px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:24px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <div style="text-align:center;flex:1">
+                <div style="width:66px;height:66px;margin:0 auto 8px;border-radius:17px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/sudoku-maniac.webp" style="width:50px;height:50px;image-rendering:pixelated"></div>
+                <div style="font:600 13px/1.1 'Hanken Grotesk';color:#322C24">Player_42</div>
+                <div style="font:500 11px/1.2 'Hanken Grotesk';color:#9a917d">lvl 7</div>
+              </div>
+              <div style="font-family:Caveat;font-weight:700;font-size:36px;line-height:1;color:#C2724F">VS</div>
+              <div style="text-align:center;flex:1">
+                <div style="width:66px;height:66px;margin:0 auto 8px;border-radius:17px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:30px;color:#3E5C76">M</div>
+                <div style="font:600 13px/1.1 'Hanken Grotesk';color:#322C24">Maya_K</div>
+                <div style="font:500 11px/1.2 'Hanken Grotesk';color:#9a917d">lvl 9</div>
+              </div>
+            </div>
+            <div style="border-top:1.5px dashed #c9bfa8;margin:20px 0"></div>
+            <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:10px">Terms</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+              <div style="display:flex;justify-content:space-between;font:500 13px/1 'Hanken Grotesk';color:#6B6151"><span>Difficulty</span><span style="font-weight:600;color:#322C24">Medium</span></div>
+              <div style="display:flex;justify-content:space-between;font:500 13px/1 'Hanken Grotesk';color:#6B6151"><span>Size</span><span style="font-weight:600;color:#322C24">9×9</span></div>
+              <div style="display:flex;justify-content:space-between;font:500 13px/1 'Hanken Grotesk';color:#6B6151"><span>Victory</span><span style="font-weight:600;color:#322C24">who's faster</span></div>
+            </div>
+            <button style="width:100%;font-family:Caveat;font-weight:700;font-size:24px;letter-spacing:-.3px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;padding:11px 0;border-radius:15px 12px 16px 11px;box-shadow:2px 3px 0 rgba(50,44,36,.85);cursor:pointer;line-height:1.1">Ready!</button>
+          </div>
+
+          <!-- live race -->
+          <div style="flex:1;min-width:0">
+            <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:14px">Race · in real time</div>
+            <!-- me -->
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:14px 11px 13px 12px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:16px;margin-bottom:14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px"><img src="assets/sudoku-maniac.webp" style="width:30px;height:30px;image-rendering:pixelated"><span style="font:600 14px/1 'Hanken Grotesk';color:#322C24">Player_42 · you</span></div><span style="font-family:Caveat;font-weight:700;font-size:24px;line-height:1;color:#5F7657">68%</span></div>
+              <div style="height:14px;border-radius:999px;background:#e3d8c2;border:1.5px solid #322C24;overflow:hidden"><div style="width:68%;height:100%;background:#5F7657"></div></div>
+            </div>
+            <!-- opp -->
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:11px 14px 12px 13px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:16px;margin-bottom:20px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px"><div style="width:30px;height:30px;border-radius:9px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:16px;color:#3E5C76">M</div><span style="font:600 14px/1 'Hanken Grotesk';color:#322C24">Maya_K</span></div><span style="font-family:Caveat;font-weight:700;font-size:24px;line-height:1;color:#C2724F">61%</span></div>
+              <div style="height:14px;border-radius:999px;background:#e3d8c2;border:1.5px solid #322C24;overflow:hidden"><div style="width:61%;height:100%;background:#C2724F"></div></div>
+            </div>
+            <!-- timer + mini board -->
+            <div style="display:flex;gap:18px;align-items:center;background:#322C24;border-radius:16px;padding:18px">
+              <div style="flex:1"><div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#b3a890;margin-bottom:6px">Match time</div><div style="font-family:Caveat;font-weight:700;font-size:38px;line-height:.8;color:#FBF6EC">03:21</div></div>
+              <div style="font:400 13px/1.5 'Hanken Grotesk';color:#9b917f;max-width:280px">You're ahead by 7%. Don't rush — a mistake costs a 10-second penalty.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- mobile: searching -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Mobile · finding opponent</div>
+      <div style="width:390px;background:#ECE3D2;border-radius:30px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="background:#F1E9D9;padding:10px 20px 0"><div style="display:flex;align-items:center;justify-content:space-between;font:600 12px/1 'Hanken Grotesk';color:#322C24;margin-bottom:10px"><span>9:41</span><span style="letter-spacing:1px;color:#9a917d">▰▰▰ ◔</span></div></div>
+        <div style="background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:space-between;padding:0 16px 12px"><button style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:10px 8px 11px 9px;padding:4px 12px;cursor:pointer">←</button><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:18px;color:#322C24">Duel</div><span style="width:30px"></span></div>
+        <div style="padding:30px 20px 30px;text-align:center">
+          <div style="position:relative;width:150px;height:150px;margin:10px auto 24px">
+            <span style="position:absolute;inset:0;border-radius:50%;border:2px dashed #c2b69c"></span>
+            <span style="position:absolute;inset:18px;border-radius:50%;border:1.5px solid #d8cfbb"></span>
+            <div style="position:absolute;inset:30px;border-radius:50%;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/sudoku-maniac.webp" style="width:64px;height:64px;image-rendering:pixelated"></div>
+          </div>
+          <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:26px;line-height:1;color:#322C24;margin-bottom:6px">Finding an opponent…</div>
+          <div style="font:400 14px/1.4 'Hanken Grotesk';color:#6B6151;margin-bottom:24px">Medium · 9×9 · who's faster</div>
+          <div style="display:flex;gap:8px;justify-content:center;margin-bottom:28px"><span style="width:10px;height:10px;border-radius:50%;background:#C2724F"></span><span style="width:10px;height:10px;border-radius:50%;background:#C2724F;opacity:.5"></span><span style="width:10px;height:10px;border-radius:50%;background:#C2724F;opacity:.25"></span></div>
+          <button style="width:100%;font-family:Caveat;font-weight:700;font-size:21px;letter-spacing:-.3px;color:#322C24;background:transparent;border:1.5px solid #322C24;padding:10px 0;border-radius:13px 16px 12px 15px;cursor:pointer;line-height:1.1">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== CUSTOM MODE ===================== -->
+  <div style="font:600 12px/1 'Hanken Grotesk';letter-spacing:.18em;text-transform:uppercase;color:#8a8474;margin:0 0 16px">Custom mode</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+
+    <!-- desktop -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Desktop · 1280</div>
+      <div style="width:1280px;background:#ECE3D2;border-radius:18px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="height:66px;background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;gap:16px;padding:0 24px"><button style="font-family:Caveat;font-weight:700;font-size:20px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:11px 9px 12px 10px;padding:5px 16px;cursor:pointer;white-space:nowrap">← Menu</button><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:20px;color:#322C24">Custom mode</div></div>
+
+        <div style="display:flex;gap:26px;padding:26px">
+          <!-- options -->
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:22px">
+            <!-- size -->
+            <div>
+              <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:12px">Board size</div>
+              <div style="display:flex;gap:12px">
+                <button style="font-family:Caveat;font-weight:700;font-size:22px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:12px 10px 13px 11px;padding:9px 26px;cursor:pointer">4×4</button>
+                <button style="font-family:Caveat;font-weight:700;font-size:22px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:10px 13px 11px 12px;padding:9px 26px;cursor:pointer">6×6</button>
+                <button style="font-family:Caveat;font-weight:700;font-size:22px;color:#FBF6EC;background:#3E5C76;border:1.5px solid #322C24;border-radius:13px 11px 12px 10px;padding:9px 26px;box-shadow:2px 2px 0 rgba(50,44,36,.6);cursor:pointer">9×9</button>
+                <button style="font-family:Caveat;font-weight:700;font-size:22px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:11px 12px 10px 13px;padding:9px 26px;cursor:pointer">16×16</button>
+              </div>
+            </div>
+            <!-- difficulty -->
+            <div>
+              <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:12px">Difficulty</div>
+              <div style="display:flex;flex-wrap:wrap;gap:10px">
+                <button style="font-family:Caveat;font-weight:700;font-size:20px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:12px 10px 13px 11px;padding:7px 18px;cursor:pointer">Beginner</button>
+                <button style="font-family:Caveat;font-weight:700;font-size:20px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:10px 13px 11px 12px;padding:7px 18px;cursor:pointer">Easy</button>
+                <button style="font-family:Caveat;font-weight:700;font-size:20px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;border-radius:13px 11px 12px 10px;padding:7px 18px;box-shadow:2px 2px 0 rgba(50,44,36,.6);cursor:pointer">Medium</button>
+                <button style="font-family:Caveat;font-weight:700;font-size:20px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:11px 12px 10px 13px;padding:7px 18px;cursor:pointer">Hard</button>
+                <button style="font-family:Caveat;font-weight:700;font-size:20px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:12px 10px 13px 11px;padding:7px 18px;cursor:pointer">Expert</button>
+              </div>
+            </div>
+            <!-- toggles -->
+            <div>
+              <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:12px">Assists</div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#F7F1E4;border:1.5px solid #322C24;border-radius:13px 11px 12px 10px;padding:13px 16px"><div><div style="font:600 14px/1.1 'Hanken Grotesk';color:#322C24">Mistake highlighting</div><div style="font:500 12px/1.3 'Hanken Grotesk';color:#9a917d">show conflicting digits</div></div><span style="width:46px;height:26px;border-radius:999px;background:#5F7657;border:1.5px solid #322C24;position:relative;flex:none"><span style="position:absolute;right:2px;top:1px;width:21px;height:21px;border-radius:50%;background:#FBF6EC;border:1.5px solid #322C24"></span></span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#F7F1E4;border:1.5px solid #322C24;border-radius:11px 13px 10px 12px;padding:13px 16px"><div><div style="font:600 14px/1.1 'Hanken Grotesk';color:#322C24">Auto-notes</div><div style="font:500 12px/1.3 'Hanken Grotesk';color:#9a917d">fill in candidates automatically</div></div><span style="width:46px;height:26px;border-radius:999px;background:#e3d8c2;border:1.5px solid #322C24;position:relative;flex:none"><span style="position:absolute;left:2px;top:1px;width:21px;height:21px;border-radius:50%;background:#FBF6EC;border:1.5px solid #322C24"></span></span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#F7F1E4;border:1.5px solid #322C24;border-radius:12px 10px 13px 11px;padding:13px 16px"><div><div style="font:600 14px/1.1 'Hanken Grotesk';color:#322C24">Hint limit</div><div style="font:500 12px/1.3 'Hanken Grotesk';color:#9a917d">3 hints per game</div></div><span style="width:46px;height:26px;border-radius:999px;background:#5F7657;border:1.5px solid #322C24;position:relative;flex:none"><span style="position:absolute;right:2px;top:1px;width:21px;height:21px;border-radius:50%;background:#FBF6EC;border:1.5px solid #322C24"></span></span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- preview -->
+          <div style="width:340px;flex:none">
+            <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:12px">Preview</div>
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:18px 15px 17px 14px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:22px;text-align:center">
+              <div style="display:grid;width:max-content;margin:0 auto 18px;grid-template-columns:repeat(9,30px);border:2.5px solid #322C24;border-radius:11px;overflow:hidden;background:#FBF8F1">
+                <sc-for list="{{ preview }}" as="cell" hint-placeholder-count="81">
+                  <div style="{{ cell.style }}">{{ cell.d }}</div>
+                </sc-for>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px;text-align:left">
+                <div style="display:flex;justify-content:space-between;font:500 13px/1 'Hanken Grotesk';color:#6B6151"><span>Board</span><span style="font-weight:600;color:#322C24">9×9</span></div>
+                <div style="display:flex;justify-content:space-between;font:500 13px/1 'Hanken Grotesk';color:#6B6151"><span>Difficulty</span><span style="font-weight:600;color:#C2724F">Medium</span></div>
+                <div style="display:flex;justify-content:space-between;font:500 13px/1 'Hanken Grotesk';color:#6B6151"><span>Hints</span><span style="font-weight:600;color:#322C24">3</span></div>
+              </div>
+              <button style="width:100%;font-family:Caveat;font-weight:700;font-size:24px;letter-spacing:-.3px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;padding:11px 0;border-radius:15px 12px 16px 11px;box-shadow:2px 3px 0 rgba(50,44,36,.85);cursor:pointer;line-height:1.1">Start game</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- mobile -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Mobile · 390</div>
+      <div style="width:390px;background:#ECE3D2;border-radius:30px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="background:#F1E9D9;padding:10px 20px 0"><div style="display:flex;align-items:center;justify-content:space-between;font:600 12px/1 'Hanken Grotesk';color:#322C24;margin-bottom:10px"><span>9:41</span><span style="letter-spacing:1px;color:#9a917d">▰▰▰ ◔</span></div></div>
+        <div style="background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:space-between;padding:0 16px 12px"><button style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:10px 8px 11px 9px;padding:4px 12px;cursor:pointer">←</button><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:18px;color:#322C24">Custom mode</div><span style="width:30px"></span></div>
+        <div style="padding:18px 18px 24px">
+          <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:10px">Size</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:18px">
+            <button style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:10px 8px 11px 9px;padding:7px 0;cursor:pointer">4×4</button>
+            <button style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:8px 11px 9px 10px;padding:7px 0;cursor:pointer">6×6</button>
+            <button style="font-family:Caveat;font-weight:700;font-size:18px;color:#FBF6EC;background:#3E5C76;border:1.5px solid #322C24;border-radius:11px 9px 10px 8px;padding:7px 0;box-shadow:1px 2px 0 rgba(50,44,36,.6);cursor:pointer">9×9</button>
+            <button style="font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px 10px 8px 11px;padding:7px 0;cursor:pointer">16</button>
+          </div>
+          <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:10px">Difficulty</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">
+            <button style="font-family:Caveat;font-weight:700;font-size:17px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:10px 8px 11px 9px;padding:7px 0;cursor:pointer">Beginner</button>
+            <button style="font-family:Caveat;font-weight:700;font-size:17px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:8px 11px 9px 10px;padding:7px 0;cursor:pointer">Easy</button>
+            <button style="font-family:Caveat;font-weight:700;font-size:17px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;border-radius:11px 9px 10px 8px;padding:7px 0;box-shadow:1px 2px 0 rgba(50,44,36,.6);cursor:pointer">Medium</button>
+            <button style="font-family:Caveat;font-weight:700;font-size:17px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px 10px 8px 11px;padding:7px 0;cursor:pointer">Hard</button>
+            <button style="font-family:Caveat;font-weight:700;font-size:17px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:10px 9px 11px 8px;padding:7px 0;cursor:pointer">Expert</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;background:#F7F1E4;border:1.5px solid #322C24;border-radius:12px 10px 13px 11px;padding:12px 14px"><div style="font:600 13px/1.1 'Hanken Grotesk';color:#322C24">Mistake highlighting</div><span style="width:42px;height:24px;border-radius:999px;background:#5F7657;border:1.5px solid #322C24;position:relative;flex:none"><span style="position:absolute;right:2px;top:1px;width:19px;height:19px;border-radius:50%;background:#FBF6EC;border:1.5px solid #322C24"></span></span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;background:#F7F1E4;border:1.5px solid #322C24;border-radius:10px 12px 11px 13px;padding:12px 14px"><div style="font:600 13px/1.1 'Hanken Grotesk';color:#322C24">Auto-notes</div><span style="width:42px;height:24px;border-radius:999px;background:#e3d8c2;border:1.5px solid #322C24;position:relative;flex:none"><span style="position:absolute;left:2px;top:1px;width:19px;height:19px;border-radius:50%;background:#FBF6EC;border:1.5px solid #322C24"></span></span></div>
+          </div>
+          <button style="width:100%;font-family:Caveat;font-weight:700;font-size:23px;letter-spacing:-.3px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;padding:11px 0;border-radius:15px 12px 16px 11px;box-shadow:2px 3px 0 rgba(50,44,36,.85);cursor:pointer;line-height:1.1">Start game</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    // ---- activity heatmap: 8 cols x 7 rows ----
+    const levels = ['#e7dcc6', '#cdbfa0', '#a9bf9c', '#7c9e78', '#5F7657'];
+    const heat = [];
+    let seed = 7;
+    for (let c = 0; c < 8; c++) {
+      const col = [];
+      for (let r = 0; r < 7; r++) {
+        seed = (seed * 9301 + 49297) % 233280;
+        const v = Math.floor((seed / 233280) * 5);
+        col.push({ style: 'width:24px;height:14px;border-radius:4px;background:' + levels[v] + ';border:1px solid rgba(50,44,36,.12);' });
+      }
+      heat.push(col);
+    }
+
+    // ---- leaderboard ----
+    const gold = '#C2724F', blue = '#3E5C76', green = '#5F7657', ink = '#322C24';
+    const data = [
+      { rank: 1, ava: 'L', name: 'Leo_99', solved: 412, xp: '3640', rankColor: gold },
+      { rank: 2, ava: 'M', name: 'Maya_K', solved: 388, xp: '2980', rankColor: blue },
+      { rank: 3, ava: 'T', name: 'Timur', solved: 351, xp: '2710', rankColor: green },
+      { rank: 12, ava: 'P', name: 'Player_42 · you', solved: 214, xp: '1240', rankColor: ink, me: true },
+      { rank: 13, ava: 'S', name: 'Sonya', solved: 205, xp: '1180', rankColor: ink },
+      { rank: 14, ava: 'D', name: 'Denis', solved: 197, xp: '1090', rankColor: ink }
+    ];
+    const rowBase = (i, me) =>
+      'display:flex;align-items:center;gap:14px;padding:13px 18px;' +
+      (i > 0 ? 'border-top:1.5px dashed #d8cfbb;' : '') +
+      (me ? 'background:#eccbb9;' : '');
+    const rowBaseM = (i, me) =>
+      'display:flex;align-items:center;gap:10px;padding:11px 14px;' +
+      (i > 0 ? 'border-top:1.5px dashed #d8cfbb;' : '') +
+      (me ? 'background:#eccbb9;' : '');
+    const board = data.map((d, i) => ({ ...d, style: rowBase(i, d.me) }));
+    const boardM = data.map((d, i) => ({ ...d, style: rowBaseM(i, d.me) }));
+
+    // ---- custom preview mini board ----
+    const solved = [
+      [5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,6,7],
+      [8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],
+      [9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]
+    ];
+    const markers = ['#B5462E', '#3E5C76', '#5B7355'];
+    const thin = '#dcd5c6';
+    const preview = [];
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const given = ((r * 3 + c * 7 + (r % 2)) % 3 === 0);
+        const show = ((r + c * 2) % 2 === 0);
+        const color = given ? ink : markers[(r + c) % 3];
+        const thickR = (c === 2 || c === 5), thickB = (r === 2 || r === 5);
+        const style =
+          'display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:#fff;' +
+          'border-right:' + (thickR ? '2px solid ' + ink : '1px solid ' + thin) + ';' +
+          'border-bottom:' + (thickB ? '2px solid ' + ink : '1px solid ' + thin) + ';' +
+          'font-family:Caveat,cursive;font-weight:700;font-size:19px;line-height:1;color:' + color + ';';
+        preview.push({ d: show ? solved[r][c] : '', style });
+      }
+    }
+
+    return { heat, board, boardM, preview };
+  }
+}
+</script>
+</body>
+</html>
