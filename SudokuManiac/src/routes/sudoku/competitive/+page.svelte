@@ -15,6 +15,8 @@
 	import DifficultyPicker from '$lib/components/sudoku/DifficultyPicker.svelte';
 	import GridSizePicker from '$lib/components/sudoku/GridSizePicker.svelte';
 	import KraftTopBar from '$lib/components/shared/KraftTopBar.svelte';
+	import Pill from '$lib/components/shared/Pill.svelte';
+	import XpBar from '$lib/components/shared/XpBar.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import type { PageData } from './$types';
 	import type { Difficulty, GridSize } from '$lib/games/sudoku/shared.js';
@@ -324,7 +326,7 @@
 <competitive-screen class="flex min-h-screen flex-col bg-paper">
 	<KraftTopBar title={m.duel_title()} backHref="/sudoku">
 		{#snippet right()}
-			<span class="rounded-full border border-[rgba(95,118,87,.4)] bg-[rgba(95,118,87,.14)] px-3 py-1.5 text-xs font-semibold text-forest">● {m.duel_online({ count: openRooms.length + room.players.length })}</span>
+			<Pill accent="var(--color-forest)">● {m.duel_online({ count: openRooms.length + room.players.length })}</Pill>
 		{/snippet}
 	</KraftTopBar>
 
@@ -640,7 +642,7 @@
 			opponentCol={opponent.selectedCol}
 		/>
 		<div class="flex w-full max-w-xs items-center gap-2 px-2">
-			<div class="h-3.5 flex-1 overflow-hidden rounded-full border-[1.5px] border-ink bg-track"><div class="h-full bg-terracotta transition-[width]" style="width:{opponent.progress}%"></div></div>
+			<XpBar ratio={opponent.progress / 100} color="var(--color-terracotta)" height={14} class="flex-1" />
 			<span class="w-10 text-right font-hand text-lg font-bold text-terracotta">{opponent.progress}%</span>
 		</div>
 		{:else}

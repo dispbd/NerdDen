@@ -8,6 +8,8 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { resolve } from '$app/paths';
 	import KraftTopBar from '$lib/components/shared/KraftTopBar.svelte';
+	import Chip from '$lib/components/shared/Chip.svelte';
+	import KraftAvatar from '$lib/components/shared/KraftAvatar.svelte';
 	import type { LeaderRow } from './+page.server';
 
 	let { data } = $props();
@@ -37,13 +39,9 @@
 		{#snippet right()}
 			<div class="hidden gap-2 sm:flex">
 				{#each PERIODS as p (p.id)}
-					<button
-						onclick={() => (period = p.id)}
-						class="kraft-radius-sm px-4 py-1 font-hand text-lg font-bold whitespace-nowrap
-							{period === p.id
-							? 'border-[1.5px] border-ink bg-terracotta text-surface-2 shadow-[2px_2px_0_rgba(50,44,36,.6)]'
-							: 'border-[1.5px] border-ink bg-transparent text-ink'}"
-					>{p.label()}</button>
+					<Chip active={period === p.id} class="kraft-radius-sm px-4 py-1 text-lg" onclick={() => (period = p.id)}>
+						{p.label()}
+					</Chip>
 				{/each}
 			</div>
 		{/snippet}
@@ -53,13 +51,9 @@
 		<!-- mobile period switcher -->
 		<div class="flex gap-1.5 sm:hidden">
 			{#each PERIODS as p (p.id)}
-				<button
-					onclick={() => (period = p.id)}
-					class="kraft-radius-sm flex-1 py-1.5 font-hand text-base font-bold
-						{period === p.id
-						? 'border-[1.5px] border-ink bg-terracotta text-surface-2 shadow-[1px_2px_0_rgba(50,44,36,.6)]'
-						: 'border-[1.5px] border-ink bg-transparent text-ink'}"
-				>{p.short()}</button>
+				<Chip active={period === p.id} class="kraft-radius-sm flex-1 py-1.5 text-base" onclick={() => (period = p.id)}>
+					{p.short()}
+				</Chip>
 			{/each}
 		</div>
 

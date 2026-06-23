@@ -7,6 +7,10 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { getLocale } from '$lib/paraglide/runtime.js';
 	import KraftTopBar from '$lib/components/shared/KraftTopBar.svelte';
+	import KraftAvatar from '$lib/components/shared/KraftAvatar.svelte';
+	import Pill from '$lib/components/shared/Pill.svelte';
+	import StatTile from '$lib/components/shared/StatTile.svelte';
+	import XpBar from '$lib/components/shared/XpBar.svelte';
 
 	let { data } = $props();
 
@@ -57,21 +61,9 @@
 		<div class="flex w-full flex-col gap-5 lg:w-[330px] lg:flex-none">
 			<!-- identity card -->
 			<div class="card-kraft kraft-radius px-5 pt-6 pb-7 text-center" style="border-radius:18px 15px 17px 14px">
-				<div
-					class="mx-auto flex size-24 items-center justify-center rounded-[24px] border-[1.5px] border-ink bg-surface-2"
-				>
-					{#if profile.image}
-						<img src={profile.image} alt={profile.name} class="size-20 rounded-[20px] object-cover" />
-					{:else}
-						<img src="/sudoku-maniac.webp" alt={profile.name} class="size-20" style="image-rendering:pixelated" />
-					{/if}
-				</div>
+				<KraftAvatar name={profile.name} image={profile.image} mascot size={104} radius={24} class="mx-auto" />
 				<div class="-mt-3 flex justify-center">
-					<span
-						class="rounded-full border-[1.5px] border-ink bg-terracotta px-3.5 py-1 text-xs font-bold text-surface-2"
-					>
-						{m.profile_level({ level: progress.level })}
-					</span>
+					<Pill variant="solid">{m.profile_level({ level: progress.level })}</Pill>
 				</div>
 				<div class="mt-3 font-hand text-[32px] leading-none font-bold text-ink">{profile.name}</div>
 				<div class="mt-1 text-[13px] font-medium text-muted">
@@ -84,9 +76,7 @@
 						<span>{m.profile_xp({ xp: data.totalXp })}</span>
 						<span class="text-muted">{m.profile_to_level({ level: progress.level + 1, xp: progress.xpRemaining })}</span>
 					</div>
-					<div class="h-3 overflow-hidden rounded-full border-[1.5px] border-ink bg-track">
-						<div class="h-full bg-terracotta transition-[width]" style="width:{Math.round(progress.ratio * 100)}%"></div>
-					</div>
+					<XpBar ratio={progress.ratio} height={12} />
 				</div>
 			</div>
 
@@ -114,22 +104,10 @@
 		<div class="flex min-w-0 flex-1 flex-col gap-5">
 			<!-- stat tiles -->
 			<div class="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
-				<div class="card-kraft p-4" style="border-radius:14px 11px 13px 12px">
-					<div class="font-hand text-[34px] leading-[.85] font-bold text-ink">{stats?.sudokuSolved ?? 0}</div>
-					<div class="mt-1.5 text-[11px] font-medium text-muted">{m.stat_solved()}</div>
-				</div>
-				<div class="card-kraft p-4" style="border-radius:11px 14px 12px 13px">
-					<div class="font-hand text-[34px] leading-[.85] font-bold text-forest">{formatTime(stats?.sudokuBestTimeSeconds ?? null)}</div>
-					<div class="mt-1.5 text-[11px] font-medium text-muted">{m.stat_best_time()}</div>
-				</div>
-				<div class="card-kraft p-4" style="border-radius:13px 12px 14px 11px">
-					<div class="font-hand text-[34px] leading-[.85] font-bold text-terracotta">{stats?.streakDays ?? 0}</div>
-					<div class="mt-1.5 text-[11px] font-medium text-muted">{m.stat_day_streak()}</div>
-				</div>
-				<div class="card-kraft p-4" style="border-radius:12px 13px 11px 14px">
-					<div class="font-hand text-[34px] leading-[.85] font-bold text-navy">{stats?.noMistakesPct ?? 0}%</div>
-					<div class="mt-1.5 text-[11px] font-medium text-muted">{m.stat_no_mistakes()}</div>
-				</div>
+				<StatTile value={stats?.sudokuSolved ?? 0} label={m.stat_solved()} radius="14px 11px 13px 12px" />
+				<StatTile value={formatTime(stats?.sudokuBestTimeSeconds ?? null)} label={m.stat_best_time()} color="var(--color-forest)" radius="11px 14px 12px 13px" />
+				<StatTile value={stats?.streakDays ?? 0} label={m.stat_day_streak()} color="var(--color-terracotta)" radius="13px 12px 14px 11px" />
+				<StatTile value={`${stats?.noMistakesPct ?? 0}%`} label={m.stat_no_mistakes()} color="var(--color-navy)" radius="12px 13px 11px 14px" />
 			</div>
 
 			<!-- activity heatmap -->
