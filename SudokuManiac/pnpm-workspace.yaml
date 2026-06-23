@@ -25,3 +25,9 @@ minimumReleaseAgeExclude:
   - ai@6.0.196
   - pixi.js@8.19.0
   - svelte-check@4.6.0
+  - '@ai-sdk/gateway@3.0.134'
+  - '@sveltejs/kit@2.67.0'
+  - '@sveltejs/load-config@0.2.0'
+  - ai@6.0.209
+  - svelte-check@4.7.0
+  - vite@8.1.0
