@@ -17,6 +17,8 @@
 	import KraftAvatar from '$lib/components/shared/KraftAvatar.svelte';
 	import StatTile from '$lib/components/shared/StatTile.svelte';
 	import DayStreak from '$lib/components/shared/DayStreak.svelte';
+	import Pill from '$lib/components/shared/Pill.svelte';
+	import XpBar from '$lib/components/shared/XpBar.svelte';
 	import { generatePuzzle } from '$lib/games/sudoku/generator.js';
 	import type { Difficulty, Grid, GridSize, SaveSlot } from '$lib/games/sudoku/shared.js';
 	import {
@@ -286,6 +288,11 @@
 	/** Show "Sign in to sync" nudge after a guest solves a puzzle */
 	let showSyncNudge = $state(false);
 
+	// ─── Victory modal stats ──────────────────────────────────────────────────────
+	let victoryTime = $state('00:00');
+	let victoryXp = $state(0);
+	let victoryStreak = $state(1);
+
 	/** Toast notifications for achievements / level-up */
 	interface Toast {
 		id: number;
@@ -307,6 +314,9 @@
 		gameSolved = true;
 		timerRunning = false;
 		stopAutoSave();
+		victoryTime = fmtBest(timerRef?.getElapsed() ?? 0);
+		victoryXp = 0;
+		victoryStreak = 1;
 
 		if (sessionId) {
 			const res = await fetch(`/api/sudoku/sessions/${sessionId}`, {
@@ -323,6 +333,7 @@
 
 			if (res.ok) {
 				const result = await res.json();
+				victoryXp = result?.xpGained ?? 0;
 				if (result?.xpGained) showToast('⭐', `+${result.xpGained} XP`);
 				if (result?.levelUp) showToast('🎉', `Level up! Now Level ${result.newLevel}`);
 				if (result?.hintsReplenished) {
@@ -344,10 +355,13 @@
 				timeSpent: timerRef?.getElapsed() ?? 0,
 				hintsUsed
 			});
+			victoryXp = result.xpGained ?? 0;
 			if (result.xpGained) showToast('⭐', m.toast_xp_gained({ xp: result.xpGained }));
 			if (result.levelUp) showToast('🎉', m.toast_level_up({ level: result.newLevel }));
 			for (const ach of result.newAchievements) showToast(ach.icon, m.toast_achievement({ title: ach.title }));
-			hintsAvailable = loadGuestStats().hintsAvailable;
+			const gstats = loadGuestStats();
+			hintsAvailable = gstats.hintsAvailable;
+			victoryStreak = gstats.streakDays || 1;
 			showSyncNudge = true;
 		}
 	}
@@ -371,17 +385,107 @@
 		void startGame(random);
 	}
 
+	// ─── In-game derived board state (numpad badges, progress, mistakes) ──────────
+	let numpadCounts = $state<number[]>([]);
+	/** 0..1 fill ratio for the progress bar under the board */
+	let boardProgress = $state(0);
+	/** Current incorrect cells (display only; the "/3" limit is not enforced — stub) */
+	let mistakes = $state(0);
+	/** Notes/pencil-marks toggle — visual stub (input logic not implemented yet) */
+	let notesMode = $state(false);
+
+	function refreshFromGrid(g: Grid) {
+		if (!g?.length) return;
+		const counts = Array(gridSize).fill(gridSize);
+		let filled = 0;
+		let mist = 0;
+		for (let r = 0; r < g.length; r++) {
+			for (let c = 0; c < g[r].length; c++) {
+				const v = g[r][c];
+				if (v >= 1 && v <= gridSize) {
+					counts[v - 1]--;
+					filled++;
+					if (solution.length && v !== solution[r][c]) mist++;
+				}
+			}
+		}
+		numpadCounts = counts.map((x) => Math.max(0, x));
+		boardProgress = filled / (gridSize * gridSize);
+		mistakes = mist;
+	}
+
+	function refreshBoard() {
+		refreshFromGrid(boardRef?.getCurrentGrid?.() ?? (playerGrid.length ? playerGrid : puzzle));
+	}
+
+	// Initial / on-new-puzzle counts (board may not have mounted yet)
+	$effect(() => {
+		if (gameStarted && puzzle.length) refreshFromGrid(playerGrid.length ? playerGrid : puzzle);
+	});
+
 	function handleDigit(n: number) {
 		boardRef?.placeDigit(n);
+		refreshBoard();
+	}
+
+	function handleErase() {
+		boardRef?.placeDigit(0);
+		refreshBoard();
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (!gameStarted || gameSolved) return;
 		if (e.key >= '1' && e.key <= '9') {
 			boardRef?.placeDigit(Number(e.key));
+			refreshBoard();
 		} else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
 			boardRef?.placeDigit(0);
+			refreshBoard();
 		}
+	}
+
+	/** Spend a hint and reveal a cell (auth → server, guest → localStorage). */
+	async function useHint() {
+		if (gameSolved || hintsAvailable === null || hintsAvailable <= 0) return;
+		if (data.isAuthenticated) {
+			if (!sessionId) return;
+			const res = await fetch('/api/sudoku/hints', { method: 'POST' });
+			if (res.ok) {
+				const d = await res.json();
+				hintsAvailable = d.hintsAvailable;
+				hintsUsed++;
+				boardRef?.revealHint();
+				refreshBoard();
+			}
+		} else {
+			const remaining = spendGuestHint();
+			if (remaining !== null) {
+				hintsAvailable = remaining;
+				hintsUsed++;
+				boardRef?.revealHint();
+				refreshBoard();
+			}
+		}
+	}
+
+	/** Save progress and return to the lobby. */
+	async function backToMenu() {
+		if (!gameSolved) {
+			if (sessionId) {
+				await stashCurrentDbSession();
+			} else if (localSessionId) {
+				const currentGrid = boardRef?.getCurrentGrid?.() ?? puzzle;
+				updateGuestSave(localSessionId, {
+					gridState: currentGrid,
+					timeSpent: timerRef?.getElapsed() ?? 0
+				});
+				saves = loadGuestSaves().map((s) => ({ ...s, source: 'local' as const }));
+				localSessionId = null;
+			}
+		}
+		stopAutoSave();
+		gameStarted = false;
+		timerRunning = false;
 	}
 </script>
 
@@ -498,104 +602,98 @@
 		</lobby-cols>
 	</lobby-screen>
 	{:else}
-		<sudoku-page class="flex flex-col items-center w-full max-w-lg mx-auto px-3 py-4 gap-4 sm:px-4 sm:py-6 sm:gap-6">
-			<h1 class="text-4xl font-extrabold m-0">SudokuManiac <img src="/sudoku-maniac.webp" alt="SudokuManiac" class="inline-block size-7 -mt-1"></h1>
-		<game-screen class="flex flex-col items-center gap-3 w-full sm:gap-4">
-			<game-header class="flex items-center justify-between w-full">
-				<difficulty-badge class="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-bold text-sm">
-					{diffLabel(difficulty)}
-				</difficulty-badge>
+		<game-screen class="mx-auto flex w-full max-w-5xl flex-col gap-5 px-3 py-5 sm:px-4 sm:py-6">
+			<!-- controls -->
+			<game-controls class="flex items-center justify-between gap-3">
+				<div class="flex items-center gap-2 sm:gap-3">
+					<button class="btn-secondary kraft-radius-sm bg-surface px-3 py-1 text-lg sm:px-4 sm:text-xl" onclick={() => void backToMenu()}>← <span class="hidden sm:inline">{m.topbar_menu()}</span></button>
+					<Pill variant="solid"><span class="capitalize">{diffLabel(difficulty)}</span> · {gridSize}×{gridSize}</Pill>
+				</div>
+				<div class="flex items-center gap-3 sm:gap-4">
+					<div class="flex items-center gap-1.5">
+						<span class="label-caps hidden sm:inline">{m.game_mistakes()}</span>
+						<span class="font-hand text-xl leading-none font-bold" style="color:{mistakes > 0 ? 'var(--color-marker-red)' : 'var(--color-muted)'}">{mistakes}</span>
+						<span class="text-sm text-muted">/3</span>
+					</div>
+					<GameTimer bind:this={timerRef} running={timerRunning} />
+					<button class="flex size-9 flex-none cursor-pointer items-center justify-center rounded-[10px] border-[1.5px] border-ink bg-surface text-sm" aria-label="Pause" onclick={() => (timerRunning = !timerRunning)}>{timerRunning ? '⏸' : '▶'}</button>
+				</div>
+			</game-controls>
 
-				<GameTimer bind:this={timerRef} running={timerRunning} />
+			<!-- body -->
+			<game-body class="flex flex-col items-center gap-6 lg:flex-row lg:items-start lg:justify-center">
+				<!-- board -->
+				<board-col class="flex w-full max-w-md flex-col gap-3.5 lg:w-auto lg:flex-none">
+					<board-wrap class="block overflow-hidden border-[2.5px] border-ink bg-[#fbf8f1] shadow-[3px_5px_0_rgba(50,44,36,.18)]" style="border-radius:14px">
+						<SudokuBoardComponent
+							bind:this={boardRef}
+							{puzzle}
+							{solution}
+							{playerGrid}
+							{gridSize}
+							onSolved={() => void handleSolved()}
+						/>
+					</board-wrap>
+					<div class="flex items-center gap-2.5 px-1">
+						<XpBar ratio={boardProgress} color="var(--color-forest)" height={8} class="flex-1" />
+						<span class="w-9 text-right text-xs font-semibold text-ink-soft">{Math.round(boardProgress * 100)}%</span>
+					</div>
+				</board-col>
 
-				<header-actions class="flex gap-2">
-					<button
-						class="px-3 py-1.5 rounded-md border border-gray-300 bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
-						title="New game"
-						onclick={() => void startGame()}
-				>{m.sudoku_new_game()}</button>
-					<button
-						class="px-3 py-1.5 rounded-md border border-gray-300 bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
-						title="Random game"
-						onclick={startRandom}
-					>🎲</button>
-				</header-actions>
-			</game-header>
+				<!-- panel -->
+				<panel-col class="flex w-full max-w-md flex-col gap-5 lg:w-[330px] lg:flex-none">
+					<Numpad onDigit={handleDigit} {gridSize} counts={numpadCounts} showErase={false} />
 
-			{#if gameSolved}
-				<solved-banner class="block w-full text-center py-2.5 bg-green-100 text-green-800 rounded-lg font-bold text-lg">
-				{m.sudoku_solved()}
-				</solved-banner>
-			{/if}
+					<div class="grid grid-cols-4 gap-2.5 lg:grid-cols-2">
+						<button class="btn-secondary kraft-radius-sm shadow-btn-sm flex flex-col items-center gap-0.5 bg-surface px-0 py-2 text-base lg:flex-row lg:justify-center lg:gap-1.5 lg:text-lg" onclick={handleErase}><span>↶</span><span>{m.game_undo()}</span></button>
+						<button class="btn-secondary kraft-radius-sm shadow-btn-sm flex flex-col items-center gap-0.5 bg-surface px-0 py-2 text-base !text-terracotta-ink lg:flex-row lg:justify-center lg:gap-1.5 lg:text-lg" onclick={handleErase}><span>⌫</span><span>{m.game_erase()}</span></button>
+						<button class="kraft-radius-sm shadow-btn-sm flex cursor-pointer flex-col items-center gap-0.5 border-[1.5px] border-ink px-0 py-2 font-hand text-base font-bold lg:flex-row lg:justify-center lg:gap-1.5 lg:text-lg {notesMode ? 'bg-navy text-surface-2' : 'bg-surface text-ink'}" onclick={() => (notesMode = !notesMode)}><span>✎</span><span>{m.game_notes()}{notesMode ? ' · on' : ''}</span></button>
+						<button class="btn-secondary kraft-radius-sm shadow-btn-sm relative flex cursor-pointer flex-col items-center gap-0.5 bg-surface px-0 py-2 text-base disabled:opacity-50 lg:flex-row lg:justify-center lg:gap-1.5 lg:text-lg" onclick={() => void useHint()} disabled={!hintsAvailable || gameSolved}>
+							<span>💡</span><span>{m.game_hint()}</span>
+							{#if hintsAvailable !== null}
+								<span class="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-[1.5px] border-ink bg-mustard px-1 text-[11px] font-bold text-ink" style="font-family:var(--font-sans)">{hintsAvailable}</span>
+							{/if}
+						</button>
+					</div>
 
-			<board-wrap class="block w-full rounded-lg shadow-lg overflow-hidden">
-				<SudokuBoardComponent
-					bind:this={boardRef}
-					{puzzle}
-					{solution}
-					{playerGrid}
-					{gridSize}
-					onSolved={() => void handleSolved()}
-				/>
-			</board-wrap>
+					<!-- mascot tip -->
+					<div class="card-kraft flex items-start gap-3.5 p-4" style="border-radius:16px 13px 15px 12px">
+						<img src="/sudoku-maniac.webp" alt="" class="size-[52px] flex-none" style="image-rendering:pixelated" />
+						<div>
+							<div class="font-hand text-xl leading-none font-bold text-ink">{m.game_mascot()}</div>
+							<div class="mt-1 text-[13px] leading-snug text-ink-soft">{m.game_tip()}</div>
+						</div>
+					</div>
 
-			<Numpad onDigit={handleDigit} {gridSize} />
-
-			<game-footer class="flex gap-3 flex-wrap justify-center">
-				{#if hintsAvailable !== null && hintsAvailable > 0 && !gameSolved}
-					<button
-						class="px-5 py-2 border border-amber-400 bg-amber-50 text-amber-700 rounded-lg font-semibold cursor-pointer hover:bg-amber-100 transition-colors"
-						onclick={async () => {
-						if (data.isAuthenticated) {
-							if (!sessionId) return;
-							const res = await fetch('/api/sudoku/hints', { method: 'POST' });
-							if (res.ok) {
-								const d = await res.json();
-								hintsAvailable = d.hintsAvailable;
-								hintsUsed++;
-								boardRef?.revealHint();
-							}
-						} else {
-							const remaining = spendGuestHint();
-							if (remaining !== null) {
-								hintsAvailable = remaining;
-								hintsUsed++;
-								boardRef?.revealHint();
-							}
-							}
-						}}
-					>
-						{m.sudoku_hint({ count: hintsAvailable })}
-					</button>
-				{/if}
-				<button
-					class="px-5 py-2 border border-gray-300 rounded-lg bg-white font-semibold cursor-pointer hover:bg-gray-50 transition-colors"
-					onclick={() => (showPrintModal = true)}
-					title="Print puzzles"
-			>{m.sudoku_print()}</button>
-				<button
-					class="px-5 py-2 border border-gray-300 rounded-lg bg-white font-semibold cursor-pointer hover:bg-blue-50 transition-colors"
-					onclick={async () => {
-						if (!gameSolved) {
-							if (sessionId) {
-								await stashCurrentDbSession();
-							} else if (localSessionId) {
-								const currentGrid = boardRef?.getCurrentGrid?.() ?? puzzle;
-								updateGuestSave(localSessionId, { gridState: currentGrid, timeSpent: timerRef?.getElapsed() ?? 0 });
-								saves = loadGuestSaves().map((s) => ({ ...s, source: 'local' as const }));
-								localSessionId = null;
-							}
-						}
-						stopAutoSave();
-						gameStarted = false;
-						timerRunning = false;
-					}}
-				>
-					{m.sudoku_back_to_menu()}
-				</button>
-			</game-footer>
+					<!-- secondary actions -->
+					<div class="flex flex-wrap gap-2">
+						<button class="btn-secondary kraft-radius-sm px-3 py-1.5 text-base" onclick={() => void startGame()}>{m.sudoku_new_game()}</button>
+						<button class="btn-secondary kraft-radius-sm px-3 py-1.5 text-base" onclick={startRandom} aria-label="Random">🎲</button>
+						<button class="btn-secondary kraft-radius-sm px-3 py-1.5 text-base" onclick={() => (showPrintModal = true)}>{m.sudoku_print()}</button>
+					</div>
+				</panel-col>
+			</game-body>
 		</game-screen>
-		</sudoku-page>
+
+		<!-- Victory modal -->
+		{#if gameSolved}
+			<div class="fixed inset-0 z-40 flex items-center justify-center bg-ink/35 p-4">
+				<div class="card-kraft w-full max-w-sm p-6 text-center" style="border-radius:22px 18px 20px 16px;box-shadow:4px 6px 0 rgba(50,44,36,.2)">
+					<KraftAvatar mascot size={96} radius={20} class="mx-auto" />
+					<div class="mt-3.5 font-display text-3xl font-bold text-ink">{m.victory_solved()}</div>
+					<div class="mt-2 text-sm text-ink-soft"><span class="capitalize">{diffLabel(difficulty)}</span> · {gridSize}×{gridSize}{mistakes === 0 ? ' — no mistakes' : ''}</div>
+					<div class="mt-4 flex gap-2.5">
+						<div class="flex-1 rounded-[12px] border-[1.5px] border-ink bg-surface-2 py-2.5"><div class="font-hand text-2xl leading-none font-bold text-ink">{victoryTime}</div><div class="mt-0.5 text-[10px] text-muted">{m.victory_time()}</div></div>
+						<div class="flex-1 rounded-[12px] border-[1.5px] border-ink bg-surface-2 py-2.5"><div class="font-hand text-2xl leading-none font-bold text-forest">+{victoryXp}</div><div class="mt-0.5 text-[10px] text-muted">{m.victory_xp()}</div></div>
+						<div class="flex-1 rounded-[12px] border-[1.5px] border-ink bg-surface-2 py-2.5"><div class="font-hand text-2xl leading-none font-bold text-terracotta">+{victoryStreak}</div><div class="mt-0.5 text-[10px] text-muted">{m.victory_streak()}</div></div>
+					</div>
+					<div class="mt-5 flex gap-2.5">
+						<button class="btn-primary kraft-radius flex-1 py-2.5 text-xl" onclick={() => void startGame()}>{m.victory_again()}</button>
+						<button class="btn-secondary kraft-radius flex-1 py-2.5 text-xl" onclick={() => void backToMenu()}>{m.victory_to_menu()}</button>
+					</div>
+				</div>
+			</div>
+		{/if}
 	{/if}
 
 <!-- Toast notifications -->

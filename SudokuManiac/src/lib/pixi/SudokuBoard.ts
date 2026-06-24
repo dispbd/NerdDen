@@ -268,6 +268,10 @@ export class SudokuBoard {
 		const totalSize = this.cellSize * this.gridSize;
 
 		for (let i = 0; i <= this.gridSize; i++) {
+			// The CSS wrapper draws the rounded outer frame, so optionally skip i=0 / i=N.
+			const skipOuter = this.theme.skipOuterBorder === true && (i === 0 || i === this.gridSize);
+			if (skipOuter) continue;
+
 			const isHorizBoxBorder = i % this.boxRows === 0;
 			const isVertBoxBorder = i % this.boxCols === 0;
 			const pos = i * this.cellSize;
@@ -354,12 +358,24 @@ export class SudokuBoard {
 		) {
 			return this.theme.cellOpponentFilled ?? this.theme.cellHighlighted;
 		}
-		if (this.isHighlighted(r, c)) return this.theme.cellHighlighted;
+		// Precedence (matches the mockup): same-digit > error > peer.
+		if (this.theme.cellSameDigit != null && this.isSameDigit(r, c)) return this.theme.cellSameDigit;
 		if (this.errors.has(key)) return this.theme.cellError;
+		if (this.isHighlighted(r, c)) return this.theme.cellHighlighted;
 		if (this.puzzle.length && this.puzzle[r][c] !== 0) return this.theme.cellGiven;
 		const boxCols = this.gridSize / this.boxCols;
 		const boxIndex = Math.floor(r / this.boxRows) * boxCols + Math.floor(c / this.boxCols);
 		return boxIndex % 2 === 0 ? this.theme.cellBackground : this.theme.cellBackgroundAlt;
+	}
+
+	/** True when this cell holds the same digit as the (filled) selected cell. */
+	private isSameDigit(r: number, c: number): boolean {
+		if (this.selectedRow < 0 || this.selectedCol < 0 || !this.playerGrid.length) return false;
+		if (r === this.selectedRow && c === this.selectedCol) return false;
+		const selVal = this.playerGrid[this.selectedRow][this.selectedCol];
+		if (!selVal) return false;
+		if (this.errors.has(`${r},${c}`)) return false;
+		return this.playerGrid[r][c] === selVal;
 	}
 
 	private isHighlighted(r: number, c: number): boolean {
@@ -398,13 +414,16 @@ export class SudokuBoard {
 		const isError = this.errors.has(`${r},${c}`);
 		const isHint = !isGiven && this.hintCells.has(`${r},${c}`);
 
+		const markers = this.theme.digitPlayerMarkers;
+		const playerColor =
+			markers && markers.length ? markers[(r + c) % markers.length] : this.theme.digitPlayer;
 		const color = isError
 			? this.theme.digitError
 			: isHint
-				? (this.theme.digitHint ?? this.theme.digitPlayer)
+				? (this.theme.digitHint ?? playerColor)
 				: isGiven
 					? this.theme.digitGiven
-					: this.theme.digitPlayer;
+					: playerColor;
 
 		const fontSize = Math.round(this.cellSize * (this.theme.digitScale ?? 0.56));
 		const style = new TextStyle({

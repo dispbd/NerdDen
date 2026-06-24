@@ -119,5 +119,18 @@
 	"sudoku_custom_desc": "Tamaño, dificultad y ayudas",
 	"sudoku_random_mode": "Aleatorio",
 	"sudoku_random_desc": "Puzzle sorpresa",
-	"sudoku_hero_subtitle": "Elige dificultad y modo — o retoma una partida."
+	"sudoku_hero_subtitle": "Elige dificultad y modo — o retoma una partida.",
+	"game_mistakes": "Errores",
+	"game_undo": "Deshacer",
+	"game_erase": "Borrar",
+	"game_notes": "Notas",
+	"game_hint": "Pista",
+	"game_tip": "Elige una celda y pulsa un número — se resaltan dígitos iguales y vecinos.",
+	"game_mascot": "Sudoku Maniac",
+	"victory_solved": "¡Resuelto!",
+	"victory_again": "Otra vez",
+	"victory_to_menu": "Al menú",
+	"victory_time": "tiempo",
+	"victory_xp": "XP",
+	"victory_streak": "racha"
 }
