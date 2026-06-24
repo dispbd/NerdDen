@@ -11,6 +11,7 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import DifficultyPicker from './DifficultyPicker.svelte';
 	import GridSizePicker from './GridSizePicker.svelte';
+	import Chip from '$lib/components/shared/Chip.svelte';
 
 	let {
 		onclose,
@@ -174,18 +175,18 @@
 
 <!-- backdrop -->
 <div
-	class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+	class="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
 	role="dialog"
 	aria-modal="true"
 	aria-label="Print Sudoku"
 >
-	<div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col gap-5 p-6 max-h-[90dvh] overflow-y-auto">
+	<div class="card-kraft kraft-radius flex max-h-[90dvh] w-full max-w-sm flex-col gap-5 overflow-y-auto p-6 shadow-float">
 
 		<!-- header -->
 		<div class="flex items-center justify-between">
-			<h2 class="text-xl font-bold">{m.print_title()}</h2>
+			<h2 class="m-0 text-xl">{m.print_title()}</h2>
 			<button
-				class="p-1.5 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors text-gray-400 hover:text-gray-600 text-lg leading-none"
+				class="cursor-pointer border-0 bg-transparent text-lg leading-none text-muted transition-colors hover:text-ink"
 				onclick={onclose}
 				aria-label="Close"
 			>✕</button>
@@ -193,44 +194,40 @@
 
 		<!-- current puzzle banner -->
 		{#if initialPuzzle}
-			<div class="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm">
-				<span class="text-blue-500 text-base">★</span>
-				<span class="text-blue-700">{m.print_current_banner()}</span>
+			<div class="flex items-center gap-2 rounded-[10px] border-[1.5px] border-dashed border-dash bg-surface-2 px-3 py-2 text-sm">
+				<span class="text-base text-terracotta">★</span>
+				<span class="text-ink-soft">{m.print_current_banner()}</span>
 			</div>
 		{/if}
 
 		<!-- count -->
 		<div class="flex flex-col gap-2">
-			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+			<span class="field-label">
 				{initialPuzzle ? m.print_total_puzzles() : m.print_puzzle_count()}
 			</span>
 			<div class="grid grid-cols-9 gap-1">
 				{#each [1, 2, 3, 4, 5, 6, 7, 8, 9] as n (n)}
-					<button
-						class="py-2 rounded-lg border-2 font-semibold cursor-pointer transition-all text-sm
-							{count === n ? 'border-blue-600 bg-blue-100 text-blue-700' : 'border-transparent bg-blue-50 hover:bg-blue-100'}"
-						onclick={() => (count = n)}
-					>{n}</button>
+					<Chip active={count === n} accent="var(--color-navy)" class="kraft-radius-sm py-1.5 text-base" onclick={() => (count = n)}>{n}</Chip>
 				{/each}
 			</div>
 			{#if initialPuzzle && count > 1}
-				<p class="text-xs text-gray-400">{m.print_current_plus({ n: count - 1 })}</p>
+				<p class="text-xs text-muted">{m.print_current_plus({ n: count - 1 })}</p>
 			{/if}
 			{#if slowWarning}
-				<p class="text-xs text-amber-600">⚠️ {m.print_slow_warning({ count: additionalCount, difficulty })}</p>
+				<p class="text-xs text-mustard">⚠️ {m.print_slow_warning({ count: additionalCount, difficulty })}</p>
 			{/if}
 		</div>
 
 		<!-- difficulty + grid size — only when generating additional puzzles -->
 		{#if !initialPuzzle || count > 1}
 			<div class="flex flex-col gap-2">
-				<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+				<span class="field-label">
 					{initialPuzzle ? m.print_difficulty_additional() : m.print_difficulty()}
 				</span>
 				<DifficultyPicker value={difficulty} onchange={(d) => (difficulty = d)} labelFn={diffLabelFn} />
 			</div>
 			<div class="flex flex-col gap-2">
-				<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+				<span class="field-label">
 					{initialPuzzle ? m.print_grid_size_additional() : m.sudoku_grid_size()}
 				</span>
 				<GridSizePicker value={gridSize} onchange={(s) => (gridSize = s)} />
@@ -239,15 +236,15 @@
 
 		<!-- color theme -->
 		<div class="flex flex-col gap-2">
-			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{m.print_color_theme()}</span>
+			<span class="field-label">{m.print_color_theme()}</span>
 			<div class="flex flex-wrap gap-2">
 				{#each THEME_LIST as t (t.id)}
 					<button
-						class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 text-sm font-semibold cursor-pointer transition-all
-							{colorTheme === t.id ? 'border-gray-700 bg-gray-100' : 'border-transparent bg-gray-50 hover:bg-gray-100'}"
+						class="kraft-radius-sm flex cursor-pointer items-center gap-1.5 border-[1.5px] px-3 py-1.5 text-sm font-semibold transition-all
+							{colorTheme === t.id ? 'border-ink bg-surface-2 shadow-btn-sm' : 'border-[#cdbfa6] bg-transparent text-ink-soft'}"
 						onclick={() => (colorTheme = t.id)}
 					>
-						<span class="inline-block w-3.5 h-3.5 rounded-full border border-white/60 shadow-sm shrink-0" style="background:{t.swatch}"></span>
+						<span class="inline-block size-3.5 shrink-0 rounded-full border border-ink/30" style="background:{t.swatch}"></span>
 						{t.label}
 					</button>
 				{/each}
@@ -256,14 +253,10 @@
 
 		<!-- font -->
 		<div class="flex flex-col gap-2">
-			<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{m.print_font()}</span>
-			<div class="flex gap-2 flex-wrap">
+			<span class="field-label">{m.print_font()}</span>
+			<div class="flex flex-wrap gap-2">
 				{#each FONT_LIST as f (f.id)}
-					<button
-						class="px-3 py-1.5 rounded-lg border-2 text-sm cursor-pointer transition-all
-							{fontId === f.id ? 'border-blue-600 bg-blue-100 text-blue-700 font-semibold' : 'border-transparent bg-blue-50 hover:bg-blue-100 font-medium'}"
-						onclick={() => (fontId = f.id)}
-					>{f.label}</button>
+					<Chip active={fontId === f.id} accent="var(--color-terracotta)" class="kraft-radius-sm px-3 py-1.5 text-base" onclick={() => (fontId = f.id)}>{f.label}</Chip>
 				{/each}
 			</div>
 		</div>
@@ -271,7 +264,7 @@
 		<!-- actions -->
 		<div class="flex gap-3 pt-1">
 			<button
-				class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer transition-colors"
+				class="btn-primary kraft-radius flex-1 px-4 py-2.5 text-lg disabled:cursor-not-allowed disabled:opacity-60"
 				onclick={handlePrint}
 				disabled={generating}
 			>
@@ -281,10 +274,7 @@
 					{m.print_generate()}
 				{/if}
 			</button>
-			<button
-				class="px-4 py-2.5 rounded-lg border-2 border-gray-200 font-semibold hover:bg-gray-100 cursor-pointer transition-colors"
-				onclick={onclose}
-			>{m.print_cancel()}</button>
+			<button class="btn-secondary kraft-radius px-4 py-2.5 text-lg" onclick={onclose}>{m.print_cancel()}</button>
 		</div>
 	</div>
 </div>
