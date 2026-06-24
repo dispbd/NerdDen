@@ -114,5 +114,10 @@
 	"custom_preview": "Vorschau",
 	"custom_board": "Feld",
 	"custom_hints": "Tipps",
-	"custom_start": "Spiel starten"
+	"custom_start": "Spiel starten",
+	"sudoku_custom": "Eigen",
+	"sudoku_custom_desc": "Größe, Schwierigkeit & Hilfen",
+	"sudoku_random_mode": "Zufall",
+	"sudoku_random_desc": "Zufälliges Rätsel",
+	"sudoku_hero_subtitle": "Wähle Schwierigkeit und Modus — oder mach weiter."
 }

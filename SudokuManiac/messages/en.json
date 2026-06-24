@@ -114,5 +114,10 @@
 	"custom_preview": "Preview",
 	"custom_board": "Board",
 	"custom_hints": "Hints",
-	"custom_start": "Start game"
+	"custom_start": "Start game",
+	"sudoku_custom": "Custom",
+	"sudoku_custom_desc": "Size, difficulty & assists",
+	"sudoku_random_mode": "Random",
+	"sudoku_random_desc": "Surprise puzzle",
+	"sudoku_hero_subtitle": "Choose difficulty and mode — or resume a game."
 }

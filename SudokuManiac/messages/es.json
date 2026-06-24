@@ -114,5 +114,10 @@
 	"custom_preview": "Vista previa",
 	"custom_board": "Tablero",
 	"custom_hints": "Pistas",
-	"custom_start": "Empezar"
+	"custom_start": "Empezar",
+	"sudoku_custom": "Personalizado",
+	"sudoku_custom_desc": "Tamaño, dificultad y ayudas",
+	"sudoku_random_mode": "Aleatorio",
+	"sudoku_random_desc": "Puzzle sorpresa",
+	"sudoku_hero_subtitle": "Elige dificultad y modo — o retoma una partida."
 }
