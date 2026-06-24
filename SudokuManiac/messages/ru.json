@@ -114,5 +114,10 @@
 	"custom_preview": "Предпросмотр",
 	"custom_board": "Поле",
 	"custom_hints": "Подсказки",
-	"custom_start": "Начать игру"
+	"custom_start": "Начать игру",
+	"sudoku_custom": "Свой",
+	"sudoku_custom_desc": "Размер, сложность, помощники",
+	"sudoku_random_mode": "Случайный",
+	"sudoku_random_desc": "Случайный пазл",
+	"sudoku_hero_subtitle": "Выберите сложность и режим — или продолжите игру."
 }

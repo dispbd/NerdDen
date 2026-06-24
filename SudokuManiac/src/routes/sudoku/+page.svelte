@@ -14,6 +14,9 @@
 	import DifficultyPicker from '$lib/components/sudoku/DifficultyPicker.svelte';
 	import GridSizePicker from '$lib/components/sudoku/GridSizePicker.svelte';
 	import PrintModal from '$lib/components/sudoku/PrintModal.svelte';
+	import KraftAvatar from '$lib/components/shared/KraftAvatar.svelte';
+	import StatTile from '$lib/components/shared/StatTile.svelte';
+	import DayStreak from '$lib/components/shared/DayStreak.svelte';
 	import { generatePuzzle } from '$lib/games/sudoku/generator.js';
 	import type { Difficulty, Grid, GridSize, SaveSlot } from '$lib/games/sudoku/shared.js';
 	import {
@@ -58,6 +61,31 @@
 	let hintsUsed = $state(0);
 	/** Unified save slots shown in the lobby */
 	let saves = $state<SaveSlot[]>([]);
+	/** Lobby right-rail stats (solved / best time / streak) — DB for auth, localStorage for guests */
+	let lobbyStats = $state<{ solved: number; bestTime: number | null; streak: number } | null>(null);
+
+	/** Last 7 calendar days as closed/open cells for the streak card (approximation). */
+	const streakWeek = $derived.by(() => {
+		const streak = lobbyStats?.streak ?? 0;
+		const INI = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+		const days: boolean[] = [];
+		const labels: string[] = [];
+		const today = new Date();
+		for (let i = 6; i >= 0; i--) {
+			const d = new Date(today);
+			d.setDate(d.getDate() - i);
+			labels.push(INI[d.getDay()]);
+			days.push(i < Math.min(streak, 7));
+		}
+		return { days, labels };
+	});
+
+	function fmtBest(seconds: number | null): string {
+		if (seconds == null) return '—';
+		const m = Math.floor(seconds / 60);
+		const s = seconds % 60;
+		return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+	}
 
 	onMount(() => {
 		if (data.isAuthenticated) {
@@ -72,10 +100,16 @@
 				timeSpent: s.timeSpent,
 				createdAt: new Date(s.createdAt).toISOString()
 			}));
+			lobbyStats = data.stats;
 		} else {
 			saves = loadGuestSaves().map((s) => ({ ...s, source: 'local' as const }));
 			const gStats = loadGuestStats();
 			hintsAvailable = gStats.hintsAvailable;
+			lobbyStats = {
+				solved: gStats.sudokuSolved,
+				bestTime: gStats.sudokuBestTimeSeconds,
+				streak: gStats.streakDays
+			};
 		}
 
 		// Auto-start from Custom mode handoff (/sudoku/custom → /sudoku?…&autostart=1)
@@ -166,7 +200,7 @@
 		saves = saves.filter((s) => s.id !== slot.id);
 	}
 
-	async function startGame(diff: Difficulty | undefined) {
+	async function startGame(diff: Difficulty | undefined = undefined) {
 		// Stash / clean up previous sessions
 		if (sessionId) {
 			await stashCurrentDbSession(); // saves progress, adds to saves list
@@ -363,89 +397,109 @@
 	/>
 {/if}
 
-<sudoku-page class="flex flex-col items-center w-full max-w-lg mx-auto px-3 py-4 gap-4 sm:px-4 sm:py-6 sm:gap-6">
-	<h1 class="text-4xl font-extrabold m-0">SudokuManiac <img src="/sudoku-maniac.webp" alt="SudokuManiac" class="inline-block size-7 -mt-1"></h1>
+{#snippet modeCard(href: string, glyph: string, accent: string, title: string, desc: string)}
+	<a
+		{href}
+		class="card-kraft kraft-radius-sm flex flex-col gap-2 p-4 no-underline transition-transform hover:-translate-y-0.5"
+	>
+		<span
+			class="flex size-10 items-center justify-center rounded-[11px] border-[1.5px] border-ink font-hand text-lg font-bold text-surface-2"
+			style="background:{accent}"
+		>{glyph}</span>
+		<span class="font-display text-base font-bold text-ink">{title}</span>
+		<span class="text-xs text-ink-soft">{desc}</span>
+	</a>
+{/snippet}
 
-	{#if !gameStarted}
-		<game-lobby class="flex flex-col items-center gap-6 w-full">
+{#if !gameStarted}
+	<lobby-screen class="mx-auto flex w-full max-w-5xl flex-col gap-7 px-3 py-6 sm:px-4">
+		<!-- Hero -->
+		<lobby-hero class="flex items-center gap-4">
+			<KraftAvatar mascot size={70} radius={16} />
+			<div>
+				<h1 class="m-0 text-4xl leading-none">{m.nav_sudoku()}</h1>
+				<p class="m-0 mt-1.5 text-sm text-ink-soft">{m.sudoku_hero_subtitle()}</p>
+			</div>
+		</lobby-hero>
 
-			<!-- Save slots -->
-			{#if saves.length > 0}
-				<saves-section class="flex flex-col gap-3 w-full max-w-sm">
-					<h2 class="m-0 text-base font-semibold text-gray-500 uppercase tracking-wide">{m.sudoku_continue_playing()}</h2>
-					{#each saves as slot (slot.id)}
-						<SaveSlotCard
-							{slot}
-							onContinue={() => void continueSession(slot)}
-							onDelete={() => void deleteSlot(slot)}
-						/>
-					{/each}
-				</saves-section>
-				<divider class="w-full max-w-sm border-t border-gray-200"></divider>
-			{/if}
-
-			<!-- Other game modes -->
-			<other-modes class="grid grid-cols-2 gap-3 w-full max-w-sm">
-				<a
-					href={resolve('/sudoku/story')}
-					class="flex flex-col gap-1.5 p-4 rounded-xl border-2 border-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition-colors no-underline"
-				>
-					<span class="text-2xl">📖</span>
-				<span class="font-bold text-indigo-800">{m.sudoku_story_mode()}</span>
-				<span class="text-xs text-indigo-500">{m.sudoku_story_desc()}</span>
-				</a>
-				<a
-					href={resolve('/sudoku/competitive')}
-					class="flex flex-col gap-1.5 p-4 rounded-xl border-2 border-rose-200 bg-rose-50 hover:bg-rose-100 transition-colors no-underline"
-				>
-					<span class="text-2xl">⚡</span>
-				<span class="font-bold text-rose-800">{m.sudoku_competitive()}</span>
-				<span class="text-xs text-rose-500">{m.sudoku_competitive_desc()}</span>
-				</a>
-				<button
-					class="col-span-2 flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors text-left"
-					onclick={() => (showPrintModal = true)}
-				>
-					<span class="text-2xl">🖨️</span>
-					<div class="flex flex-col">
-						<span class="font-bold text-gray-700">{m.sudoku_print_puzzles()}</span>
-						<span class="text-xs text-gray-400">{m.sudoku_print_desc()}</span>
+		<lobby-cols class="flex flex-col gap-6 lg:flex-row lg:items-start">
+			<!-- Main column -->
+			<main-col class="order-2 flex min-w-0 flex-1 flex-col gap-6 lg:order-1">
+				<!-- Quick game -->
+				<section class="card-kraft kraft-radius flex flex-col gap-5 p-5">
+					<h2 class="label-caps m-0">{m.sudoku_quick_play()}</h2>
+					<div class="flex flex-col gap-2">
+						<span class="field-label">{m.custom_difficulty()}</span>
+						<DifficultyPicker value={difficulty} onchange={(d) => (difficulty = d)} labelFn={diffLabel} />
 					</div>
-				</button>
-			</other-modes>
+					<div class="flex flex-col gap-2">
+						<span class="field-label">{m.sudoku_grid_size()}</span>
+						<GridSizePicker value={gridSize} onchange={(s) => (gridSize = s)} />
+					</div>
+					<div class="flex flex-wrap gap-3">
+						<button class="btn-primary kraft-radius flex-1 px-6 py-2.5 text-xl" onclick={() => void startGame()}>
+							{m.sudoku_start_game()}
+						</button>
+						<button class="btn-secondary kraft-radius px-6 py-2.5 text-xl" onclick={startRandom}>
+							{m.sudoku_random_mode()}
+						</button>
+					</div>
+				</section>
 
-			<divider class="w-full max-w-sm border-t border-gray-200"></divider>
+				<!-- Game modes -->
+				<section class="grid grid-cols-2 gap-3">
+					{@render modeCard(resolve('/sudoku/story'), '▶', 'var(--color-terracotta)', m.sudoku_story_mode(), m.sudoku_story_desc())}
+					{@render modeCard(resolve('/sudoku/custom'), '▤', 'var(--color-navy)', m.sudoku_custom(), m.sudoku_custom_desc())}
+					<button
+						onclick={startRandom}
+						class="card-kraft kraft-radius-sm flex cursor-pointer flex-col gap-2 p-4 text-left transition-transform hover:-translate-y-0.5"
+					>
+						<span class="flex size-10 items-center justify-center rounded-[11px] border-[1.5px] border-ink text-lg" style="background:var(--color-mustard)">🎲</span>
+						<span class="font-display text-base font-bold text-ink">{m.sudoku_random_mode()}</span>
+						<span class="text-xs text-ink-soft">{m.sudoku_random_desc()}</span>
+					</button>
+					{@render modeCard(resolve('/sudoku/competitive'), 'VS', 'var(--color-forest)', m.sudoku_competitive(), m.sudoku_competitive_desc())}
+				</section>
 
-			<!-- Quick Play -->
-			<h2 class="m-0 text-base font-semibold text-gray-500 uppercase tracking-wide">{m.sudoku_quick_play()}</h2>
-
-			<difficulty-grid class="max-w-sm">
-				<DifficultyPicker value={difficulty} onchange={(d) => (difficulty = d)} labelFn={diffLabel} />
-			</difficulty-grid>
-
-			<settings-row class="flex flex-col items-center gap-2">
-				<span class="text-sm font-semibold text-gray-600">{m.sudoku_grid_size()}</span>
-				<size-selector class="flex gap-2">
-					<GridSizePicker value={gridSize} onchange={(s) => (gridSize = s)} />
-				</size-selector>
-			</settings-row>
-
-			<lobby-actions class="flex gap-3 items-center justify-center">
+				<!-- Print -->
 				<button
-					class="px-10 py-3 bg-blue-600 text-white text-lg font-bold rounded-xl border-0 cursor-pointer hover:bg-blue-700 transition-colors"
-					onclick={() => void startGame()}
-				>
-					{m.sudoku_start_game()}
-				</button>
-				<button
-					class="px-6 py-3 bg-violet-600 text-white text-lg font-bold rounded-xl border-0 cursor-pointer hover:bg-violet-700 transition-colors"
-					onclick={startRandom}
-				>
-					{m.sudoku_random()}
-				</button>
-			</lobby-actions>
-		</game-lobby>
+					class="btn-secondary kraft-radius-sm self-start px-4 py-1.5 text-base"
+					onclick={() => (showPrintModal = true)}
+				>🖨️ {m.sudoku_print_puzzles()}</button>
+			</main-col>
+
+			<!-- Right rail -->
+			<aside class="order-1 flex w-full flex-col gap-5 lg:order-2 lg:w-[316px] lg:flex-none">
+				{#if saves.length > 0}
+					<section class="flex flex-col gap-3">
+						<h2 class="label-caps m-0">{m.sudoku_continue_playing()}</h2>
+						{#each saves as slot (slot.id)}
+							<SaveSlotCard
+								{slot}
+								{diffLabel}
+								onContinue={() => void continueSession(slot)}
+								onDelete={() => void deleteSlot(slot)}
+							/>
+						{/each}
+					</section>
+				{/if}
+
+				<!-- Day streak (desktop) -->
+				<div class="hidden lg:block">
+					<DayStreak days={streakWeek.days} labels={streakWeek.labels} count={lobbyStats?.streak ?? 0} title={m.stat_day_streak()} />
+				</div>
+
+				<!-- Mini stats (desktop) -->
+				<div class="hidden grid-cols-2 gap-3 lg:grid">
+					<StatTile value={lobbyStats?.solved ?? 0} label={m.stat_solved()} valueSize={28} radius="13px 10px 12px 11px" />
+					<StatTile value={fmtBest(lobbyStats?.bestTime ?? null)} label={m.stat_best_time()} color="var(--color-forest)" valueSize={28} radius="10px 13px 11px 12px" />
+				</div>
+			</aside>
+		</lobby-cols>
+	</lobby-screen>
 	{:else}
+		<sudoku-page class="flex flex-col items-center w-full max-w-lg mx-auto px-3 py-4 gap-4 sm:px-4 sm:py-6 sm:gap-6">
+			<h1 class="text-4xl font-extrabold m-0">SudokuManiac <img src="/sudoku-maniac.webp" alt="SudokuManiac" class="inline-block size-7 -mt-1"></h1>
 		<game-screen class="flex flex-col items-center gap-3 w-full sm:gap-4">
 			<game-header class="flex items-center justify-between w-full">
 				<difficulty-badge class="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-bold text-sm">
@@ -541,8 +595,8 @@
 				</button>
 			</game-footer>
 		</game-screen>
+		</sudoku-page>
 	{/if}
-</sudoku-page>
 
 <!-- Toast notifications -->
 {#if toasts.length > 0}
