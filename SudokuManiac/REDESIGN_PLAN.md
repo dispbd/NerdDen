@@ -88,3 +88,28 @@ Branch: `redesign/phase-4-accuracy`
 - 16×16 board (generator unsupported — disabled in Custom).
 - Dark-theme toggle mechanism (palette exists in tokens; switcher deferred).
 - Notes / candidates pencil-marks — styled toggle stub only (no input logic yet).
+
+---
+
+## Status
+
+| Phase | Branch | PR | State |
+|-------|--------|----|-------|
+| 0 — Foundation & component system | `redesign/phase-0-foundation` | #4 | ✅ merged |
+| 1 — Sudoku lobby | `redesign/phase-1-lobby` | #5 | ✅ merged |
+| 2 — In-game & board | `redesign/phase-2-game` | #6 | ✅ merged |
+| 3 — Secondary screens & modals | `redesign/phase-3-secondary` | #7 | ✅ merged |
+| 4 — Accuracy & verification | `redesign/phase-4-accuracy` | — | ✅ this PR |
+
+**Phase 4 outcome.** Reviewed the four Screens (Profile / Leaderboard / Online duel /
+Custom) against `NerdDen Screens.dc.html`. Profile, Leaderboard and Custom match the
+reference (layout, sizes, radii, colors, state styling) — no styling fixes were required.
+The running dev server renders all four without SSR errors and with the expected Kraft
+markup. Verified: `svelte-check` (no new errors beyond the pre-existing list) and
+`vite build` pass.
+
+**Known divergence (by design):** the Online-duel mockup is a single "match" screen
+(VS panel + a two-bar race + dark match-timer card). The app's competitive flow is
+room-code based (lobby → room → dual-board game → results); Phase 0 carried the Kraft VS
+panel, "searching" animation and race bars into those views, but the mockup's single
+race-panel layout is not reproduced 1:1 because it would change the live-multiplayer UX.
