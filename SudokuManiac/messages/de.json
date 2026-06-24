@@ -119,5 +119,18 @@
 	"sudoku_custom_desc": "Größe, Schwierigkeit & Hilfen",
 	"sudoku_random_mode": "Zufall",
 	"sudoku_random_desc": "Zufälliges Rätsel",
-	"sudoku_hero_subtitle": "Wähle Schwierigkeit und Modus — oder mach weiter."
+	"sudoku_hero_subtitle": "Wähle Schwierigkeit und Modus — oder mach weiter.",
+	"game_mistakes": "Fehler",
+	"game_undo": "Zurück",
+	"game_erase": "Löschen",
+	"game_notes": "Notizen",
+	"game_hint": "Tipp",
+	"game_tip": "Zelle wählen, dann Zahl tippen — gleiche Ziffern und Nachbarn leuchten auf.",
+	"game_mascot": "Sudoku Maniac",
+	"victory_solved": "Gelöst!",
+	"victory_again": "Nochmal",
+	"victory_to_menu": "Zum Menü",
+	"victory_time": "Zeit",
+	"victory_xp": "XP",
+	"victory_streak": "Serie"
 }

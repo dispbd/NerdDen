@@ -119,5 +119,18 @@
 	"sudoku_custom_desc": "Размер, сложность, помощники",
 	"sudoku_random_mode": "Случайный",
 	"sudoku_random_desc": "Случайный пазл",
-	"sudoku_hero_subtitle": "Выберите сложность и режим — или продолжите игру."
+	"sudoku_hero_subtitle": "Выберите сложность и режим — или продолжите игру.",
+	"game_mistakes": "Ошибки",
+	"game_undo": "Отмена",
+	"game_erase": "Стереть",
+	"game_notes": "Заметки",
+	"game_hint": "Подсказка",
+	"game_tip": "Выберите клетку и нажмите цифру — одинаковые цифры и соседи подсветятся.",
+	"game_mascot": "Sudoku Maniac",
+	"victory_solved": "Решено!",
+	"victory_again": "Заново",
+	"victory_to_menu": "В меню",
+	"victory_time": "время",
+	"victory_xp": "XP",
+	"victory_streak": "серия"
 }
