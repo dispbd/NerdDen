@@ -7,6 +7,7 @@
 	import SudokuBoardComponent from '$lib/components/sudoku/SudokuBoard.svelte';
 	import Numpad from '$lib/components/sudoku/Numpad.svelte';
 	import GameTimer from '$lib/components/sudoku/GameTimer.svelte';
+	import Pill from '$lib/components/shared/Pill.svelte';
 	import type { GridSize } from '$lib/games/sudoku/shared.js';
 
 	let { data } = $props();
@@ -45,12 +46,12 @@
 	};
 
 	const DIFF_COLOR: Record<string, string> = {
-		beginner: 'text-green-600',
-		easy: 'text-teal-600',
-		medium: 'text-yellow-600',
-		hard: 'text-orange-600',
-		expert: 'text-red-600',
-		extreme: 'text-purple-700'
+		beginner: 'text-forest',
+		easy: 'text-forest',
+		medium: 'text-mustard',
+		hard: 'text-terracotta',
+		expert: 'text-terracotta-ink',
+		extreme: 'text-navy'
 	};
 
 	async function playPuzzle(puzzleId: string) {
@@ -116,47 +117,40 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<story-page class="flex flex-col items-center max-w-3xl mx-auto px-4 py-8 gap-8">
+<story-page class="mx-auto flex max-w-3xl flex-col items-center gap-8 px-4 py-8">
 	<story-header class="flex flex-col items-center gap-2 text-center">
-		<h1 class="text-4xl font-extrabold m-0">Story Mode</h1>
-		<p class="text-gray-500 m-0">Progress through puzzle chains, unlock new chapters.</p>
+		<h1 class="m-0 text-4xl">Story Mode</h1>
+		<p class="m-0 text-ink-soft">Progress through puzzle chains, unlock new chapters.</p>
 	</story-header>
 
 	{#each data.chapters as chapter (chapter.id)}
-		<chapter-card class="flex flex-col w-full rounded-2xl border border-gray-200 overflow-hidden shadow-sm
-			{chapter.unlocked ? '' : 'opacity-60'}">
+		<chapter-card class="card-kraft kraft-radius flex w-full flex-col overflow-hidden {chapter.unlocked ? '' : 'opacity-60'}">
 
-			<chapter-header class="flex items-center gap-3 px-5 py-4 bg-gray-50 border-b border-gray-200">
-				{#if !chapter.unlocked}
-					<span class="text-2xl">🔒</span>
-				{:else}
-					<span class="text-2xl">📖</span>
-				{/if}
-				<chapter-info class="flex flex-col flex-1 min-w-0">
-					<span class="font-bold text-lg">{chapter.title}</span>
-					<span class="text-sm text-gray-500">{chapter.description}</span>
+			<chapter-header class="flex items-center gap-3 border-b-[1.5px] border-dashed border-dash bg-paper-card px-5 py-4">
+				<span class="text-2xl">{chapter.unlocked ? '📖' : '🔒'}</span>
+				<chapter-info class="flex min-w-0 flex-1 flex-col">
+					<span class="font-display text-lg font-bold text-ink">{chapter.title}</span>
+					<span class="text-sm text-ink-soft">{chapter.description}</span>
 				</chapter-info>
-				<progress-pill class="text-sm font-semibold px-3 py-1 rounded-full
-					{chapter.completedCount === chapter.puzzles.length ? 'bg-green-100 text-green-700' : 'bg-blue-50 text-blue-600'}">
+				<Pill accent={chapter.completedCount === chapter.puzzles.length ? 'var(--color-forest)' : 'var(--color-navy)'}>
 					{chapter.completedCount}/{chapter.puzzles.length}
-				</progress-pill>
+				</Pill>
 			</chapter-header>
 
 			<puzzle-list class="flex flex-wrap gap-3 p-4">
 				{#each chapter.puzzles as puzzle (puzzle.id)}
 					<button
-						class="flex flex-col items-center justify-center gap-1 w-20 h-20 rounded-xl border-2
-							font-semibold text-sm cursor-pointer transition-all
-							{puzzle.status === 'completed' ? 'border-green-400 bg-green-50 text-green-700' :
-							 puzzle.status === 'in_progress' ? 'border-blue-400 bg-blue-50 text-blue-700' :
-							 puzzle.status === 'available' ? 'border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50' :
-							 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'}"
+						class="kraft-radius-sm flex size-20 flex-col items-center justify-center gap-1 border-[1.5px] text-sm font-semibold transition-all
+							{puzzle.status === 'completed' ? 'border-ink bg-[#e6efe2] text-forest' :
+							 puzzle.status === 'in_progress' ? 'border-ink bg-cell-same-bg text-navy' :
+							 puzzle.status === 'available' ? 'shadow-btn-sm cursor-pointer border-ink bg-surface-2 text-ink hover:-translate-y-0.5' :
+							 'cursor-not-allowed border-dashed border-[#b6a98c] bg-[#efe7d6] text-muted'}"
 						disabled={puzzle.status === 'locked'}
 						onclick={() => puzzle.status !== 'locked' && playPuzzle(puzzle.id)}
 					>
 						<span class="text-2xl">{STATUS_ICON[puzzle.status] ?? '?'}</span>
-						<span class="text-xs font-bold">#{puzzle.orderIndex}</span>
-						<span class="text-xs {DIFF_COLOR[puzzle.difficulty] ?? ''}">{puzzle.difficulty}</span>
+						<span class="font-hand text-base font-bold">#{puzzle.orderIndex}</span>
+						<span class="text-[11px] capitalize {DIFF_COLOR[puzzle.difficulty] ?? ''}">{puzzle.difficulty}</span>
 					</button>
 				{/each}
 			</puzzle-list>
@@ -164,39 +158,36 @@
 	{/each}
 
 	{#if !data.userId}
-		<sign-in-cta class="flex flex-col items-center gap-2 py-4 text-center text-gray-500">
+		<sign-in-cta class="flex flex-col items-center gap-2 py-4 text-center text-ink-soft">
 			<span class="text-4xl">🔑</span>
 			<p class="m-0">Sign in to save your story progress.</p>
-			<a href="/sign-in" class="text-blue-600 font-semibold hover:underline">Sign In</a>
+			<a href="/sign-in" class="font-semibold text-navy hover:underline">Sign In</a>
 		</sign-in-cta>
 	{/if}
 </story-page>
 
 <!-- ── In-game overlay ──────────────────────────────────────────────────────── -->
 {#if activePuzzle}
-	<game-overlay class="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4">
-		<game-modal class="flex flex-col items-center gap-4 bg-white rounded-2xl p-6 shadow-2xl
-			max-w-lg w-full max-h-screen overflow-y-auto">
+	<game-overlay class="fixed inset-0 z-40 flex items-center justify-center bg-ink/60 p-4">
+		<game-modal class="card-kraft flex max-h-screen w-full max-w-lg flex-col items-center gap-4 overflow-y-auto p-6 shadow-float" style="border-radius:22px 18px 20px 16px">
 
-			<modal-header class="flex items-center justify-between w-full">
-				<difficulty-badge class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-bold text-sm">
-					{activePuzzle.difficulty} · {activePuzzle.gridSize}×{activePuzzle.gridSize}
-				</difficulty-badge>
+			<modal-header class="flex w-full items-center justify-between">
+				<Pill variant="solid"><span class="capitalize">{activePuzzle.difficulty}</span> · {activePuzzle.gridSize}×{activePuzzle.gridSize}</Pill>
 				<GameTimer bind:this={timerRef} running={timerRunning} />
 				<button
-					class="p-2 rounded-lg hover:bg-gray-100 cursor-pointer border-0 text-gray-500 text-xl"
+					class="cursor-pointer border-0 bg-transparent text-xl leading-none text-muted hover:text-ink"
 					onclick={closeGame}
 					aria-label="Close"
 				>✕</button>
 			</modal-header>
 
 			{#if gameSolved}
-				<solved-banner class="w-full text-center py-2.5 bg-green-100 text-green-800 rounded-lg font-bold text-lg">
+				<solved-banner class="w-full rounded-[12px] border-[1.5px] border-ink bg-[#e6efe2] py-2.5 text-center font-hand text-2xl font-bold text-forest">
 					🎉 Solved!
 				</solved-banner>
 			{/if}
 
-			<board-wrap class="w-full aspect-square rounded-lg overflow-hidden shadow">
+			<board-wrap class="block w-full overflow-hidden border-[2.5px] border-ink bg-[#fbf8f1] shadow-[3px_5px_0_rgba(50,44,36,.18)]" style="border-radius:14px">
 				<SudokuBoardComponent
 					bind:this={boardRef}
 					puzzle={activePuzzle.puzzle}
@@ -214,9 +205,9 @@
 
 <!-- Toast notifications -->
 {#if toasts.length > 0}
-	<toast-container class="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
+	<toast-container class="fixed right-4 bottom-4 z-50 flex flex-col gap-2">
 		{#each toasts as toast (toast.id)}
-			<toast-item class="flex items-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-xl shadow-lg text-sm font-semibold">
+			<toast-item class="flex items-center gap-2 rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-surface-2 shadow-lg">
 				<span>{toast.icon}</span>
 				<span>{toast.text}</span>
 			</toast-item>
