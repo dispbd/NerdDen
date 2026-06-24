@@ -8,13 +8,18 @@ export interface BoardTheme {
 	cellBackgroundAlt: number; // slightly different for 3×3 boxes
 	cellSelected: number;
 	cellHighlighted: number; // same row/col/box as selected
+	cellSameDigit?: number; // cells holding the same digit as the selected one
 	cellError: number;
 	cellGiven: number; // locked (pre-filled) cell bg
-	cellOpponentSelected?: number; // opponent’s active cell (shown in read-only board)	/** Background for opponent cells that are filled but digits are hidden */
-	cellOpponentFilled?: number;	gridLine: number;
+	cellOpponentSelected?: number; // opponent’s active cell (shown in read-only board)
+	/** Background for opponent cells that are filled but digits are hidden */
+	cellOpponentFilled?: number;
+	gridLine: number;
 	gridLineThick: number; // box borders
 	digitGiven: number;
 	digitPlayer: number;
+	/** Optional per-cell marker palette for player digits, cycled by (row+col) */
+	digitPlayerMarkers?: number[];
 	digitError: number;
 	digitHint?: number;       // hint-revealed digit (optional, falls back to digitPlayer)
 	digitCandidate: number;
@@ -22,6 +27,8 @@ export interface BoardTheme {
 	digitScale?: number;      // fontSize = cellSize * digitScale (default: 0.56)
 	gridLineWidth?: number;   // thin cell line width (default: 1)
 	gridLineThickWidth?: number; // box border width (default: 2.5)
+	/** Skip drawing the outermost border lines (the CSS wrapper provides the frame) */
+	skipOuterBorder?: boolean;
 }
 
 export const lightTheme: BoardTheme = {
@@ -41,28 +48,36 @@ export const lightTheme: BoardTheme = {
 	digitCandidate: 0x6b7280
 };
 
-/** Notebook / paper theme — mimics a hand-filled sudoku booklet */
+/**
+ * "Kraft Draft" board theme — warm paper, ink frame, handwritten marker digits.
+ * Cell-state colors carried 1:1 from NerdDen Game.dc.html. The rounded ink frame
+ * and offset shadow are applied via CSS on the board wrapper, so the renderer
+ * skips its outer border lines.
+ */
 export const notebookTheme: BoardTheme = {
-	background: 0xffffff,
+	background: 0xfbf8f1,         // cream inside the frame
 	cellBackground: 0xffffff,
-	cellBackgroundAlt: 0xffffff, // no alternating box tint
-	cellSelected: 0xd0e8ff,
-	cellHighlighted: 0xf0f7ff,
-	cellError: 0xffe8e8,
-	cellGiven: 0xffffff,         // given cells are plain white
-	cellOpponentSelected: 0xffd54f, // amber — opponent cursor
-	cellOpponentFilled: 0xe0e0e0, // light gray — filled but digit hidden
-	gridLine: 0xcccccc,          // light gray thin lines
-	gridLineThick: 0x0a0a0a,     // near-black box borders
-	digitGiven: 0x0a0a0a,        // black
-	digitPlayer: 0xbf1515,       // dark red
-	digitError: 0xff2020,
-	digitHint: 0x1a7a2a,         // dark green (matches photo)
-	digitCandidate: 0x999999,
+	cellBackgroundAlt: 0xffffff,  // no alternating box tint
+	cellSelected: 0xeccbb9,
+	cellHighlighted: 0xefe7d4,    // peers (row/col/box)
+	cellSameDigit: 0xdbe5ee,      // cells with the same digit as the selection
+	cellError: 0xf4d7cf,
+	cellGiven: 0xffffff,          // given cells are plain white
+	cellOpponentSelected: 0xeccbb9,
+	cellOpponentFilled: 0xddd3bf, // filled but digit hidden (opponent board)
+	gridLine: 0xdcd5c6,           // thin lines
+	gridLineThick: 0x322c24,      // ink box borders
+	digitGiven: 0x322c24,         // ink
+	digitPlayer: 0xb5462e,        // fallback marker (red)
+	digitPlayerMarkers: [0xb5462e, 0x3e5c76, 0x5b7355], // red / blue / green
+	digitError: 0xc81e1e,
+	digitHint: 0x5b7355,          // green marker
+	digitCandidate: 0x8a8474,
 	fontFamily: 'Caveat, cursive',
-	digitScale: 0.64,
-	gridLineWidth: 0.75,
-	gridLineThickWidth: 2.0
+	digitScale: 0.62,
+	gridLineWidth: 1,
+	gridLineThickWidth: 2,
+	skipOuterBorder: true
 };
 
 export const darkTheme: BoardTheme = {
