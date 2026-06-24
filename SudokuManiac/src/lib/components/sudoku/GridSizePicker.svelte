@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { GridSize } from '$lib/games/sudoku/shared.js';
+	import Chip from '$lib/components/shared/Chip.svelte';
 
 	const GRID_SIZES: GridSize[] = [4, 6, 9];
 
@@ -12,14 +13,15 @@
 	} = $props();
 </script>
 
-<div class="flex gap-2">
+<div class="flex gap-2.5">
 	{#each GRID_SIZES as s (s)}
-		<button
-			class="px-4 py-2 rounded-lg border-2 font-semibold cursor-pointer transition-all
-				{value === s
-				? 'border-blue-600 bg-blue-100 text-blue-700'
-				: 'border-transparent bg-blue-50 hover:bg-blue-100'}"
+		<Chip
+			active={value === s}
+			accent="var(--color-navy)"
+			class="kraft-radius-sm px-6 py-2 text-lg sm:text-xl"
 			onclick={() => onchange(s)}
-		>{s}×{s}</button>
+		>
+			{s}×{s}
+		</Chip>
 	{/each}
 </div>
