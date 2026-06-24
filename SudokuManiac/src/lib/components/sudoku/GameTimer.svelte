@@ -45,7 +45,7 @@
 </script>
 
 <time
-	class="tabular-nums text-2xl font-bold tracking-wide"
+	class="font-hand text-3xl font-bold leading-none text-ink"
 	aria-label="Elapsed time"
 	datetime={display}
 >{display}</time>
