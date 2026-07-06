@@ -15,6 +15,7 @@
 	// Full-screen Kraft views render their own in-page top bar (KraftTopBar) and
 	// hide the global Header / footer chrome.
 	const FULLSCREEN_ROUTES = new Set([
+		'/',
 		'/profile/[id]',
 		'/leaderboard',
 		'/sudoku/competitive',
