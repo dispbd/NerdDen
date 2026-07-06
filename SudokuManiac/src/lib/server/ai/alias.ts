@@ -3,10 +3,9 @@
  * Uses Vercel AI SDK + OpenAI gpt-4o-mini.
  */
 
-import { createOpenAI } from '@ai-sdk/openai';
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import { env } from '$env/dynamic/private';
+import { aiModel, hasAiKey } from './provider';
 
 const WordsSchema = z.object({
 	words: z.array(z.string().min(2).max(40)).min(10).max(60)
@@ -38,11 +37,10 @@ export async function generateAliasWords(
 	difficulty = 'medium',
 	count = 30
 ): Promise<string[]> {
-	if (!env.OPENAI_API_KEY) {
+	if (!hasAiKey()) {
 		return getOfflineFallback(count);
 	}
 
-	const openai = createOpenAI({ apiKey: env.OPENAI_API_KEY });
 	const difficultyDesc = DIFFICULTY_PROMPT[difficulty] ?? DIFFICULTY_PROMPT.medium;
 	const langLabel = LANG_LABEL[language] ?? 'English';
 
@@ -54,7 +52,7 @@ Do NOT include: proper names of specific people, very offensive content, or word
 Return JSON: { words: ["word1", "word2", ...] }`;
 
 	const { object } = await generateObject({
-		model: openai('gpt-4o-mini'),
+		model: await aiModel(),
 		schema: WordsSchema,
 		prompt
 	});

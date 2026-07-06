@@ -3,9 +3,8 @@
  * board state using the Vercel AI SDK + OpenAI.
  */
 
-import { createOpenAI } from '@ai-sdk/openai';
 import { generateText } from 'ai';
-import { env } from '$env/dynamic/private';
+import { aiModel } from './provider';
 import type { Grid } from '$lib/server/games/sudoku/generator';
 
 function buildPrompt(puzzle: Grid, playerGrid: Grid): string {
@@ -29,12 +28,10 @@ Point out which row/column/box to focus on and why. Do NOT reveal more than one 
 }
 
 export async function getAiHint(puzzle: Grid, playerGrid: Grid): Promise<string> {
-	const openai = createOpenAI({ apiKey: env.OPENAI_API_KEY });
-
 	const { text } = await generateText({
-		model: openai('gpt-4o-mini'),
+		model: await aiModel(),
 		prompt: buildPrompt(puzzle, playerGrid),
-		maxTokens: 150
+		maxOutputTokens: 150
 	});
 
 	return text.trim();
