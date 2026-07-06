@@ -457,3 +457,40 @@ export const aliasTeamMembersRelations = relations(aliasTeamMembers, ({ one }) =
 	team: one(aliasTeams, { fields: [aliasTeamMembers.teamId], references: [aliasTeams.id] }),
 	room: one(aliasRooms, { fields: [aliasTeamMembers.roomId], references: [aliasRooms.id] })
 }));
+
+// ─── Social: async friend challenges & shares (Home "Friends" rail) ─────────────
+
+export const challenges = pgTable(
+	'challenges',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		/** Who created the challenge / share */
+		fromUserId: text('from_user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		/** Target player (null = a public share, joinable by anyone) */
+		toUserId: text('to_user_id').references(() => user.id, { onDelete: 'cascade' }),
+		/** 'challenge' = beat my result; 'share' = try my generated puzzle */
+		kind: text('kind', { enum: ['challenge', 'share'] })
+			.notNull()
+			.default('challenge'),
+		gameType: text('game_type', { enum: ['sudoku', 'crossword', 'alias'] }).notNull(),
+		/** Free-form label shown in the rail, e.g. "Sudoku Hard" or "Biology" */
+		label: text('label').notNull().default(''),
+		/** Optional reference to the puzzle involved (crosswordId / gameSessionId / …) */
+		refId: text('ref_id'),
+		status: text('status', { enum: ['pending', 'accepted', 'completed', 'declined'] })
+			.notNull()
+			.default('pending'),
+		createdAt: timestamp('created_at').defaultNow().notNull()
+	},
+	(table) => [
+		index('challenges_toUserId_idx').on(table.toUserId),
+		index('challenges_fromUserId_idx').on(table.fromUserId)
+	]
+);
+
+export const challengesRelations = relations(challenges, ({ one }) => ({
+	from: one(user, { fields: [challenges.fromUserId], references: [user.id] }),
+	to: one(user, { fields: [challenges.toUserId], references: [user.id] })
+}));
