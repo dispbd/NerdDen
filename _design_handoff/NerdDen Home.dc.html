@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Hanken+Grotesk:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{font-family:'Hanken Grotesk',sans-serif;-webkit-font-smoothing:antialiased}
+  </style>
+</helmet>
+
+<div style="width:max-content;min-width:100%;min-height:100vh;box-sizing:border-box;padding:48px;background:#e7e5df">
+  <div style="display:flex;gap:56px;align-items:flex-start">
+
+    <!-- ===================== DESKTOP ===================== -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#8a8474;margin:0 0 12px">Desktop · home hub · 1280</div>
+      <div style="width:1280px;background:#ECE3D2;border-radius:18px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+
+        <!-- topbar -->
+        <div style="height:66px;background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:space-between;padding:0 24px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:24px;letter-spacing:-.02em;color:#322C24">NerdDen</div>
+            <span style="font-family:Caveat;font-weight:700;font-size:19px;line-height:1;color:#9a4a2e;transform:rotate(-4deg)">your daily den</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="display:flex;align-items:center;gap:7px;background:#F7F1E4;border:1px solid #d8cfbb;border-radius:999px;padding:5px 13px"><span style="font-size:14px">🔥</span><span style="font-family:Caveat;font-weight:700;font-size:19px;line-height:1;color:#C2724F">12</span><span style="font:500 12px/1 'Hanken Grotesk';color:#9a917d">day streak</span></div>
+            <div style="display:flex;align-items:center;gap:9px">
+              <div style="text-align:right"><div style="font:600 13px/1 'Hanken Grotesk';color:#322C24">Player_42</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d">Level 7 · 1240 XP</div></div>
+              <div style="width:38px;height:38px;border-radius:11px;background:#C2724F;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:22px;color:#FBF6EC">P</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:26px">
+
+          <!-- greeting + level bar -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:24px">
+            <div>
+              <h1 style="font-family:'Bricolage Grotesque';font-weight:700;font-size:36px;line-height:1;letter-spacing:-.02em;color:#322C24;margin:0 0 6px">Good evening, Player_42</h1>
+              <p style="font:400 15px/1.4 'Hanken Grotesk';color:#6B6151;margin:0">Three puzzles are waiting in today's Daily Den.</p>
+            </div>
+            <div style="width:320px;flex:none">
+              <div style="display:flex;justify-content:space-between;font:600 11px/1 'Hanken Grotesk';color:#6B6151;margin-bottom:7px"><span>Level 7</span><span style="color:#9a917d">260 XP to level 8</span></div>
+              <div style="height:12px;border-radius:999px;background:#e3d8c2;border:1.5px solid #322C24;overflow:hidden"><div style="width:64%;height:100%;background:#C2724F"></div></div>
+            </div>
+          </div>
+
+          <!-- daily den -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span style="font-family:'Bricolage Grotesque';font-weight:700;font-size:19px;color:#322C24">Daily Den</span>
+            <span style="font:600 11px/1 'Hanken Grotesk';color:#5F7657;background:rgba(95,118,87,.14);border:1px solid rgba(95,118,87,.4);border-radius:999px;padding:5px 11px">1 / 3 done today</span>
+            <span style="font:500 12px/1 'Hanken Grotesk';color:#9a917d;margin-left:auto">Resets in 4h 12m</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:26px">
+            <!-- sudoku daily -->
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:16px 13px 15px 12px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:18px">
+              <div style="display:flex;align-items:center;gap:11px;margin-bottom:14px">
+                <div style="width:48px;height:48px;flex:none;border-radius:13px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/sudoku-maniac.webp" style="width:36px;height:36px;image-rendering:pixelated"></div>
+                <div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:17px;line-height:1;color:#322C24">Sudoku</div><div style="font:500 12px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:3px">Medium · 9×9</div></div>
+                <span style="margin-left:auto;font-family:Caveat;font-weight:700;font-size:22px;color:#5F7657">✓</span>
+              </div>
+              <div style="font:400 13px/1.4 'Hanken Grotesk';color:#6B6151;margin-bottom:14px">Solved in 6:12 · +40 XP earned</div>
+              <button style="width:100%;font-family:Caveat;font-weight:700;font-size:19px;color:#322C24;background:transparent;border:1.5px solid #322C24;padding:8px 0;border-radius:12px 10px 13px 11px;cursor:pointer;line-height:1.1">See solution</button>
+            </div>
+            <!-- crossword daily -->
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:13px 16px 12px 15px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:18px">
+              <div style="display:flex;align-items:center;gap:11px;margin-bottom:14px">
+                <div style="width:48px;height:48px;flex:none;border-radius:13px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-owl.png" style="width:38px;height:38px"></div>
+                <div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:17px;line-height:1;color:#322C24">Crossword</div><div style="font:500 12px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:3px">Space · 11×11</div></div>
+                <span style="margin-left:auto;font:600 10px/1 'Hanken Grotesk';color:#C2724F;background:rgba(194,114,79,.13);border:1px solid rgba(194,114,79,.4);border-radius:999px;padding:4px 9px">61%</span>
+              </div>
+              <div style="font:400 13px/1.4 'Hanken Grotesk';color:#6B6151;margin-bottom:14px">In progress · 14 of 22 clues left</div>
+              <button style="width:100%;font-family:Caveat;font-weight:700;font-size:19px;color:#FBF6EC;background:#3E5C76;border:1.5px solid #322C24;padding:8px 0;border-radius:10px 13px 11px 12px;box-shadow:2px 2px 0 rgba(50,44,36,.6);cursor:pointer;line-height:1.1">Continue</button>
+            </div>
+            <!-- alias daily -->
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:15px 12px 16px 13px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:18px">
+              <div style="display:flex;align-items:center;gap:11px;margin-bottom:14px">
+                <div style="width:48px;height:48px;flex:none;border-radius:13px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-alias.png" style="width:38px;height:38px"></div>
+                <div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:17px;line-height:1;color:#322C24">Alias</div><div style="font:500 12px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:3px">Party · 2+ players</div></div>
+                <span style="margin-left:auto;font-size:18px">🎩</span>
+              </div>
+              <div style="font:400 13px/1.4 'Hanken Grotesk';color:#6B6151;margin-bottom:14px">Grab friends — today's topic: Movies</div>
+              <button style="width:100%;font-family:Caveat;font-weight:700;font-size:19px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;padding:8px 0;border-radius:13px 11px 12px 10px;box-shadow:2px 2px 0 rgba(50,44,36,.7);cursor:pointer;line-height:1.1">Start a room</button>
+            </div>
+          </div>
+
+          <!-- two-column: games + rail -->
+          <div style="display:flex;gap:26px;align-items:flex-start">
+            <!-- games -->
+            <div style="flex:1;min-width:0">
+              <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:19px;color:#322C24;margin-bottom:14px">Your games</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <!-- sudoku -->
+                <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:16px 13px 15px 12px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:18px;display:flex;align-items:center;gap:16px">
+                  <div style="width:60px;height:60px;flex:none;border-radius:15px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/sudoku-maniac.webp" style="width:46px;height:46px;image-rendering:pixelated"></div>
+                  <div style="flex:1;min-width:0"><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:20px;line-height:1;color:#322C24">Sudoku</div><div style="font:400 13px/1.4 'Hanken Grotesk';color:#6B6151;margin-top:4px">Classic number logic · 214 solved · best 6:12</div></div>
+                  <div style="display:flex;gap:10px;flex:none"><button style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:11px 9px 12px 10px;padding:7px 16px;cursor:pointer">Continue</button><button style="font-family:Caveat;font-weight:700;font-size:18px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;border-radius:9px 12px 10px 11px;padding:7px 18px;box-shadow:2px 2px 0 rgba(50,44,36,.7);cursor:pointer">Play</button></div>
+                </div>
+                <!-- crossword -->
+                <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:13px 16px 12px 15px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:18px;display:flex;align-items:center;gap:16px">
+                  <div style="width:60px;height:60px;flex:none;border-radius:15px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-owl.png" style="width:48px;height:48px"></div>
+                  <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px"><span style="font-family:'Bricolage Grotesque';font-weight:700;font-size:20px;line-height:1;color:#322C24">Crosswords</span><span style="font:700 9px/1 'Hanken Grotesk';letter-spacing:.06em;color:#3E5C76;background:rgba(62,92,118,.13);border:1px solid rgba(62,92,118,.35);border-radius:999px;padding:3px 7px">AI</span></div><div style="font:400 13px/1.4 'Hanken Grotesk';color:#6B6151;margin-top:4px">Generate one on any topic · 8 in your library</div></div>
+                  <div style="display:flex;gap:10px;flex:none"><button style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:11px 9px 12px 10px;padding:7px 16px;cursor:pointer">Library</button><button style="font-family:Caveat;font-weight:700;font-size:18px;color:#FBF6EC;background:#3E5C76;border:1.5px solid #322C24;border-radius:9px 12px 10px 11px;padding:7px 18px;box-shadow:2px 2px 0 rgba(50,44,36,.6);cursor:pointer">Generate</button></div>
+                </div>
+                <!-- alias -->
+                <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:15px 12px 16px 13px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:18px;display:flex;align-items:center;gap:16px">
+                  <div style="width:60px;height:60px;flex:none;border-radius:15px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-alias.png" style="width:48px;height:48px"></div>
+                  <div style="flex:1;min-width:0"><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:20px;line-height:1;color:#322C24">Alias</div><div style="font:400 13px/1.4 'Hanken Grotesk';color:#6B6151;margin-top:4px">Team word party · pass the phone around the circle</div></div>
+                  <div style="display:flex;gap:10px;flex:none"><button style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:11px 9px 12px 10px;padding:7px 16px;cursor:pointer">Join code</button><button style="font-family:Caveat;font-weight:700;font-size:18px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;border-radius:9px 12px 10px 11px;padding:7px 18px;box-shadow:2px 2px 0 rgba(50,44,36,.7);cursor:pointer">New room</button></div>
+                </div>
+                <!-- coming soon -->
+                <div style="background:transparent;border:1.5px dashed #b6a98c;border-radius:14px 12px 15px 11px;padding:16px;display:flex;align-items:center;gap:16px">
+                  <div style="width:60px;height:60px;flex:none;border-radius:15px;background:repeating-linear-gradient(45deg,#ece3d2,#ece3d2 7px,#f3ecdd 7px,#f3ecdd 14px);border:1.5px dashed #b6a98c;display:flex;align-items:center;justify-content:center;font-size:22px">✨</div>
+                  <div style="flex:1;min-width:0"><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:18px;line-height:1;color:#6B6151">Trivia &amp; Nonograms</div><div style="font:400 13px/1.4 'Hanken Grotesk';color:#9a917d;margin-top:4px">Next AI-powered games — coming soon</div></div>
+                  <button style="font-family:Caveat;font-weight:700;font-size:17px;color:#9a917d;background:transparent;border:1.5px solid #cdbfa6;border-radius:11px 9px 12px 10px;padding:7px 16px;cursor:pointer;flex:none">Notify me</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- rail -->
+            <div style="width:320px;flex:none;display:flex;flex-direction:column;gap:18px">
+              <!-- generate anything -->
+              <div style="background:#322C24;border-radius:16px 13px 15px 12px;padding:20px">
+                <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#b3a890;margin-bottom:10px">Generate anything</div>
+                <div style="font-family:Caveat;font-weight:700;font-size:23px;line-height:1.05;color:#FBF6EC;margin-bottom:14px">Give the Den a topic — get a puzzle.</div>
+                <div style="display:flex;align-items:center;gap:8px;background:#FBF6EC;border:1.5px solid #1c1813;border-radius:11px 9px 12px 10px;padding:9px 13px;margin-bottom:10px"><span style="font-size:14px">🔎</span><span style="font-family:Caveat;font-weight:700;font-size:20px;line-height:1;color:#322C24">Ancient Rome</span></div>
+                <button style="width:100%;font-family:Caveat;font-weight:700;font-size:20px;letter-spacing:-.3px;color:#FBF6EC;background:#C2724F;border:1.5px solid #1c1813;padding:9px 0;border-radius:13px 11px 14px 10px;box-shadow:2px 3px 0 rgba(0,0,0,.5);cursor:pointer;line-height:1.1">Generate</button>
+              </div>
+              <!-- mascots collection -->
+              <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:14px 16px 12px 15px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:18px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d">Mascots</div><span style="font:500 11px/1 'Hanken Grotesk';color:#9a917d">1 / 3 unlocked</span></div>
+                <div style="display:flex;gap:10px">
+                  <div style="flex:1;border-radius:12px;background:#FBF6EC;border:1.5px solid #322C24;padding:9px;text-align:center"><img src="assets/sudoku-maniac.webp" style="width:40px;height:40px;image-rendering:pixelated"><div style="font:600 9px/1.2 'Hanken Grotesk';color:#322C24;margin-top:4px">Maniac</div></div>
+                  <div style="flex:1;border-radius:12px;background:#efe7d6;border:1.5px dashed #b6a98c;padding:9px;text-align:center;opacity:.7"><img src="assets/mascot-owl.png" style="width:40px;height:40px"><div style="font:600 9px/1.2 'Hanken Grotesk';color:#9a917d;margin-top:4px">🔒 Owl</div></div>
+                  <div style="flex:1;border-radius:12px;background:#efe7d6;border:1.5px dashed #b6a98c;padding:9px;text-align:center;opacity:.7"><img src="assets/mascot-alias.png" style="width:40px;height:40px"><div style="font:600 9px/1.2 'Hanken Grotesk';color:#9a917d;margin-top:4px">🔒 Hatter</div></div>
+                </div>
+                <div style="font:400 11px/1.4 'Hanken Grotesk';color:#9a917d;margin-top:11px">Win in each game to unlock its mascot.</div>
+              </div>
+              <!-- friends activity -->
+              <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:16px 13px 15px 12px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:18px">
+                <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:13px">Friends</div>
+                <div style="display:flex;flex-direction:column;gap:11px">
+                  <div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;flex:none;border-radius:9px;background:#3E5C76;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:17px;color:#FBF6EC">М</div><div style="font:400 12px/1.35 'Hanken Grotesk';color:#6B6151"><b style="color:#322C24">Maya</b> challenged you · Sudoku Hard</div></div>
+                  <div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;flex:none;border-radius:9px;background:#5F7657;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:17px;color:#FBF6EC">Т</div><div style="font:400 12px/1.35 'Hanken Grotesk';color:#6B6151"><b style="color:#322C24">Timur</b> shared a crossword · Biology</div></div>
+                </div>
+                <button style="width:100%;font-family:Caveat;font-weight:700;font-size:17px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:11px 9px 12px 10px;padding:7px 0;cursor:pointer;margin-top:14px">See all</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== MOBILE ===================== -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#8a8474;margin:0 0 12px">Mobile · home · 390</div>
+      <div style="width:390px;background:#ECE3D2;border-radius:30px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="background:#F1E9D9;padding:10px 20px 0"><div style="display:flex;align-items:center;justify-content:space-between;font:600 12px/1 'Hanken Grotesk';color:#322C24;margin-bottom:10px"><span>9:41</span><span style="letter-spacing:1px;color:#9a917d">▰▰▰ ◔</span></div></div>
+        <div style="background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:space-between;padding:0 18px 12px">
+          <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:22px;color:#322C24">NerdDen</div>
+          <div style="display:flex;align-items:center;gap:10px"><div style="display:flex;align-items:center;gap:5px;background:#F7F1E4;border:1px solid #d8cfbb;border-radius:999px;padding:4px 10px"><span style="font-size:12px">🔥</span><span style="font-family:Caveat;font-weight:700;font-size:16px;line-height:1;color:#C2724F">12</span></div><div style="width:34px;height:34px;border-radius:10px;background:#C2724F;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:19px;color:#FBF6EC">P</div></div>
+        </div>
+        <div style="padding:18px 18px 26px">
+          <!-- greeting -->
+          <h1 style="font-family:'Bricolage Grotesque';font-weight:700;font-size:25px;line-height:1.05;color:#322C24;margin:0 0 4px">Good evening, Player_42</h1>
+          <p style="font:400 13px/1.4 'Hanken Grotesk';color:#6B6151;margin:0 0 14px">Today's Daily Den — 1 of 3 done.</p>
+          <!-- level -->
+          <div style="margin-bottom:20px"><div style="display:flex;justify-content:space-between;font:600 11px/1 'Hanken Grotesk';color:#6B6151;margin-bottom:6px"><span>Level 7</span><span style="color:#9a917d">260 XP to 8</span></div><div style="height:11px;border-radius:999px;background:#e3d8c2;border:1.5px solid #322C24;overflow:hidden"><div style="width:64%;height:100%;background:#C2724F"></div></div></div>
+
+          <!-- generate anything -->
+          <div style="background:#322C24;border-radius:15px 12px 14px 11px;padding:15px;margin-bottom:20px">
+            <div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#b3a890;margin-bottom:8px">Generate anything</div>
+            <div style="display:flex;align-items:center;gap:8px;background:#FBF6EC;border:1.5px solid #1c1813;border-radius:11px 9px 12px 10px;padding:8px 12px;margin-bottom:9px"><span style="font-size:13px">🔎</span><span style="font-family:Caveat;font-weight:700;font-size:19px;line-height:1;color:#322C24">Ancient Rome</span></div>
+            <button style="width:100%;font-family:Caveat;font-weight:700;font-size:19px;letter-spacing:-.3px;color:#FBF6EC;background:#C2724F;border:1.5px solid #1c1813;padding:8px 0;border-radius:12px 10px 13px 11px;box-shadow:2px 2px 0 rgba(0,0,0,.5);cursor:pointer;line-height:1.1">Generate a puzzle</button>
+          </div>
+
+          <!-- daily den -->
+          <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:17px;color:#322C24;margin-bottom:11px">Daily Den</div>
+          <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:22px">
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:13px 11px 12px 10px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:13px;display:flex;align-items:center;gap:12px">
+              <div style="width:44px;height:44px;flex:none;border-radius:12px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/sudoku-maniac.webp" style="width:34px;height:34px;image-rendering:pixelated"></div>
+              <div style="flex:1;min-width:0"><div style="font:700 14px/1.05 'Hanken Grotesk';color:#322C24">Sudoku · Medium</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:2px">Solved · +40 XP</div></div>
+              <span style="font-family:Caveat;font-weight:700;font-size:24px;color:#5F7657">✓</span>
+            </div>
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:11px 13px 10px 12px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:13px;display:flex;align-items:center;gap:12px">
+              <div style="width:44px;height:44px;flex:none;border-radius:12px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-owl.png" style="width:36px;height:36px"></div>
+              <div style="flex:1;min-width:0"><div style="font:700 14px/1.05 'Hanken Grotesk';color:#322C24">Crossword · Space</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:2px">61% · 14 clues left</div></div>
+              <button style="font-family:Caveat;font-weight:700;font-size:16px;color:#FBF6EC;background:#3E5C76;border:1.5px solid #322C24;border-radius:10px 8px 11px 9px;padding:6px 14px;box-shadow:1px 2px 0 rgba(50,44,36,.6);cursor:pointer;white-space:nowrap">Resume</button>
+            </div>
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:13px 11px 12px 10px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:13px;display:flex;align-items:center;gap:12px">
+              <div style="width:44px;height:44px;flex:none;border-radius:12px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-alias.png" style="width:36px;height:36px"></div>
+              <div style="flex:1;min-width:0"><div style="font:700 14px/1.05 'Hanken Grotesk';color:#322C24">Alias · Movies</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:2px">Party · grab friends</div></div>
+              <button style="font-family:Caveat;font-weight:700;font-size:16px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;border-radius:10px 8px 11px 9px;padding:6px 14px;box-shadow:1px 2px 0 rgba(50,44,36,.7);cursor:pointer;white-space:nowrap">Room</button>
+            </div>
+          </div>
+
+          <!-- games grid -->
+          <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:17px;color:#322C24;margin-bottom:11px">Your games</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:13px 11px 12px 10px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:14px;text-align:center"><div style="width:48px;height:48px;margin:0 auto 9px;border-radius:13px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/sudoku-maniac.webp" style="width:38px;height:38px;image-rendering:pixelated"></div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:15px;color:#322C24">Sudoku</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:2px">214 solved</div></div>
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:11px 13px 10px 12px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:14px;text-align:center"><div style="width:48px;height:48px;margin:0 auto 9px;border-radius:13px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-owl.png" style="width:40px;height:40px"></div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:15px;color:#322C24">Crosswords</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:2px">8 in library</div></div>
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:12px 11px 13px 10px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:14px;text-align:center"><div style="width:48px;height:48px;margin:0 auto 9px;border-radius:13px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-alias.png" style="width:40px;height:40px"></div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:15px;color:#322C24">Alias</div><div style="font:500 11px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:2px">Party game</div></div>
+            <div style="background:transparent;border:1.5px dashed #b6a98c;border-radius:10px 12px 11px 13px;padding:14px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:26px;margin-bottom:6px">✨</div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:14px;color:#6B6151">More soon</div><div style="font:500 10px/1.3 'Hanken Grotesk';color:#9a917d;margin-top:2px">Trivia · Nonograms</div></div>
+          </div>
+        </div>
+
+        <!-- bottom nav -->
+        <div style="background:#F1E9D9;border-top:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:space-around;padding:10px 0 14px">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px"><span style="font-size:18px">🏠</span><span style="font:700 10px/1 'Hanken Grotesk';color:#C2724F">Home</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.55"><span style="font-size:18px">🎯</span><span style="font:500 10px/1 'Hanken Grotesk';color:#6B6151">Games</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.55"><span style="font-size:18px">🏆</span><span style="font:500 10px/1 'Hanken Grotesk';color:#6B6151">Ranks</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.55"><span style="font-size:18px">🙂</span><span style="font:500 10px/1 'Hanken Grotesk';color:#6B6151">Profile</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

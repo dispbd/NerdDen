@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Hanken+Grotesk:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{font-family:'Hanken Grotesk',sans-serif;-webkit-font-smoothing:antialiased}
+    @keyframes nd-bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-7px) rotate(2deg)}}
+    @keyframes nd-pull{0%{transform:translateY(14px) scale(.85);opacity:0}35%{opacity:1}100%{transform:translateY(-52px) scale(1);opacity:0}}
+    @keyframes nd-dot{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-4px)}}
+    @keyframes nd-pulse{0%,100%{opacity:.5}50%{opacity:1}}
+    @keyframes nd-cardpop{0%{transform:rotate(6deg) translateX(8px)}100%{transform:rotate(6deg) translateX(8px)}}
+  </style>
+</helmet>
+
+<div style="width:max-content;min-width:100%;min-height:100vh;box-sizing:border-box;padding:48px;background:#e7e5df">
+
+  <!-- ============================================================ -->
+  <!-- CREATE ROOM + AI WORDS                                        -->
+  <!-- ============================================================ -->
+  <div style="font:600 12px/1 'Hanken Grotesk';letter-spacing:.18em;text-transform:uppercase;color:#8a8474;margin:0 0 16px">Alias · create room &amp; AI words</div>
+  <div style="display:flex;gap:48px;align-items:flex-start;margin-bottom:64px">
+
+    <!-- mobile: create -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Mobile · create</div>
+      <div style="width:390px;background:#ECE3D2;border-radius:30px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="background:#F1E9D9;padding:10px 20px 0"><div style="display:flex;align-items:center;justify-content:space-between;font:600 12px/1 'Hanken Grotesk';color:#322C24;margin-bottom:10px"><span>9:41</span><span style="letter-spacing:1px;color:#9a917d">▰▰▰ ◔</span></div></div>
+        <div style="background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;gap:12px;padding:0 16px 12px"><button style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:10px 8px 11px 9px;padding:4px 12px;cursor:pointer">←</button><div style="display:flex;align-items:center;gap:8px"><img src="assets/mascot-alias.png" style="width:24px;height:24px"><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:18px;color:#322C24">New Alias room</div></div></div>
+        <div style="padding:18px 18px 24px">
+          <div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:9px">Topic for the words</div>
+          <div style="display:flex;align-items:center;gap:9px;background:#FBF6EC;border:1.5px solid #322C24;border-radius:13px 10px 12px 11px;padding:9px 14px;box-shadow:2px 3px 0 rgba(50,44,36,.10);margin-bottom:9px"><span style="font-size:16px">🎩</span><span style="font-family:Caveat;font-weight:700;font-size:24px;line-height:1;color:#322C24">Movies &amp; TV</span></div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px"><span style="font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:#F7F1E4;border:1.5px solid #322C24;border-radius:999px;padding:3px 12px">Animals</span><span style="font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:#F7F1E4;border:1.5px solid #322C24;border-radius:999px;padding:3px 12px">Sports</span><span style="font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:#F7F1E4;border:1.5px solid #322C24;border-radius:999px;padding:3px 12px">Food</span></div>
+
+          <div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:9px">Language</div>
+          <div style="display:flex;gap:7px;margin-bottom:18px"><button style="font-family:Caveat;font-weight:700;font-size:17px;color:#FBF6EC;background:#5F7657;border:1.5px solid #322C24;border-radius:10px 8px 11px 9px;padding:5px 16px;box-shadow:1px 2px 0 rgba(50,44,36,.6);cursor:pointer">EN</button><button style="font-family:Caveat;font-weight:700;font-size:17px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:8px 11px 9px 10px;padding:5px 16px;cursor:pointer">RU</button><button style="font-family:Caveat;font-weight:700;font-size:17px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:11px 9px 10px 8px;padding:5px 16px;cursor:pointer">DE</button><button style="font-family:Caveat;font-weight:700;font-size:17px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px 10px 8px 11px;padding:5px 16px;cursor:pointer">ES</button></div>
+
+          <div style="display:flex;gap:16px;margin-bottom:18px">
+            <div style="flex:1"><div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:9px">Difficulty</div><div style="display:flex;flex-direction:column;gap:6px"><button style="font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:5px 0;cursor:pointer">Easy</button><button style="font-family:Caveat;font-weight:700;font-size:16px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;border-radius:9px;padding:5px 0;box-shadow:1px 2px 0 rgba(50,44,36,.6);cursor:pointer">Medium</button><button style="font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:5px 0;cursor:pointer">Hard</button></div></div>
+            <div style="flex:1"><div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:9px">Turn timer</div><div style="display:flex;flex-direction:column;gap:6px"><button style="font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:5px 0;cursor:pointer">30s</button><button style="font-family:Caveat;font-weight:700;font-size:16px;color:#FBF6EC;background:#3E5C76;border:1.5px solid #322C24;border-radius:9px;padding:5px 0;box-shadow:1px 2px 0 rgba(50,44,36,.6);cursor:pointer">60s</button><button style="font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:5px 0;cursor:pointer">90s</button></div></div>
+            <div style="flex:1"><div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:9px">Words</div><div style="display:flex;flex-direction:column;gap:6px"><button style="font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:5px 0;cursor:pointer">20</button><button style="font-family:Caveat;font-weight:700;font-size:16px;color:#FBF6EC;background:#C29A45;border:1.5px solid #322C24;border-radius:9px;padding:5px 0;box-shadow:1px 2px 0 rgba(50,44,36,.6);cursor:pointer">40</button><button style="font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:5px 0;cursor:pointer">60</button></div></div>
+          </div>
+          <button style="width:100%;font-family:Caveat;font-weight:700;font-size:23px;letter-spacing:-.3px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;padding:11px 0;border-radius:15px 12px 16px 11px;box-shadow:2px 3px 0 rgba(50,44,36,.85);cursor:pointer;line-height:1.1">Create &amp; fill the hat</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- mobile: generating -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Mobile · AI filling the hat</div>
+      <div style="width:390px;background:#ECE3D2;border-radius:30px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="background:#F1E9D9;padding:10px 20px 0"><div style="display:flex;align-items:center;justify-content:space-between;font:600 12px/1 'Hanken Grotesk';color:#322C24;margin-bottom:10px"><span>9:41</span><span style="letter-spacing:1px;color:#9a917d">▰▰▰ ◔</span></div></div>
+        <div style="background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:center;padding:0 16px 12px"><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:18px;color:#322C24">Filling the hat…</div></div>
+        <div style="padding:30px 24px 34px;text-align:center">
+          <!-- hat + flying words -->
+          <div style="position:relative;width:200px;height:170px;margin:0 auto 14px">
+            <!-- words pulled out -->
+            <span style="position:absolute;left:30px;top:40px;font-family:Caveat;font-weight:700;font-size:20px;color:#C2724F;background:#FBF6EC;border:1.5px solid #322C24;border-radius:8px;padding:2px 10px;animation:nd-pull 2.1s ease-in-out infinite">PIRATE</span>
+            <span style="position:absolute;left:95px;top:30px;font-family:Caveat;font-weight:700;font-size:20px;color:#3E5C76;background:#FBF6EC;border:1.5px solid #322C24;border-radius:8px;padding:2px 10px;animation:nd-pull 2.1s ease-in-out .7s infinite">VOLCANO</span>
+            <span style="position:absolute;left:60px;top:46px;font-family:Caveat;font-weight:700;font-size:20px;color:#5F7657;background:#FBF6EC;border:1.5px solid #322C24;border-radius:8px;padding:2px 10px;animation:nd-pull 2.1s ease-in-out 1.4s infinite">GUITAR</span>
+            <!-- hatter -->
+            <img src="assets/mascot-alias.png" style="position:absolute;left:-6px;bottom:0;width:96px;height:96px;animation:nd-bob 1.8s ease-in-out infinite">
+            <!-- hat -->
+            <div style="position:absolute;right:8px;bottom:0;width:104px;height:74px">
+              <div style="position:absolute;bottom:0;left:0;width:104px;height:18px;background:#322C24;border-radius:50%"></div>
+              <div style="position:absolute;bottom:10px;left:18px;width:68px;height:58px;background:#322C24;border-radius:10px 10px 4px 4px"></div>
+              <div style="position:absolute;bottom:30px;left:18px;width:68px;height:14px;background:#C2724F"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:7px;justify-content:center;margin-bottom:16px"><span style="width:9px;height:9px;border-radius:50%;background:#C2724F;animation:nd-dot 1.4s ease-in-out infinite"></span><span style="width:9px;height:9px;border-radius:50%;background:#C2724F;animation:nd-dot 1.4s ease-in-out .2s infinite"></span><span style="width:9px;height:9px;border-radius:50%;background:#C2724F;animation:nd-dot 1.4s ease-in-out .4s infinite"></span></div>
+          <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:23px;line-height:1.05;color:#322C24;margin-bottom:6px">The Hatter picks words</div>
+          <div style="font:400 14px/1.45 'Hanken Grotesk';color:#6B6151;margin-bottom:18px">Movies &amp; TV · Medium · EN · 40 words</div>
+          <div style="display:flex;align-items:center;gap:10px;max-width:280px;margin:0 auto"><div style="flex:1;height:10px;border-radius:999px;background:#e3d8c2;border:1.5px solid #322C24;overflow:hidden"><div style="width:72%;height:100%;background:#5F7657"></div></div><span style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24">29/40</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- desktop: create -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Desktop · create (secondary)</div>
+      <div style="width:720px;background:#ECE3D2;border-radius:18px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="height:62px;background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;gap:14px;padding:0 22px"><button style="font-family:Caveat;font-weight:700;font-size:19px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:11px 9px 12px 10px;padding:5px 15px;cursor:pointer;white-space:nowrap">← Back</button><img src="assets/mascot-alias.png" style="width:26px;height:26px"><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:19px;color:#322C24">New Alias room</div></div>
+        <div style="padding:24px;display:flex;gap:24px">
+          <div style="flex:1;display:flex;flex-direction:column;gap:18px">
+            <div><div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:9px">Topic</div><div style="display:flex;align-items:center;gap:9px;background:#FBF6EC;border:1.5px solid #322C24;border-radius:13px 10px 12px 11px;padding:10px 16px;box-shadow:2px 3px 0 rgba(50,44,36,.10)"><span style="font-size:18px">🎩</span><span style="font-family:Caveat;font-weight:700;font-size:26px;line-height:1;color:#322C24">Movies &amp; TV</span></div></div>
+            <div style="display:flex;gap:18px">
+              <div style="flex:1"><div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:9px">Difficulty</div><div style="display:flex;gap:6px"><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:6px 0;cursor:pointer">Easy</button><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;border-radius:9px;padding:6px 0;box-shadow:1px 2px 0 rgba(50,44,36,.6);cursor:pointer">Medium</button><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:6px 0;cursor:pointer">Hard</button></div></div>
+              <div style="flex:1"><div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:9px">Language</div><div style="display:flex;gap:6px"><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#FBF6EC;background:#5F7657;border:1.5px solid #322C24;border-radius:9px;padding:6px 0;box-shadow:1px 2px 0 rgba(50,44,36,.6);cursor:pointer">EN</button><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:6px 0;cursor:pointer">RU</button><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:6px 0;cursor:pointer">DE</button></div></div>
+            </div>
+            <div style="display:flex;gap:18px">
+              <div style="flex:1"><div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:9px">Turn timer</div><div style="display:flex;gap:6px"><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:6px 0;cursor:pointer">30s</button><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#FBF6EC;background:#3E5C76;border:1.5px solid #322C24;border-radius:9px;padding:6px 0;box-shadow:1px 2px 0 rgba(50,44,36,.6);cursor:pointer">60s</button><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:6px 0;cursor:pointer">90s</button></div></div>
+              <div style="flex:1"><div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:9px">Words in hat</div><div style="display:flex;gap:6px"><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:6px 0;cursor:pointer">20</button><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#FBF6EC;background:#C29A45;border:1.5px solid #322C24;border-radius:9px;padding:6px 0;box-shadow:1px 2px 0 rgba(50,44,36,.6);cursor:pointer">40</button><button style="flex:1;font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:9px;padding:6px 0;cursor:pointer">60</button></div></div>
+            </div>
+            <button style="align-self:flex-start;font-family:Caveat;font-weight:700;font-size:23px;letter-spacing:-.3px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;padding:10px 30px;border-radius:15px 12px 16px 11px;box-shadow:2px 3px 0 rgba(50,44,36,.85);cursor:pointer;line-height:1.1;margin-top:2px">Create &amp; fill the hat</button>
+          </div>
+          <div style="width:188px;flex:none;background:#F7F1E4;border:1.5px solid #322C24;border-radius:16px 13px 15px 12px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:18px;text-align:center">
+            <div style="width:96px;height:96px;margin:0 auto 12px;border-radius:50%;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-alias.png" style="width:76px;height:76px"></div>
+            <div style="font-family:Caveat;font-weight:700;font-size:21px;line-height:1;color:#322C24;margin-bottom:6px">The Hatter hosts</div>
+            <div style="font:400 12px/1.45 'Hanken Grotesk';color:#6B6151">He writes the word set, then you split into teams and pass the phone around.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ROOM LOBBY                                                    -->
+  <!-- ============================================================ -->
+  <div style="font:600 12px/1 'Hanken Grotesk';letter-spacing:.18em;text-transform:uppercase;color:#8a8474;margin:0 0 16px">Room lobby</div>
+  <div style="display:flex;gap:48px;align-items:flex-start;margin-bottom:64px">
+
+    <!-- mobile lobby -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Mobile · lobby</div>
+      <div style="width:390px;background:#ECE3D2;border-radius:30px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="background:#F1E9D9;padding:10px 20px 0"><div style="display:flex;align-items:center;justify-content:space-between;font:600 12px/1 'Hanken Grotesk';color:#322C24;margin-bottom:10px"><span>9:41</span><span style="letter-spacing:1px;color:#9a917d">▰▰▰ ◔</span></div></div>
+        <div style="background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:space-between;padding:0 16px 12px"><button style="font-family:Caveat;font-weight:700;font-size:18px;color:#322C24;background:transparent;border:1.5px solid #322C24;border-radius:10px 8px 11px 9px;padding:4px 12px;cursor:pointer">←</button><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:18px;color:#322C24">Room lobby</div><img src="assets/mascot-alias.png" style="width:28px;height:28px"></div>
+        <div style="padding:16px 16px 24px">
+          <!-- room code -->
+          <div style="background:#322C24;border-radius:16px 13px 15px 12px;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+            <div><div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.14em;text-transform:uppercase;color:#b3a890;margin-bottom:5px">Room code</div><div style="font-family:Caveat;font-weight:700;font-size:34px;line-height:.85;letter-spacing:3px;color:#FBF6EC">HAT-7K2</div></div>
+            <button style="font-family:Caveat;font-weight:700;font-size:17px;color:#322C24;background:#FBF6EC;border:1.5px solid #1c1813;border-radius:11px 9px 12px 10px;padding:7px 14px;cursor:pointer">Copy</button>
+          </div>
+          <!-- teams -->
+          <div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:11px">Teams · 5 players</div>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px">
+            <sc-for list="{{ teams }}" as="t" hint-placeholder-count="2">
+              <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:14px 11px 13px 12px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:14px">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:11px"><span style="width:16px;height:16px;border-radius:5px;background:{{ t.color }};border:1.5px solid #322C24"></span><span style="font-family:'Bricolage Grotesque';font-weight:700;font-size:17px;color:#322C24">{{ t.name }}</span><span style="margin-left:auto;font:500 12px/1 'Hanken Grotesk';color:#9a917d">{{ t.count }} players</span></div>
+                <div style="display:flex;flex-wrap:wrap;gap:7px">
+                  <sc-for list="{{ t.members }}" as="m" hint-placeholder-count="3">
+                    <span style="{{ m.style }}">{{ m.name }}</span>
+                  </sc-for>
+                  <button style="font-family:Caveat;font-weight:700;font-size:15px;color:{{ t.color }};background:transparent;border:1.5px dashed {{ t.color }};border-radius:999px;padding:4px 13px;cursor:pointer">+ Join</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <button style="width:100%;font-family:Caveat;font-weight:700;font-size:17px;color:#322C24;background:transparent;border:1.5px dashed #322C24;border-radius:12px 10px 13px 11px;padding:9px 0;cursor:pointer;margin-bottom:18px">+ New team</button>
+          <!-- settings summary -->
+          <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px">
+            <span style="font:600 11px/1 'Hanken Grotesk';color:#6B6151;background:#ECE3D2;border:1px solid #cdbfa6;border-radius:999px;padding:6px 11px">🎬 Movies &amp; TV</span>
+            <span style="font:600 11px/1 'Hanken Grotesk';color:#6B6151;background:#ECE3D2;border:1px solid #cdbfa6;border-radius:999px;padding:6px 11px">Medium</span>
+            <span style="font:600 11px/1 'Hanken Grotesk';color:#6B6151;background:#ECE3D2;border:1px solid #cdbfa6;border-radius:999px;padding:6px 11px">⏱ 60s</span>
+            <span style="font:600 11px/1 'Hanken Grotesk';color:#6B6151;background:#ECE3D2;border:1px solid #cdbfa6;border-radius:999px;padding:6px 11px">🎩 40 words</span>
+          </div>
+          <button style="width:100%;font-family:Caveat;font-weight:700;font-size:24px;letter-spacing:-.3px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;padding:12px 0;border-radius:15px 12px 16px 11px;box-shadow:2px 3px 0 rgba(50,44,36,.85);cursor:pointer;line-height:1.1">Start game</button>
+          <div style="text-align:center;font:500 11px/1.4 'Hanken Grotesk';color:#9a917d;margin-top:8px">You're the host · everyone's in a team</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- desktop lobby -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Desktop · lobby (host screen)</div>
+      <div style="width:820px;background:#ECE3D2;border-radius:18px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="height:62px;background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:space-between;padding:0 22px"><div style="display:flex;align-items:center;gap:12px"><img src="assets/mascot-alias.png" style="width:28px;height:28px"><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:19px;color:#322C24">Alias · Room lobby</div></div><div style="display:flex;align-items:center;gap:10px"><span style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.14em;text-transform:uppercase;color:#9a917d">Code</span><span style="font-family:Caveat;font-weight:700;font-size:26px;line-height:.8;letter-spacing:2px;color:#322C24">HAT-7K2</span><button style="font-family:Caveat;font-weight:700;font-size:16px;color:#322C24;background:#F7F1E4;border:1.5px solid #322C24;border-radius:10px 8px 11px 9px;padding:4px 12px;cursor:pointer">Copy</button></div></div>
+        <div style="padding:24px">
+          <div style="display:flex;gap:16px;margin-bottom:18px">
+            <sc-for list="{{ teamsD }}" as="t" hint-placeholder-count="2">
+              <div style="flex:1;background:#F7F1E4;border:1.5px solid #322C24;border-radius:16px 13px 15px 12px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:18px">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px"><span style="width:18px;height:18px;border-radius:6px;background:{{ t.color }};border:1.5px solid #322C24"></span><span style="font-family:'Bricolage Grotesque';font-weight:700;font-size:19px;color:#322C24">{{ t.name }}</span><span style="margin-left:auto;font:500 12px/1 'Hanken Grotesk';color:#9a917d">{{ t.count }} players</span></div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ t.members }}" as="m" hint-placeholder-count="3"><span style="{{ m.style }}">{{ m.name }}</span></sc-for><button style="font-family:Caveat;font-weight:700;font-size:16px;color:{{ t.color }};background:transparent;border:1.5px dashed {{ t.color }};border-radius:999px;padding:5px 15px;cursor:pointer">+ Join</button></div>
+              </div>
+            </sc-for>
+            <div style="width:50px;flex:none;display:flex;align-items:center;justify-content:center"><button style="width:46px;height:46px;border-radius:13px;background:transparent;border:1.5px dashed #322C24;font-size:22px;color:#322C24;cursor:pointer">+</button></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:#F7F1E4;border:1.5px solid #322C24;border-radius:14px 11px 13px 12px;padding:14px 18px">
+            <div style="display:flex;gap:8px"><span style="font:600 12px/1 'Hanken Grotesk';color:#6B6151;background:#ECE3D2;border:1px solid #cdbfa6;border-radius:999px;padding:6px 12px">🎬 Movies &amp; TV</span><span style="font:600 12px/1 'Hanken Grotesk';color:#6B6151;background:#ECE3D2;border:1px solid #cdbfa6;border-radius:999px;padding:6px 12px">Medium · EN</span><span style="font:600 12px/1 'Hanken Grotesk';color:#6B6151;background:#ECE3D2;border:1px solid #cdbfa6;border-radius:999px;padding:6px 12px">⏱ 60s</span><span style="font:600 12px/1 'Hanken Grotesk';color:#6B6151;background:#ECE3D2;border:1px solid #cdbfa6;border-radius:999px;padding:6px 12px">🎩 40 words</span></div>
+            <button style="font-family:Caveat;font-weight:700;font-size:23px;letter-spacing:-.3px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;padding:9px 34px;border-radius:15px 12px 16px 11px;box-shadow:2px 3px 0 rgba(50,44,36,.85);cursor:pointer;line-height:1.1">Start game</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- THE TURN                                                      -->
+  <!-- ============================================================ -->
+  <div style="font:600 12px/1 'Hanken Grotesk';letter-spacing:.18em;text-transform:uppercase;color:#8a8474;margin:0 0 16px">The turn · speaker → guessers → results</div>
+  <div style="display:flex;gap:48px;align-items:flex-start;margin-bottom:8px">
+
+    <!-- speaker -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Mobile · speaker (your turn)</div>
+      <div style="width:390px;background:#322C24;border-radius:30px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #1c1813">
+        <div style="padding:12px 20px 0"><div style="display:flex;align-items:center;justify-content:space-between;font:600 12px/1 'Hanken Grotesk';color:#cabfa9;margin-bottom:12px"><span>9:41</span><span style="letter-spacing:1px;color:#8a7f6b">▰▰▰ ◔</span></div></div>
+        <!-- header: team + timer -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px 14px">
+          <div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:5px;background:#C2724F;border:1.5px solid #FBF6EC"></span><span style="font:600 13px/1 'Hanken Grotesk';color:#FBF6EC">Red Foxes</span></div>
+          <!-- timer ring -->
+          <div style="position:relative;width:58px;height:58px">
+            <svg width="58" height="58" viewBox="0 0 58 58"><circle cx="29" cy="29" r="25" fill="none" stroke="#4a4236" stroke-width="5"></circle><circle cx="29" cy="29" r="25" fill="none" stroke="#C29A45" stroke-width="5" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="58" transform="rotate(-90 29 29)"></circle></svg>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Caveat;font-weight:700;font-size:24px;color:#FBF6EC">38</div>
+          </div>
+          <div style="text-align:right"><div style="font:600 10px/1 'Hanken Grotesk';letter-spacing:.1em;text-transform:uppercase;color:#8a7f6b">Got</div><div style="font-family:Caveat;font-weight:700;font-size:24px;line-height:.8;color:#5F9670">5</div></div>
+        </div>
+        <!-- word card stack -->
+        <div style="position:relative;height:300px;margin:6px 24px 0">
+          <div style="position:absolute;inset:14px 8px auto 8px;height:240px;background:#e7dcc6;border:1.5px solid #1c1813;border-radius:22px;transform:rotate(-4deg)"></div>
+          <div style="position:absolute;inset:8px 4px auto 4px;height:250px;background:#f3ead7;border:1.5px solid #1c1813;border-radius:22px;transform:rotate(2deg)"></div>
+          <!-- active card swiped right -->
+          <div style="position:absolute;inset:0 0 auto 0;height:260px;background:#FBF6EC;border:1.5px solid #1c1813;border-radius:24px;transform:rotate(6deg) translateX(10px);box-shadow:-6px 8px 0 rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
+            <span style="position:absolute;top:14px;right:16px;font:700 12px/1 'Hanken Grotesk';letter-spacing:.1em;color:#5F7657;border:2px solid #5F7657;border-radius:8px;padding:5px 10px;transform:rotate(8deg)">GOT IT ✓</span>
+            <div style="font:500 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#b3aa96;margin-bottom:14px">Explain this</div>
+            <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:44px;line-height:1;letter-spacing:-.02em;color:#322C24;text-align:center">ELEPHANT</div>
+            <div style="font-family:Caveat;font-weight:700;font-size:18px;color:#9a917d;margin-top:12px">no rhymes · no parts of the word</div>
+          </div>
+        </div>
+        <!-- swipe hint -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 30px 6px"><span style="font:600 12px/1 'Hanken Grotesk';color:#B5694E">‹ swipe to skip</span><span style="font:600 12px/1 'Hanken Grotesk';color:#7DA672">got it, swipe ›</span></div>
+        <!-- buttons -->
+        <div style="display:flex;gap:14px;padding:6px 24px 26px">
+          <button style="flex:1;font-family:Caveat;font-weight:700;font-size:24px;letter-spacing:-.3px;color:#FBF6EC;background:#B5462E;border:1.5px solid #1c1813;padding:13px 0;border-radius:16px 12px 17px 11px;box-shadow:2px 3px 0 rgba(0,0,0,.45);cursor:pointer;line-height:1.1">✕ Skip</button>
+          <button style="flex:1.3;font-family:Caveat;font-weight:700;font-size:24px;letter-spacing:-.3px;color:#FBF6EC;background:#5F7657;border:1.5px solid #1c1813;padding:13px 0;border-radius:12px 16px 11px 17px;box-shadow:2px 3px 0 rgba(0,0,0,.45);cursor:pointer;line-height:1.1">✓ Got it</button>
+        </div>
+        <div style="text-align:center;font:500 11px/1.4 'Hanken Grotesk';color:#8a7f6b;padding:0 0 16px">27 words left in the hat</div>
+      </div>
+    </div>
+
+    <!-- guessers -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Mobile · guessing (teammates)</div>
+      <div style="width:390px;background:#ECE3D2;border-radius:30px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="background:#F1E9D9;padding:10px 20px 0"><div style="display:flex;align-items:center;justify-content:space-between;font:600 12px/1 'Hanken Grotesk';color:#322C24;margin-bottom:10px"><span>9:41</span><span style="letter-spacing:1px;color:#9a917d">▰▰▰ ◔</span></div></div>
+        <div style="background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 16px 12px"><span style="width:13px;height:13px;border-radius:5px;background:#C2724F;border:1.5px solid #322C24"></span><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:17px;color:#322C24">Red Foxes — guess!</div></div>
+        <div style="padding:26px 24px 30px;text-align:center">
+          <div style="width:120px;height:120px;margin:6px auto 14px;border-radius:50%;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/sudoku-maniac.webp" style="width:78px;height:78px;image-rendering:pixelated"></div>
+          <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:26px;line-height:1.05;color:#322C24;margin-bottom:4px">Maya is explaining</div>
+          <div style="font:400 14px/1.4 'Hanken Grotesk';color:#6B6151;margin-bottom:22px">Shout your guesses out loud!</div>
+          <!-- big timer ring -->
+          <div style="position:relative;width:150px;height:150px;margin:0 auto 20px">
+            <svg width="150" height="150" viewBox="0 0 150 150"><circle cx="75" cy="75" r="66" fill="none" stroke="#ddd3bf" stroke-width="9"></circle><circle cx="75" cy="75" r="66" fill="none" stroke="#C2724F" stroke-width="9" stroke-linecap="round" stroke-dasharray="415" stroke-dashoffset="153" transform="rotate(-90 75 75)"></circle></svg>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-family:Caveat;font-weight:700;font-size:52px;line-height:.8;color:#322C24">0:24</div><div style="font:500 11px/1 'Hanken Grotesk';color:#9a917d;margin-top:4px">left</div></div>
+          </div>
+          <div style="display:flex;gap:12px;justify-content:center">
+            <div style="flex:1;background:#F7F1E4;border:1.5px solid #322C24;border-radius:13px 10px 12px 11px;padding:13px 0"><div style="font-family:Caveat;font-weight:700;font-size:30px;line-height:.85;color:#5F7657">8</div><div style="font:500 11px/1.2 'Hanken Grotesk';color:#9a917d;margin-top:3px">guessed</div></div>
+            <div style="flex:1;background:#F7F1E4;border:1.5px solid #322C24;border-radius:10px 13px 11px 12px;padding:13px 0"><div style="font-family:Caveat;font-weight:700;font-size:30px;line-height:.85;color:#322C24">+8</div><div style="font:500 11px/1.2 'Hanken Grotesk';color:#9a917d;margin-top:3px">this turn</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- results -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Mobile · turn results</div>
+      <div style="width:390px;background:#ECE3D2;border-radius:30px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="background:#F1E9D9;padding:10px 20px 0"><div style="display:flex;align-items:center;justify-content:space-between;font:600 12px/1 'Hanken Grotesk';color:#322C24;margin-bottom:10px"><span>9:41</span><span style="letter-spacing:1px;color:#9a917d">▰▰▰ ◔</span></div></div>
+        <div style="background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;justify-content:center;padding:0 16px 12px"><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:18px;color:#322C24">Turn over · Red Foxes</div></div>
+        <div style="padding:16px 16px 22px">
+          <!-- summary -->
+          <div style="display:flex;gap:11px;margin-bottom:16px">
+            <div style="flex:1;background:#5F7657;border:1.5px solid #322C24;border-radius:13px 10px 12px 11px;padding:12px 0;text-align:center"><div style="font-family:Caveat;font-weight:700;font-size:30px;line-height:.85;color:#FBF6EC">6</div><div style="font:500 11px/1.2 'Hanken Grotesk';color:#e7efe2;margin-top:3px">guessed</div></div>
+            <div style="flex:1;background:#F7F1E4;border:1.5px solid #322C24;border-radius:10px 13px 11px 12px;padding:12px 0;text-align:center"><div style="font-family:Caveat;font-weight:700;font-size:30px;line-height:.85;color:#B5462E">2</div><div style="font:500 11px/1.2 'Hanken Grotesk';color:#9a917d;margin-top:3px">skipped</div></div>
+            <div style="flex:1;background:#F7F1E4;border:1.5px solid #322C24;border-radius:12px 11px 13px 10px;padding:12px 0;text-align:center"><div style="font-family:Caveat;font-weight:700;font-size:30px;line-height:.85;color:#322C24">+6</div><div style="font:500 11px/1.2 'Hanken Grotesk';color:#9a917d;margin-top:3px">points</div></div>
+          </div>
+          <!-- word list -->
+          <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:14px 11px 13px 12px;box-shadow:2px 3px 0 rgba(50,44,36,.10);overflow:hidden;margin-bottom:16px">
+            <sc-for list="{{ turnWords }}" as="w" hint-placeholder-count="8">
+              <div style="{{ w.style }}"><span style="font-family:Caveat;font-weight:700;font-size:22px;line-height:1;color:#322C24">{{ w.word }}</span><span style="{{ w.tagStyle }}">{{ w.tag }}</span></div>
+            </sc-for>
+          </div>
+          <!-- scores -->
+          <div style="display:flex;gap:11px;margin-bottom:16px">
+            <div style="flex:1;display:flex;align-items:center;gap:8px;background:#F7F1E4;border:1.5px solid #322C24;border-radius:12px 10px 13px 11px;padding:11px 13px"><span style="width:13px;height:13px;border-radius:4px;background:#C2724F;border:1.5px solid #322C24"></span><span style="font:600 13px/1 'Hanken Grotesk';color:#322C24">Red Foxes</span><span style="margin-left:auto;font-family:Caveat;font-weight:700;font-size:24px;line-height:.8;color:#322C24">6</span></div>
+            <div style="flex:1;display:flex;align-items:center;gap:8px;background:#F7F1E4;border:1.5px solid #322C24;border-radius:10px 12px 11px 13px;padding:11px 13px"><span style="width:13px;height:13px;border-radius:4px;background:#3E5C76;border:1.5px solid #322C24"></span><span style="font:600 13px/1 'Hanken Grotesk';color:#322C24">Blue Owls</span><span style="margin-left:auto;font-family:Caveat;font-weight:700;font-size:24px;line-height:.8;color:#322C24">0</span></div>
+          </div>
+          <button style="width:100%;font-family:Caveat;font-weight:700;font-size:23px;letter-spacing:-.3px;color:#FBF6EC;background:#3E5C76;border:1.5px solid #322C24;padding:11px 0;border-radius:15px 12px 16px 11px;box-shadow:2px 3px 0 rgba(50,44,36,.85);cursor:pointer;line-height:1.1">Pass to Blue Owls ›</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="font:400 12px/1.5 'Hanken Grotesk';color:#9a917d;margin:0 0 64px;max-width:760px">Turn screens are phone-first — the device is passed around the circle. The speaker sees the word and swipes; teammates see only the timer and live score.</div>
+
+  <!-- ============================================================ -->
+  <!-- GAME OVER                                                     -->
+  <!-- ============================================================ -->
+  <div style="font:600 12px/1 'Hanken Grotesk';letter-spacing:.18em;text-transform:uppercase;color:#8a8474;margin:0 0 16px">Game over</div>
+  <div style="display:flex;gap:48px;align-items:flex-start">
+
+    <!-- mobile final -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Mobile · final</div>
+      <div style="width:390px;background:#ECE3D2;border-radius:30px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="background:#F1E9D9;padding:10px 20px 0"><div style="display:flex;align-items:center;justify-content:space-between;font:600 12px/1 'Hanken Grotesk';color:#322C24;margin-bottom:10px"><span>9:41</span><span style="letter-spacing:1px;color:#9a917d">▰▰▰ ◔</span></div></div>
+        <div style="padding:26px 20px 28px;text-align:center">
+          <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#9a917d;margin-bottom:12px">Winner</div>
+          <div style="position:relative;width:130px;height:130px;margin:0 auto 8px">
+            <span style="position:absolute;left:50%;top:-6px;transform:translateX(-50%);font-size:30px">🏆</span>
+            <div style="width:120px;height:120px;margin:10px auto 0;border-radius:26px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-alias.png" style="width:92px;height:92px"></div>
+          </div>
+          <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:32px;line-height:1;color:#322C24;margin-bottom:4px">Red Foxes win!</div>
+          <div style="font:500 14px/1.4 'Hanken Grotesk';color:#6B6151;margin-bottom:22px">24 words guessed · Movies &amp; TV</div>
+          <!-- standings -->
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px">
+            <sc-for list="{{ standings }}" as="s" hint-placeholder-count="2">
+              <div style="{{ s.style }}">
+                <span style="font-family:Caveat;font-weight:700;font-size:24px;line-height:1;color:{{ s.rankColor }};width:26px;text-align:center">{{ s.rank }}</span>
+                <span style="width:14px;height:14px;border-radius:5px;background:{{ s.color }};border:1.5px solid #322C24"></span>
+                <span style="flex:1;text-align:left;font-family:'Bricolage Grotesque';font-weight:700;font-size:17px;color:#322C24">{{ s.name }}</span>
+                <span style="font-family:Caveat;font-weight:700;font-size:28px;line-height:.8;color:#322C24">{{ s.score }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button style="flex:1;font-family:Caveat;font-weight:700;font-size:21px;letter-spacing:-.3px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;padding:10px 0;border-radius:14px 11px 13px 10px;box-shadow:2px 3px 0 rgba(50,44,36,.85);cursor:pointer;line-height:1.1">Rematch</button>
+            <button style="flex:1;font-family:Caveat;font-weight:700;font-size:21px;letter-spacing:-.3px;color:#322C24;background:transparent;border:1.5px solid #322C24;padding:10px 0;border-radius:11px 14px 10px 13px;cursor:pointer;line-height:1.1">New room</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- desktop final -->
+    <div style="flex:none">
+      <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.16em;text-transform:uppercase;color:#a39c8c;margin:0 0 12px">Desktop · final (shared screen)</div>
+      <div style="width:820px;background:#ECE3D2;border-radius:18px;overflow:hidden;box-shadow:0 22px 50px rgba(50,44,36,.16);border:1px solid #d8cfbb">
+        <div style="height:62px;background:#F1E9D9;border-bottom:1.5px dashed #c9bfa8;display:flex;align-items:center;gap:12px;padding:0 22px"><img src="assets/mascot-alias.png" style="width:28px;height:28px"><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:19px;color:#322C24">Alias · Final results</div></div>
+        <div style="display:flex;gap:26px;padding:28px">
+          <!-- winner -->
+          <div style="width:300px;flex:none;background:#F7F1E4;border:1.5px solid #322C24;border-radius:18px 15px 17px 14px;box-shadow:2px 3px 0 rgba(50,44,36,.10);padding:24px;text-align:center">
+            <div style="font-size:34px;margin-bottom:4px">🏆</div>
+            <div style="width:118px;height:118px;margin:0 auto 12px;border-radius:26px;background:#FBF6EC;border:1.5px solid #322C24;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-alias.png" style="width:92px;height:92px"></div>
+            <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:30px;line-height:1;color:#322C24;margin-bottom:5px">Red Foxes</div>
+            <div style="font:500 13px/1.4 'Hanken Grotesk';color:#6B6151">Champions · 24 words</div>
+          </div>
+          <!-- table -->
+          <div style="flex:1;min-width:0">
+            <div style="font:600 11px/1 'Hanken Grotesk';letter-spacing:.12em;text-transform:uppercase;color:#9a917d;margin-bottom:12px">Standings</div>
+            <div style="background:#F7F1E4;border:1.5px solid #322C24;border-radius:15px 12px 14px 11px;box-shadow:2px 3px 0 rgba(50,44,36,.10);overflow:hidden;margin-bottom:18px">
+              <sc-for list="{{ standingsD }}" as="s" hint-placeholder-count="2">
+                <div style="{{ s.style }}">
+                  <span style="font-family:Caveat;font-weight:700;font-size:26px;line-height:1;color:{{ s.rankColor }};width:34px;text-align:center">{{ s.rank }}</span>
+                  <span style="width:16px;height:16px;border-radius:5px;background:{{ s.color }};border:1.5px solid #322C24"></span>
+                  <span style="flex:1;font-family:'Bricolage Grotesque';font-weight:700;font-size:18px;color:#322C24">{{ s.name }}</span>
+                  <span style="font:500 12px/1 'Hanken Grotesk';color:#9a917d;margin-right:16px">{{ s.players }}</span>
+                  <span style="font-family:Caveat;font-weight:700;font-size:30px;line-height:.8;color:#322C24">{{ s.score }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:12px">
+              <button style="font-family:Caveat;font-weight:700;font-size:22px;letter-spacing:-.3px;color:#FBF6EC;background:#C2724F;border:1.5px solid #322C24;padding:10px 30px;border-radius:14px 11px 13px 10px;box-shadow:2px 3px 0 rgba(50,44,36,.85);cursor:pointer;line-height:1.1">Rematch (same teams)</button>
+              <button style="font-family:Caveat;font-weight:700;font-size:22px;letter-spacing:-.3px;color:#322C24;background:transparent;border:1.5px solid #322C24;padding:10px 26px;border-radius:11px 14px 10px 13px;cursor:pointer;line-height:1.1">New room</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals(){
+    const chip = (color) => 'font-family:Caveat;font-weight:700;font-size:15px;line-height:1;color:#322C24;background:#FBF6EC;border:1.5px solid #322C24;border-radius:999px;padding:5px 12px;';
+    const mem = (names) => names.map(n => ({ name:n, style:chip() }));
+
+    const teams = [
+      { name:'Red Foxes', color:'#C2724F', count:3, members: mem(['Player_42 ★','Maya','Leo']) },
+      { name:'Blue Owls', color:'#3E5C76', count:2, members: mem(['Timur','Sonya']) }
+    ];
+    const teamsD = teams.map(t=>({...t}));
+
+    // turn results word list
+    const wRow = (i)=> 'display:flex;align-items:center;justify-content:space-between;padding:10px 15px;'+(i>0?'border-top:1.5px dashed #d8cfbb;':'');
+    const gotTag = 'font:700 10px/1 \'Hanken Grotesk\';letter-spacing:.06em;color:#5F7657;background:rgba(95,118,87,.14);border:1px solid rgba(95,118,87,.45);border-radius:999px;padding:4px 10px;';
+    const skipTag = 'font:700 10px/1 \'Hanken Grotesk\';letter-spacing:.06em;color:#B5462E;background:rgba(181,70,46,.12);border:1px solid rgba(181,70,46,.4);border-radius:999px;padding:4px 10px;';
+    const tw = [
+      ['ELEPHANT','got'],['PIRATE','got'],['VOLCANO','skip'],['GUITAR','got'],
+      ['WIZARD','got'],['SUBMARINE','skip'],['CARNIVAL','got'],['TELESCOPE','got']
+    ];
+    const turnWords = tw.map(([word,res],i)=>({
+      word,
+      tag: res==='got' ? 'Got it' : 'Skipped',
+      tagStyle: res==='got' ? gotTag : skipTag,
+      style: wRow(i)
+    }));
+
+    // standings
+    const stRow = (i, win)=> 'display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;'+(win?'background:rgba(194,114,79,.16);border:1.5px solid #C2724F;':'background:#F7F1E4;border:1.5px solid #322C24;');
+    const stRowD = (i, win)=> 'display:flex;align-items:center;gap:13px;padding:14px 18px;'+(i>0?'border-top:1.5px dashed #d8cfbb;':'')+(win?'background:rgba(194,114,79,.13);':'');
+    const sd = [
+      { rank:1, name:'Red Foxes', color:'#C2724F', score:24, players:'3 players', win:true, rankColor:'#C2724F' },
+      { rank:2, name:'Blue Owls', color:'#3E5C76', score:19, players:'2 players', win:false, rankColor:'#9a917d' }
+    ];
+    const standings = sd.map((s,i)=>({...s, style: stRow(i, s.win)}));
+    const standingsD = sd.map((s,i)=>({...s, style: stRowD(i, s.win)}));
+
+    return { teams, teamsD, turnWords, standings, standingsD };
+  }
+}
+</script>
+</body>
+</html>
