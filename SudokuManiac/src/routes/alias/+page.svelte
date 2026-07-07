@@ -1,3 +1,9 @@
+<!--
+  Alias — create room  ("Kraft Draft")  → NerdDen Alias.dc.html (create + AI words)
+  Topic + suggestions, language, difficulty, turn timer, words-in-hat, then
+  "Create & fill the hat" with a Hatter "filling the hat" overlay while the AI
+  word set is generated.
+-->
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import type { PageServerData } from './$types';
@@ -8,20 +14,18 @@
 	let language = $state('en');
 	let difficulty = $state('medium');
 	let turnDuration = $state(60);
-	let wordCount = $state(30);
+	let wordCount = $state(40);
 	let creating = $state(false);
 	let errorMsg = $state('');
 
-	const DIFFICULTIES = ['beginner', 'easy', 'medium', 'hard', 'expert', 'extreme'];
-	const LANGUAGES = [
-		{ value: 'en', label: 'English' },
-		{ value: 'ru', label: 'Russian' },
-		{ value: 'de', label: 'German' },
-		{ value: 'es', label: 'Spanish' }
-	];
+	const SUGGESTIONS = ['Movies & TV', 'Animals', 'Sports', 'Food'];
+	const LANGS = ['en', 'ru', 'de', 'es'];
+	const DIFFS = ['easy', 'medium', 'hard'];
+	const TIMERS = [30, 60, 90];
+	const WORDS = [20, 40, 60];
 
 	async function createRoom() {
-		if (!topic.trim()) return;
+		if (!topic.trim() || creating) return;
 		creating = true;
 		errorMsg = '';
 		try {
@@ -35,7 +39,6 @@
 			await goto(`/alias/${room.id}`);
 		} catch (e: unknown) {
 			errorMsg = e instanceof Error ? e.message : 'Failed to create room';
-		} finally {
 			creating = false;
 		}
 	}
@@ -45,96 +48,105 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Hat / Alias — NerdDen</title>
-</svelte:head>
+<svelte:head><title>Alias — NerdDen</title></svelte:head>
 
-<main class="max-w-3xl mx-auto px-4 py-8">
-	<h1 class="text-3xl font-bold mb-1">Hat / Alias</h1>
-	<p class="text-gray-500 mb-8">
-		A party word-guessing game. One player describes — the team guesses. Race against the clock!
-	</p>
+{#snippet chipCol(label: string, options: (string | number)[], value: string | number, set: (v: never) => void, accent: string, fmt: (v: string | number) => string)}
+	<div class="flex-1">
+		<div class="field-label mb-2.5">{label}</div>
+		<div class="flex flex-col gap-1.5">
+			{#each options as o (o)}
+				<button
+					onclick={() => set(o as never)}
+					class="kraft-radius-sm border-[1.5px] border-ink py-1.5 font-hand text-base font-bold {value === o ? 'text-surface-2 shadow-btn-sm' : 'bg-transparent text-ink'}"
+					style={value === o ? `background:${accent}` : ''}
+				>{fmt ? fmt(o) : o}</button>
+			{/each}
+		</div>
+	</div>
+{/snippet}
 
-	<!-- Create room -->
-	<alias-creator class="block bg-white rounded-2xl shadow p-6 mb-10">
-		<h2 class="text-xl font-semibold mb-4">Create a room</h2>
-		<form
-			class="flex flex-col gap-4"
-			onsubmit={(e) => { e.preventDefault(); createRoom(); }}
-		>
-			<label class="flex flex-col gap-1">
-				<span class="text-sm font-medium text-gray-600">Word topic</span>
-				<input
-					type="text"
-					bind:value={topic}
-					placeholder="e.g. Movies, Space, Animals, History…"
-					maxlength="80"
-					class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-				/>
-			</label>
+<alias-create class="mx-auto flex w-full max-w-2xl flex-col gap-6 px-1 py-4">
+	<div class="flex items-center gap-3">
+		<img src="/mascot-alias.png" alt="" class="size-9" />
+		<h1 class="m-0 text-3xl">New Alias room</h1>
+	</div>
 
-			<settings-row class="grid grid-cols-2 gap-4">
-				<label class="flex flex-col gap-1">
-					<span class="text-sm font-medium text-gray-600">Language</span>
-					<select bind:value={language} class="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-						{#each LANGUAGES as lang (lang.value)}
-							<option value={lang.value}>{lang.label}</option>
-						{/each}
-					</select>
-				</label>
-				<label class="flex flex-col gap-1">
-					<span class="text-sm font-medium text-gray-600">Difficulty</span>
-					<select bind:value={difficulty} class="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-						{#each DIFFICULTIES as d (d)}
-							<option value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
-						{/each}
-					</select>
-				</label>
-				<label class="flex flex-col gap-1">
-					<span class="text-sm font-medium text-gray-600">Turn duration (seconds)</span>
-					<input type="number" bind:value={turnDuration} min="20" max="180" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-				</label>
-				<label class="flex flex-col gap-1">
-					<span class="text-sm font-medium text-gray-600">Words in hat</span>
-					<input type="number" bind:value={wordCount} min="10" max="100" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-				</label>
-			</settings-row>
+	<!-- topic -->
+	<div>
+		<div class="field-label mb-2.5">Topic for the words</div>
+		<div class="card-kraft flex items-center gap-2.5 px-4 py-2.5" style="border-radius:13px 10px 12px 11px">
+			<span class="text-lg">🎩</span>
+			<input bind:value={topic} placeholder="Movies & TV" maxlength="80" onkeydown={(e) => e.key === 'Enter' && createRoom()} class="w-full bg-transparent font-hand text-2xl font-bold text-ink outline-none" />
+		</div>
+		<div class="mt-2.5 flex flex-wrap gap-2">
+			{#each SUGGESTIONS as s (s)}
+				<button onclick={() => (topic = s)} class="rounded-full border-[1.5px] border-ink bg-surface px-3 py-1 font-hand text-base font-bold text-ink">{s}</button>
+			{/each}
+		</div>
+	</div>
 
-			{#if errorMsg}
-				<p class="text-red-600 text-sm">{errorMsg}</p>
-			{/if}
+	<!-- language -->
+	<div>
+		<div class="field-label mb-2.5">Language</div>
+		<div class="flex gap-2">
+			{#each LANGS as l (l)}
+				<button onclick={() => (language = l)} class="kraft-radius-sm border-[1.5px] border-ink px-4 py-1.5 font-hand text-lg font-bold {language === l ? 'bg-forest text-surface-2 shadow-btn-sm' : 'bg-transparent text-ink'}">{l.toUpperCase()}</button>
+			{/each}
+		</div>
+	</div>
 
-			<button
-				type="submit"
-				disabled={creating || !topic.trim()}
-				class="self-start bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-			>
-				{creating ? 'Creating…' : 'Create Room'}
-			</button>
-		</form>
-	</alias-creator>
+	<!-- difficulty / timer / words -->
+	<div class="flex gap-4">
+		{@render chipCol('Difficulty', DIFFS, difficulty, (v) => (difficulty = v), 'var(--color-terracotta)', (v) => String(v).charAt(0).toUpperCase() + String(v).slice(1))}
+		{@render chipCol('Turn timer', TIMERS, turnDuration, (v) => (turnDuration = v), 'var(--color-navy)', (v) => `${v}s`)}
+		{@render chipCol('Words', WORDS, wordCount, (v) => (wordCount = v), 'var(--color-mustard)', (v) => String(v))}
+	</div>
 
-	<!-- Open rooms -->
+	{#if errorMsg}<p class="m-0 text-sm text-terracotta-ink">{errorMsg}</p>{/if}
+
+	<button onclick={createRoom} disabled={!topic.trim()} class="btn-primary kraft-radius w-full py-3 text-2xl disabled:opacity-50">Create &amp; fill the hat</button>
+
+	<!-- open rooms -->
 	{#if data.openRooms.length > 0}
-		<section>
-			<h2 class="text-xl font-semibold mb-4">Open rooms</h2>
-			<rooms-list class="flex flex-col gap-3">
+		<div class="mt-2">
+			<div class="field-label mb-3">Open rooms</div>
+			<div class="flex flex-col gap-3">
 				{#each data.openRooms as room (room.id)}
-					<a
-						href="/alias/{room.id}"
-						class="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 hover:shadow-md transition-shadow"
-					>
-						<room-info>
-							<p class="font-semibold">{room.topic}</p>
-							<p class="text-sm text-gray-500 capitalize">{room.difficulty} · {room.language} · {room.turnDuration}s turns</p>
-						</room-info>
-						<room-meta class="text-right">
-							<p class="text-xs font-mono bg-gray-100 px-2 py-1 rounded">{room.code}</p>
-							<p class="text-xs text-gray-400 mt-1">{totalPlayers(room)} players</p>
-						</room-meta>
+					<a href="/alias/{room.id}" class="card-kraft kraft-radius-sm flex items-center justify-between px-4 py-3 no-underline">
+						<div>
+							<p class="m-0 font-semibold text-ink">{room.topic}</p>
+							<p class="m-0 text-sm text-muted capitalize">{room.difficulty} · {room.language} · {room.turnDuration}s</p>
+						</div>
+						<div class="text-right">
+							<p class="m-0 font-hand text-lg font-bold text-navy">{room.code}</p>
+							<p class="m-0 text-xs text-muted">{totalPlayers(room)} players</p>
+						</div>
 					</a>
 				{/each}
-			</rooms-list>
-		</section>
+			</div>
+		</div>
 	{/if}
-</main>
+</alias-create>
+
+<!-- filling the hat overlay -->
+{#if creating}
+	<div class="fixed inset-0 z-50 flex items-center justify-center bg-ink/45 p-4">
+		<div class="card-kraft kraft-radius flex w-full max-w-sm flex-col items-center gap-4 p-8 text-center shadow-float">
+			<div class="relative flex h-32 w-48 items-end justify-center">
+				<img src="/mascot-alias.png" alt="" class="absolute bottom-0 left-2 size-24 animate-bounce" />
+				<div class="absolute right-4 bottom-0 h-16 w-24">
+					<div class="absolute bottom-0 left-0 h-4 w-24 rounded-full bg-ink"></div>
+					<div class="absolute bottom-2 left-4 h-14 w-16 rounded-t-[10px] bg-ink"></div>
+					<div class="absolute bottom-7 left-4 h-3 w-16 bg-terracotta"></div>
+				</div>
+			</div>
+			<div class="font-display text-2xl font-bold text-ink">The Hatter picks words</div>
+			<div class="text-sm text-ink-soft">{topic} · <span class="capitalize">{difficulty}</span> · {language.toUpperCase()} · {wordCount} words</div>
+			<div class="flex gap-2">
+				<span class="size-2.5 animate-pulse rounded-full bg-terracotta"></span>
+				<span class="size-2.5 animate-pulse rounded-full bg-terracotta" style="animation-delay:.2s"></span>
+				<span class="size-2.5 animate-pulse rounded-full bg-terracotta" style="animation-delay:.4s"></span>
+			</div>
+		</div>
+	</div>
+{/if}
