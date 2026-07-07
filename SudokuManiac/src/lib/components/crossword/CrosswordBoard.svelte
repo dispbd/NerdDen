@@ -34,6 +34,7 @@
 	let ro: ResizeObserver | null = null;
 
 	onMount(async () => {
+		try { await document.fonts.load('700 40px Caveat'); } catch { /* fallback ok */ }
 		board = new CrosswordBoard();
 		await board.init(canvas);
 		board.setLayout(grid, clues, width, height);

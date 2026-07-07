@@ -27,38 +27,25 @@
 	}
 </script>
 
-<clue-panel class="grid grid-cols-2 gap-4 text-sm overflow-y-auto max-h-[60vh]">
-	<clue-section>
-		<h3 class="font-bold text-base mb-2 text-gray-700">Across</h3>
-		<clue-list class="flex flex-col gap-1">
-			{#each across as clue (clue.number + clue.direction)}
-				<button
-					type="button"
-					class="text-left px-2 py-1 rounded transition-colors {isActive(clue)
-						? 'bg-blue-200 font-semibold'
-						: 'hover:bg-gray-100'}"
-					onclick={() => onselect?.(clue)}
-				>
-					<span class="font-bold mr-1">{clue.number}.</span>{clue.clue}
-				</button>
-			{/each}
-		</clue-list>
-	</clue-section>
-
-	<clue-section>
-		<h3 class="font-bold text-base mb-2 text-gray-700">Down</h3>
-		<clue-list class="flex flex-col gap-1">
-			{#each down as clue (clue.number + clue.direction)}
-				<button
-					type="button"
-					class="text-left px-2 py-1 rounded transition-colors {isActive(clue)
-						? 'bg-blue-200 font-semibold'
-						: 'hover:bg-gray-100'}"
-					onclick={() => onselect?.(clue)}
-				>
-					<span class="font-bold mr-1">{clue.number}.</span>{clue.clue}
-				</button>
-			{/each}
-		</clue-list>
-	</clue-section>
+<clue-panel class="grid max-h-[60vh] grid-cols-2 gap-4 overflow-y-auto text-sm">
+	{#snippet section(title: string, list: CrosswordClue[])}
+		<clue-section>
+			<h3 class="mb-2.5 border-b-[1.5px] border-dashed border-dash pb-1.5 text-[13px] font-bold text-ink">{title}</h3>
+			<clue-list class="flex flex-col gap-0.5">
+				{#each list as clue (clue.number + clue.direction)}
+					<button
+						type="button"
+						class="flex items-center gap-1.5 rounded-[8px] px-2 py-1 text-left transition-colors {isActive(clue)
+							? 'bg-cell-selected-bg font-semibold text-ink'
+							: 'text-ink-soft hover:bg-surface-2'}"
+						onclick={() => onselect?.(clue)}
+					>
+						<span class="font-bold text-ink">{clue.number}</span><span>{clue.clue}</span>
+					</button>
+				{/each}
+			</clue-list>
+		</clue-section>
+	{/snippet}
+	{@render section('Across', across)}
+	{@render section('Down', down)}
 </clue-panel>
