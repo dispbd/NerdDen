@@ -130,188 +130,146 @@
 </svelte:head>
 
 {#if errorMsg}
-	<error-toast class="fixed top-4 right-4 z-50 bg-red-100 border border-red-300 rounded-lg px-4 py-3 text-red-700 shadow-lg">
-		{errorMsg}
-	</error-toast>
+	<div class="card-kraft kraft-radius-sm fixed top-4 right-4 z-50 px-4 py-3 text-terracotta-ink shadow-float">{errorMsg}</div>
 {/if}
+
+{#snippet ring(size: number, stroke: number, color: string, track: string, ratio: number, label: string)}
+	{@const r = size / 2 - stroke - 2}
+	{@const circ = 2 * Math.PI * r}
+	<div class="relative" style="width:{size}px;height:{size}px">
+		<svg width={size} height={size} viewBox="0 0 {size} {size}">
+			<circle cx={size / 2} cy={size / 2} {r} fill="none" stroke={track} stroke-width={stroke} />
+			<circle cx={size / 2} cy={size / 2} {r} fill="none" stroke={color} stroke-width={stroke} stroke-linecap="round" stroke-dasharray={circ} stroke-dashoffset={circ * (1 - Math.max(0, Math.min(1, ratio)))} transform="rotate(-90 {size / 2} {size / 2})" />
+		</svg>
+		<div class="absolute inset-0 flex items-center justify-center font-hand font-bold" style="font-size:{size * 0.4}px;color:inherit">{label}</div>
+	</div>
+{/snippet}
 
 <!-- ═══════════════════════════════════════════════════════ LOBBY -->
 {#if view === 'lobby'}
-<main class="max-w-3xl mx-auto px-4 py-8">
-	<lobby-header class="flex items-center justify-between mb-6">
+<main class="mx-auto flex w-full max-w-3xl flex-col gap-5 px-1 py-4">
+	<div class="flex items-center gap-3">
+		<img src="/mascot-alias.png" alt="" class="size-8" />
+		<h1 class="m-0 text-2xl">Room lobby</h1>
+	</div>
+
+	<!-- room code -->
+	<div class="flex items-center justify-between rounded-[16px] bg-ink p-4">
 		<div>
-			<h1 class="text-2xl font-bold">{room.topic}</h1>
-			<p class="text-sm text-gray-500 capitalize">{room.difficulty} · {room.language} · {room.turnDuration}s turns · {room.wordCount} words</p>
+			<div class="text-[10px] font-semibold tracking-[.14em] text-[#b3a890] uppercase">Room code</div>
+			<div class="font-hand text-3xl leading-none font-bold tracking-[3px] text-surface-2">{room.code}</div>
 		</div>
-		<invite-code class="text-center">
-			<p class="text-xs text-gray-400 mb-1">Room code</p>
-			<p class="text-2xl font-mono font-bold tracking-widest text-indigo-700">{room.code}</p>
-		</invite-code>
-	</lobby-header>
+		<button onclick={() => navigator.clipboard?.writeText(room.code)} class="kraft-radius-sm border-[1.5px] border-[#1c1813] bg-surface-2 px-3.5 py-1.5 font-hand text-base font-bold text-ink">Copy</button>
+	</div>
 
-	<!-- Teams -->
-	<teams-grid class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+	<!-- teams -->
+	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 		{#each room.teams as team (team.id)}
-			<team-card class="block bg-white rounded-xl border-2 p-4" style="border-color: {team.color}">
-				<team-header class="flex items-center justify-between mb-3">
-					<h3 class="font-bold text-lg">{team.name}</h3>
-					<score-badge class="bg-gray-100 px-2 py-1 rounded font-mono text-sm">{team.score}</score-badge>
-				</team-header>
-
-				<members-list class="flex flex-col gap-1 mb-3">
+			<div class="card-kraft kraft-radius p-4">
+				<div class="mb-3 flex items-center gap-2.5">
+					<span class="size-4 rounded-[5px] border-[1.5px] border-ink" style="background:{team.color}"></span>
+					<span class="font-display text-lg font-bold text-ink">{team.name}</span>
+					<span class="ml-auto text-xs font-medium text-muted">{team.members.length} players</span>
+				</div>
+				<div class="flex flex-wrap gap-2">
 					{#each team.members as member (member.id)}
-						<member-row class="flex items-center gap-2 text-sm">
-							<member-dot class="w-2 h-2 rounded-full inline-block" style="background: {team.color}"></member-dot>
-							{member.userName}
-							{#if member.userId === room.hostId}
-								<span class="text-xs text-gray-400">(host)</span>
-							{/if}
-						</member-row>
+						<span class="rounded-full border-[1.5px] border-ink bg-surface-2 px-3 py-1 font-hand text-base font-bold text-ink">{member.userName}{member.userId === room.hostId ? ' ★' : ''}</span>
 					{/each}
-					{#if team.members.length === 0}
-						<p class="text-sm text-gray-400 italic">No players yet</p>
+					{#if myTeam?.id !== team.id}
+						<button onclick={() => conn.joinTeam(team.id)} class="rounded-full border-[1.5px] border-dashed px-3.5 py-1 font-hand text-base font-bold" style="color:{team.color};border-color:{team.color}">+ Join</button>
 					{/if}
-				</members-list>
-
-				{#if myTeam?.id !== team.id}
-					<button
-						onclick={() => conn.joinTeam(team.id)}
-						class="w-full py-1.5 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
-						style="background: {team.color}"
-					>
-						Join {team.name}
-					</button>
-				{:else}
-					<p class="text-center text-xs text-gray-400 py-1">You are here</p>
-				{/if}
-			</team-card>
+				</div>
+			</div>
 		{/each}
-	</teams-grid>
+	</div>
+
+	<!-- settings summary -->
+	<div class="flex flex-wrap gap-2">
+		{#each [`🎬 ${room.topic}`, room.difficulty, `⏱ ${room.turnDuration}s`, `🎩 ${room.wordCount} words`] as chip (chip)}
+			<span class="rounded-full border border-[#cdbfa6] bg-paper px-3 py-1.5 text-[11px] font-semibold text-ink-soft capitalize">{chip}</span>
+		{/each}
+	</div>
 
 	{#if isHost}
-		<button
-			onclick={() => conn.startGame()}
-			disabled={!canStart}
-			class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-indigo-700 disabled:opacity-40 transition-colors"
-		>
-			{canStart ? 'Start Game' : 'Waiting for players (min 2 teams)'}
+		<button onclick={() => conn.startGame()} disabled={!canStart} class="btn-primary kraft-radius w-full py-3 text-2xl disabled:opacity-50">
+			{canStart ? 'Start game' : 'Waiting for players (min 2 teams)'}
 		</button>
 	{:else}
-		<p class="text-center text-gray-500">Waiting for the host to start…</p>
+		<p class="m-0 text-center text-muted">Waiting for the host to start…</p>
 	{/if}
 </main>
 
 <!-- ═══════════════════════════════════════════════════════ GAME -->
 {:else if view === 'game'}
-<main class="max-w-2xl mx-auto px-4 py-8">
-	<!-- Status bar -->
-	<game-status class="flex items-center justify-between mb-6">
-		<team-indicator>
-			<p class="text-sm text-gray-500">Current team</p>
-			<p class="font-bold text-lg" style="color: {currentTeam?.color ?? '#374151'}">{currentTeam?.name ?? '—'}</p>
-		</team-indicator>
-
-		<timer-display class="font-mono text-4xl font-bold tabular-nums {turnTimeLeft <= 10 ? 'text-red-600' : 'text-gray-800'}">
-			{timerLabel}
-		</timer-display>
-
-		<words-left>
-			<p class="text-sm text-gray-500 text-right">Words left</p>
-			<p class="font-bold text-lg text-right">{wordsRemaining}</p>
-		</words-left>
-	</game-status>
-
-	<!-- Scores -->
-	<scores-row class="flex gap-3 mb-6 justify-center flex-wrap">
-		{#each room.teams as team (team.id)}
-			<score-chip
-				class="px-4 py-2 rounded-full font-semibold text-white text-sm"
-				style="background: {team.color}"
-			>
-				{team.name}: {team.score}
-			</score-chip>
-		{/each}
-	</scores-row>
-
 	{#if isSpeaker}
-		<!-- Speaker view -->
-		<speaker-panel class="block text-center">
-			<p class="text-sm text-gray-500 mb-2">Describe this word — don't say it!</p>
+		<!-- Speaker — dark screen -->
+		<main class="flex min-h-screen flex-col bg-ink px-6 py-6 text-surface-2">
+			<div class="flex items-center justify-between">
+				<div class="flex items-center gap-2">
+					<span class="size-3.5 rounded-[5px] border-[1.5px] border-surface-2" style="background:{currentTeam?.color ?? '#c2724f'}"></span>
+					<span class="text-sm font-semibold">{currentTeam?.name ?? '—'}</span>
+				</div>
+				{@render ring(58, 5, '#c29a45', '#4a4236', turnDuration ? turnTimeLeft / turnDuration : 0, String(turnTimeLeft))}
+				<div class="text-right">
+					<div class="text-[10px] font-semibold tracking-[.1em] text-[#8a7f6b] uppercase">Left</div>
+					<div class="font-hand text-2xl leading-none font-bold text-[#5f9670]">{wordsRemaining}</div>
+				</div>
+			</div>
 
-			{#if currentWord}
-				<word-display class="block bg-indigo-50 border-2 border-indigo-300 rounded-2xl py-10 px-6 mb-6">
-					<p class="text-4xl font-extrabold text-indigo-800">{currentWord}</p>
-				</word-display>
+			<div class="flex flex-1 items-center justify-center py-6">
+				{#if currentWord}
+					<div class="flex w-full max-w-xs flex-col items-center justify-center rounded-[24px] border-[1.5px] border-[#1c1813] bg-surface-2 px-6 py-10 text-center shadow-[-6px_8px_0_rgba(0,0,0,.25)]">
+						<div class="mb-3.5 text-[11px] font-semibold tracking-[.16em] text-muted-2 uppercase">Explain this</div>
+						<div class="font-display text-4xl leading-none font-bold text-ink">{currentWord}</div>
+						<div class="mt-3 font-hand text-lg font-bold text-muted">no rhymes · no parts of the word</div>
+					</div>
+				{:else}
+					<p class="text-lg text-[#8a7f6b]">Waiting for the next word…</p>
+				{/if}
+			</div>
 
-				<button-row class="flex gap-4 justify-center">
-					<button
-						onclick={() => conn.wordResult('got_it')}
-						class="flex-1 max-w-xs bg-green-500 text-white py-4 rounded-xl font-bold text-xl hover:bg-green-600 transition-colors"
-					>
-						✓ Got it!
-					</button>
-					<button
-						onclick={() => conn.wordResult('skip')}
-						class="flex-1 max-w-xs bg-gray-300 text-gray-800 py-4 rounded-xl font-bold text-xl hover:bg-gray-400 transition-colors"
-					>
-						↩ Skip
-					</button>
-				</button-row>
-			{:else}
-				<p class="text-gray-500 text-lg">Waiting for the next word…</p>
-			{/if}
-		</speaker-panel>
+			<div class="flex gap-3.5">
+				<button onclick={() => conn.wordResult('skip')} class="kraft-radius flex-1 border-[1.5px] border-[#1c1813] bg-[#b5462e] py-3 font-hand text-2xl font-bold text-surface-2 shadow-[2px_3px_0_rgba(0,0,0,.45)]">✕ Skip</button>
+				<button onclick={() => conn.wordResult('got_it')} class="kraft-radius flex-[1.3] border-[1.5px] border-[#1c1813] bg-forest py-3 font-hand text-2xl font-bold text-surface-2 shadow-[2px_3px_0_rgba(0,0,0,.45)]">✓ Got it</button>
+			</div>
+			<div class="mt-3.5 text-center text-[11px] text-[#8a7f6b]">{wordsRemaining} words left in the hat</div>
+		</main>
 	{:else}
-		<!-- Guesser view -->
-		<guesser-panel class="block text-center py-10">
-			<p class="text-2xl font-bold text-gray-700 mb-2">{speakerName} is describing…</p>
-			<p class="text-gray-400 text-lg">Listen and shout your guess!</p>
-		</guesser-panel>
+		<!-- Guessers -->
+		<main class="mx-auto flex w-full max-w-sm flex-col items-center gap-4 px-4 py-8 text-center">
+			<div class="flex items-center gap-2">
+				<span class="size-3 rounded-[5px] border-[1.5px] border-ink" style="background:{currentTeam?.color ?? '#c2724f'}"></span>
+				<span class="font-display text-lg font-bold text-ink">{currentTeam?.name ?? '—'} — guess!</span>
+			</div>
+			<div class="flex size-28 items-center justify-center rounded-full border-[1.5px] border-ink bg-surface-2"><img src="/sudoku-maniac.webp" alt="" class="size-16" style="image-rendering:pixelated" /></div>
+			<div class="font-display text-2xl leading-tight font-bold text-ink">{speakerName || 'Speaker'} is explaining</div>
+			<div class="text-sm text-ink-soft">Shout your guesses out loud!</div>
+			<div class="text-ink">{@render ring(150, 9, '#c2724f', '#ddd3bf', turnDuration ? turnTimeLeft / turnDuration : 0, timerLabel)}</div>
+			<div class="flex w-full gap-3">
+				<div class="flex-1 rounded-[13px] border-[1.5px] border-ink bg-surface py-3"><div class="font-hand text-3xl leading-none font-bold text-forest">{(currentTeam?.score ?? 0)}</div><div class="mt-1 text-[11px] text-muted">team score</div></div>
+				<div class="flex-1 rounded-[13px] border-[1.5px] border-ink bg-surface py-3"><div class="font-hand text-3xl leading-none font-bold text-ink">{wordsRemaining}</div><div class="mt-1 text-[11px] text-muted">words left</div></div>
+			</div>
+		</main>
 	{/if}
-
-	<!-- Last turn results -->
-	{#if lastTurnResults}
-		<turn-summary class="block mt-8 bg-gray-50 rounded-xl p-4 text-sm">
-			<p class="font-semibold mb-1">Last turn: {lastTurnResults.wordsGuessed} words guessed</p>
-			<scores-summary class="flex gap-4 flex-wrap">
-				{#each lastTurnResults.scores as s (s.teamId)}
-					{@const team = room.teams.find((t) => t.id === s.teamId)}
-					<span>{team?.name ?? '?'}: {s.score}</span>
-				{/each}
-			</scores-summary>
-		</turn-summary>
-	{/if}
-</main>
 
 <!-- ═══════════════════════════════════════════════════════ RESULTS -->
 {:else}
-<main class="max-w-lg mx-auto px-4 py-12 text-center">
-	<h1 class="text-4xl font-extrabold mb-2">🎉 Game Over!</h1>
-	<p class="text-xl text-indigo-600 font-bold mb-8">{winner} wins!</p>
-
-	<standings-table class="block bg-white rounded-2xl shadow overflow-hidden mb-8">
-		<table class="w-full">
-			<thead>
-				<tr class="bg-gray-50 text-left text-sm text-gray-500">
-					<th class="px-4 py-3">#</th>
-					<th class="px-4 py-3">Team</th>
-					<th class="px-4 py-3 text-right">Score</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each standings as team, i (team.teamId)}
-					<tr class="border-t border-gray-100 {i === 0 ? 'bg-indigo-50 font-bold' : ''}">
-						<td class="px-4 py-3">{i + 1}</td>
-						<td class="px-4 py-3">{team.name}</td>
-						<td class="px-4 py-3 text-right">{team.score}</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</standings-table>
-
-	<a href="/alias" class="inline-block bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors">
-		Play Again
-	</a>
+<main class="mx-auto flex w-full max-w-md flex-col items-center gap-4 px-4 py-10 text-center">
+	<div class="text-3xl">🏆</div>
+	<div class="flex size-28 items-center justify-center rounded-[26px] border-[1.5px] border-ink bg-surface-2"><img src="/mascot-alias.png" alt="" class="size-24" /></div>
+	<div class="font-display text-3xl font-bold text-ink">{winner} win!</div>
+	<div class="flex w-full flex-col gap-2.5">
+		{#each standings as team, i (team.teamId)}
+			<div class="flex items-center gap-3 rounded-[12px] border-[1.5px] px-4 py-3 {i === 0 ? 'border-terracotta bg-[rgba(194,114,79,.16)]' : 'border-ink bg-surface'}">
+				<span class="w-6 text-center font-hand text-2xl leading-none font-bold" style="color:{i === 0 ? 'var(--color-terracotta)' : 'var(--color-muted)'}">{i + 1}</span>
+				<span class="flex-1 text-left font-display text-lg font-bold text-ink">{team.name}</span>
+				<span class="font-hand text-2xl leading-none font-bold text-ink">{team.score}</span>
+			</div>
+		{/each}
+	</div>
+	<div class="flex w-full gap-2.5">
+		<a href="/alias" class="btn-primary kraft-radius flex-1 py-2.5 text-center text-xl no-underline">Rematch</a>
+		<a href="/alias" class="btn-secondary kraft-radius flex-1 py-2.5 text-center text-xl no-underline">New room</a>
+	</div>
 </main>
 {/if}
