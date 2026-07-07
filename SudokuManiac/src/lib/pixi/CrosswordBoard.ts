@@ -65,7 +65,7 @@ export class CrosswordBoard {
 			canvas,
 			width: canvas.clientWidth || 600,
 			height: canvas.clientHeight || 600,
-			backgroundColor: 0xf5f5f5,
+			backgroundColor: 0xece3d2,
 			antialias: true,
 			autoDensity: true,
 			resolution: window.devicePixelRatio ?? 1
@@ -161,9 +161,9 @@ export class CrosswordBoard {
 
 				const bg = new Graphics();
 				if (isBlack) {
-					bg.rect(x, y, cs, cs).fill(0x1a1a1a);
+					bg.rect(x, y, cs, cs).fill(0x322c24);
 				} else {
-					bg.rect(x, y, cs, cs).fill(0xffffff).stroke({ color: 0x888888, width: 1 });
+					bg.rect(x, y, cs, cs).fill(0xfbf8f1).stroke({ color: 0x322c24, width: 1 });
 
 					bg.interactive = true;
 					bg.cursor = 'pointer';
@@ -184,8 +184,8 @@ export class CrosswordBoard {
 							text: String(num),
 							style: new TextStyle({
 								fontSize: Math.max(8, Math.floor(cs * 0.25)),
-								fill: 0x333333,
-								fontFamily: 'sans-serif'
+								fill: 0x6b6151,
+								fontFamily: 'Hanken Grotesk, sans-serif'
 							})
 						});
 						t.x = x + 2;
@@ -201,8 +201,8 @@ export class CrosswordBoard {
 						text: '',
 						style: new TextStyle({
 							fontSize: Math.max(12, Math.floor(cs * 0.55)),
-							fill: 0x111111,
-							fontFamily: 'monospace',
+							fill: 0x322c24,
+							fontFamily: 'Caveat, cursive',
 							fontWeight: 'bold'
 						})
 					});
@@ -242,10 +242,12 @@ export class CrosswordBoard {
 				const isSelected = r === this.selectedRow && c === this.selectedCol;
 				const isWord = this.activeWordCells.has(`${r},${c}`);
 
-				const fillColor = isSelected ? 0xffd700 : isWord ? 0xb3d9ff : 0xffffff;
+				const fillColor = isSelected ? 0xeccbb9 : isWord ? 0xdce6ef : 0xfbf8f1;
 
 				bg.clear();
-				bg.rect(x, y, cs, cs).fill(fillColor).stroke({ color: 0x888888, width: 1 });
+				bg.rect(x, y, cs, cs)
+						.fill(fillColor)
+						.stroke({ color: isSelected ? 0x3e5c76 : 0x322c24, width: isSelected ? 2.5 : 1 });
 			}
 		}
 	}
