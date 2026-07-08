@@ -9,13 +9,14 @@
  *   OPENAI_API_KEY | GOOGLE_GENERATIVE_AI_API_KEY | ANTHROPIC_API_KEY |
  *   GROQ_API_KEY   | MISTRAL_API_KEY
  *
- * Only `@ai-sdk/openai` ships in package.json. To use another provider, install it:
- *   pnpm add @ai-sdk/google      # Gemini (has a free tier)
- *   pnpm add @ai-sdk/groq        # Groq   (free tier, fast)
- *   pnpm add @ai-sdk/anthropic   # Claude (paid)
- *   pnpm add @ai-sdk/mistral     # Mistral (free tier)
- * The dynamic imports below are marked @vite-ignore so an uninstalled provider only
- * errors if it is actually selected — the build never breaks.
+ * Bundled providers: openai, google (Gemini — free tier), groq (free tier, fast),
+ * mistral (free tier). `anthropic` (paid) is optional — install `@ai-sdk/anthropic`
+ * to enable it; its import is @vite-ignore'd so the build never breaks without it.
+ *
+ * Free-tier keys:
+ *   Gemini  → https://aistudio.google.com/apikey        (GOOGLE_GENERATIVE_AI_API_KEY)
+ *   Groq    → https://console.groq.com/keys             (GROQ_API_KEY)
+ *   Mistral → https://console.mistral.ai/api-keys       (MISTRAL_API_KEY)
  */
 import { env } from '$env/dynamic/private';
 import type { LanguageModel } from 'ai';
@@ -60,23 +61,21 @@ export async function aiModel(): Promise<LanguageModel> {
 			return createOpenAI({ apiKey })(model);
 		}
 		case 'google': {
-			// @ts-ignore optional dependency — install @ai-sdk/google to use
-			const { createGoogleGenerativeAI } = await import(/* @vite-ignore */ '@ai-sdk/google');
+			const { createGoogleGenerativeAI } = await import('@ai-sdk/google');
 			return createGoogleGenerativeAI({ apiKey })(model);
 		}
 		case 'anthropic': {
-			// @ts-ignore optional dependency — install @ai-sdk/anthropic to use
+			// Optional (paid) — install @ai-sdk/anthropic to enable; kept out of the bundle.
+			// @ts-ignore optional dependency
 			const { createAnthropic } = await import(/* @vite-ignore */ '@ai-sdk/anthropic');
 			return createAnthropic({ apiKey })(model);
 		}
 		case 'groq': {
-			// @ts-ignore optional dependency — install @ai-sdk/groq to use
-			const { createGroq } = await import(/* @vite-ignore */ '@ai-sdk/groq');
+			const { createGroq } = await import('@ai-sdk/groq');
 			return createGroq({ apiKey })(model);
 		}
 		case 'mistral': {
-			// @ts-ignore optional dependency — install @ai-sdk/mistral to use
-			const { createMistral } = await import(/* @vite-ignore */ '@ai-sdk/mistral');
+			const { createMistral } = await import('@ai-sdk/mistral');
 			return createMistral({ apiKey })(model);
 		}
 	}
