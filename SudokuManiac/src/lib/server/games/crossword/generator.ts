@@ -100,7 +100,13 @@ export async function generateCrossword(
 	let entries: WordEntry[];
 
 	if (hasAiKey()) {
-		entries = await fetchWordList(topic, language, difficulty);
+		try {
+			entries = await fetchWordList(topic, language, difficulty);
+		} catch (e) {
+			// Quota / rate-limit / provider errors → degrade to the offline set instead of a 500.
+			console.error('[crossword] AI word generation failed, using offline fallback:', e);
+			entries = FALLBACK_ENTRIES;
+		}
 	} else {
 		// Offline fallback — generic English words so the feature works without an API key
 		entries = FALLBACK_ENTRIES;

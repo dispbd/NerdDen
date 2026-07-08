@@ -51,11 +51,14 @@ Words should be fun, varied, and guessable.
 Do NOT include: proper names of specific people, very offensive content, or words that are impossible to describe.
 Return JSON: { words: ["word1", "word2", ...] }`;
 
-	const { object } = await generateObject({
-		model: await aiModel(),
-		schema: WordsSchema,
-		prompt
-	});
+	let object: { words: string[] };
+	try {
+		({ object } = await generateObject({ model: await aiModel(), schema: WordsSchema, prompt }));
+	} catch (e) {
+		// Quota / rate-limit / provider errors → fall back to the offline word list.
+		console.error('[alias] AI word generation failed, using offline fallback:', e);
+		return getOfflineFallback(count);
+	}
 
 	// Deduplicate and trim
 	const seen = new Set<string>();
