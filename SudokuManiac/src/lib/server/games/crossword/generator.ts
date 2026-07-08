@@ -4,10 +4,9 @@
  * then runs them through the grid builder.
  */
 
-import { createOpenAI } from '@ai-sdk/openai';
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import { env } from '$env/dynamic/private';
+import { aiModel, hasAiKey } from '$lib/server/ai/provider';
 import { buildCrossword } from '$lib/server/games/crossword/builder';
 import type { WordEntry } from '$lib/games/crossword/types';
 import type { BuildResult } from '$lib/server/games/crossword/builder';
@@ -48,22 +47,24 @@ async function fetchWordList(
 	language: string,
 	difficulty: string
 ): Promise<WordEntry[]> {
-	const openai = createOpenAI({ apiKey: env.OPENAI_API_KEY });
 	const clueStyle = DIFFICULTY_CLUE_STYLE[difficulty] ?? DIFFICULTY_CLUE_STYLE.medium;
 
-	const langLabel =
-		{ en: 'English', ru: 'Russian (transliterated to Latin)', de: 'German', es: 'Spanish' }[
-			language
-		] ?? 'English';
+	const langName =
+		{ en: 'English', ru: 'Russian', de: 'German', es: 'Spanish' }[language] ?? 'English';
+	// The grid only supports A–Z, so non-Latin languages are transliterated.
+	const translitNote =
+		language !== 'en'
+			? ` Transliterate each ${langName} word into Latin A–Z letters (e.g. Russian "КОСМОС" → "KOSMOS"). Keep the clues in ${langName}, written in the native script.`
+			: '';
 
 	const prompt = `You are a crossword puzzle constructor.
-Generate 15 unique words (3–15 letters, only A-Z, no spaces or hyphens) related to the topic "${topic}", in ${langLabel}.
-For each word write ${clueStyle}.
+Generate 15 unique ${langName} words (3–15 letters, only A-Z, no spaces or hyphens) related to the topic "${topic}".${translitNote}
+Write every clue in ${langName}. Clue style: ${clueStyle}.
 Avoid proper nouns unless they are extremely well-known.
 Return valid JSON matching this schema: { words: [{word, clue}] }.`;
 
 	const { object } = await generateObject({
-		model: openai('gpt-4o-mini'),
+		model: await aiModel(),
 		schema: WordListSchema,
 		prompt
 	});
@@ -98,7 +99,7 @@ export async function generateCrossword(
 ): Promise<GeneratedCrossword> {
 	let entries: WordEntry[];
 
-	if (env.OPENAI_API_KEY) {
+	if (hasAiKey()) {
 		entries = await fetchWordList(topic, language, difficulty);
 	} else {
 		// Offline fallback — generic English words so the feature works without an API key
