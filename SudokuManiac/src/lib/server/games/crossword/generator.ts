@@ -4,30 +4,11 @@
  * then runs them through the grid builder.
  */
 
-import { generateObject } from 'ai';
-import { z } from 'zod';
-import { aiModel, hasAiKey } from '$lib/server/ai/provider';
+import { generateText } from 'ai';
+import { aiModel, hasAiKey, parseJsonFromText } from '$lib/server/ai/provider';
 import { buildCrossword } from '$lib/server/games/crossword/builder';
 import type { WordEntry } from '$lib/games/crossword/types';
 import type { BuildResult } from '$lib/server/games/crossword/builder';
-
-const WordListSchema = z.object({
-	words: z
-		.array(
-			z.object({
-				word: z
-					.string()
-					.min(3)
-					.max(15)
-					.regex(/^[A-Za-z]+$/, 'Only letters'),
-				clue: z.string().min(5).max(120)
-			})
-		)
-		.min(8)
-		.max(20)
-});
-
-type WordList = z.infer<typeof WordListSchema>;
 
 const DIFFICULTY_CLUE_STYLE: Record<string, string> = {
 	beginner: 'simple, straightforward clues suitable for beginners',
@@ -61,24 +42,21 @@ async function fetchWordList(
 Generate 15 unique ${langName} words (3–15 letters, only A-Z, no spaces or hyphens) related to the topic "${topic}".${translitNote}
 Write every clue in ${langName}. Clue style: ${clueStyle}.
 Avoid proper nouns unless they are extremely well-known.
-Return valid JSON matching this schema: { words: [{word, clue}] }.`;
+Return ONLY a JSON object, no markdown, in exactly this shape: { "words": [{ "word": "...", "clue": "..." }] }`;
 
-	const { object } = await generateObject({
-		model: await aiModel(),
-		schema: WordListSchema,
-		prompt
-	});
+	const { text } = await generateText({ model: await aiModel(), prompt });
+	const data = parseJsonFromText(text) as { words?: { word?: string; clue?: string }[] };
+	const raw = Array.isArray(data.words) ? data.words : [];
 
-	// Deduplicate and filter
+	// Deduplicate and filter to valid crossword entries
 	const seen = new Set<string>();
-	return (object as WordList).words
+	return raw
+		.map((e) => ({ word: String(e.word ?? '').toUpperCase(), clue: String(e.clue ?? '') }))
 		.filter((e) => {
-			const w = e.word.toUpperCase();
-			if (!/^[A-Z]{3,15}$/.test(w) || seen.has(w)) return false;
-			seen.add(w);
+			if (!/^[A-Z]{3,15}$/.test(e.word) || !e.clue || seen.has(e.word)) return false;
+			seen.add(e.word);
 			return true;
-		})
-		.map((e) => ({ word: e.word.toUpperCase(), clue: e.clue }));
+		});
 }
 
 export interface GeneratedCrossword extends BuildResult {
