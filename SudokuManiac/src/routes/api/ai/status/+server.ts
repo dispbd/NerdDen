@@ -5,8 +5,13 @@
  */
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { aiProvider, hasAiKey } from '$lib/server/ai/provider';
+import { aiProvider, availableProviders, hasAnyAiKey } from '$lib/server/ai/provider';
 
 export const GET: RequestHandler = async () => {
-	return json({ provider: aiProvider(), keyConfigured: hasAiKey() });
+	return json({
+		provider: aiProvider(),
+		keyConfigured: hasAnyAiKey(),
+		// Providers tried in order (auto fail-over); primary first, then the rest with keys.
+		failoverChain: availableProviders()
+	});
 };

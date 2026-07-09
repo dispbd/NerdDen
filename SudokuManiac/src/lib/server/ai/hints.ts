@@ -4,7 +4,7 @@
  */
 
 import { generateText } from 'ai';
-import { aiModel } from './provider';
+import { runAi } from './provider';
 import type { Grid } from '$lib/server/games/sudoku/generator';
 
 function buildPrompt(puzzle: Grid, playerGrid: Grid): string {
@@ -28,11 +28,9 @@ Point out which row/column/box to focus on and why. Do NOT reveal more than one 
 }
 
 export async function getAiHint(puzzle: Grid, playerGrid: Grid): Promise<string> {
-	const { text } = await generateText({
-		model: await aiModel(),
-		prompt: buildPrompt(puzzle, playerGrid),
-		maxOutputTokens: 150
-	});
+	const { text } = await runAi((model) =>
+		generateText({ model, prompt: buildPrompt(puzzle, playerGrid), maxOutputTokens: 150 })
+	);
 
 	return text.trim();
 }

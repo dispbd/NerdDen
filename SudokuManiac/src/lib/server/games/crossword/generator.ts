@@ -5,7 +5,7 @@
  */
 
 import { generateText } from 'ai';
-import { aiModel, hasAiKey, parseJsonFromText } from '$lib/server/ai/provider';
+import { runAi, hasAnyAiKey, parseJsonFromText } from '$lib/server/ai/provider';
 import { buildCrossword } from '$lib/server/games/crossword/builder';
 import type { WordEntry } from '$lib/games/crossword/types';
 import type { BuildResult } from '$lib/server/games/crossword/builder';
@@ -44,7 +44,7 @@ Write every clue in ${langName}. Clue style: ${clueStyle}.
 Avoid proper nouns unless they are extremely well-known.
 Return ONLY a JSON object, no markdown, in exactly this shape: { "words": [{ "word": "...", "clue": "..." }] }`;
 
-	const { text } = await generateText({ model: await aiModel(), prompt });
+	const { text } = await runAi((model) => generateText({ model, prompt }));
 	const data = parseJsonFromText(text) as { words?: { word?: string; clue?: string }[] };
 	const raw = Array.isArray(data.words) ? data.words : [];
 
@@ -77,7 +77,7 @@ export async function generateCrossword(
 ): Promise<GeneratedCrossword> {
 	let entries: WordEntry[];
 
-	if (hasAiKey()) {
+	if (hasAnyAiKey()) {
 		try {
 			entries = await fetchWordList(topic, language, difficulty);
 		} catch (e) {

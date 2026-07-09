@@ -63,10 +63,10 @@ export function hasAiKey(): boolean {
 	return !!env[KEY_ENV[aiProvider()]];
 }
 
-/** Resolve the configured provider + model into an AI SDK LanguageModel. */
-export async function aiModel(): Promise<LanguageModel> {
-	const provider = aiProvider();
-	const model = env.AI_MODEL || DEFAULT_MODEL[provider];
+/** Build a LanguageModel for a specific provider. AI_MODEL only overrides the
+ *  primary provider (allowOverride) — fallbacks use their own default model. */
+async function modelFor(provider: AiProvider, allowOverride: boolean): Promise<LanguageModel> {
+	const model = (allowOverride && env.AI_MODEL) || DEFAULT_MODEL[provider];
 	const apiKey = env[KEY_ENV[provider]];
 
 	switch (provider) {
@@ -93,4 +93,44 @@ export async function aiModel(): Promise<LanguageModel> {
 			return createMistral({ apiKey })(model);
 		}
 	}
+}
+
+/** Resolve the primary configured provider + model into a LanguageModel. */
+export async function aiModel(): Promise<LanguageModel> {
+	return modelFor(aiProvider(), true);
+}
+
+/** Fail-over order: the configured provider first, then the rest (free-first). */
+const FREE_FIRST: AiProvider[] = ['groq', 'google', 'mistral', 'openai', 'anthropic'];
+
+/** Configured providers (those with an API key), primary first. */
+export function availableProviders(): AiProvider[] {
+	const primary = aiProvider();
+	return [primary, ...FREE_FIRST.filter((p) => p !== primary)].filter((p) => !!env[KEY_ENV[p]]);
+}
+
+/** True when at least one provider has a key configured. */
+export function hasAnyAiKey(): boolean {
+	return availableProviders().length > 0;
+}
+
+/**
+ * Run an AI call with automatic provider fail-over: try each configured provider
+ * in order until one succeeds (e.g. Gemini quota exhausted → Groq → Mistral).
+ * Throws the last error only if every provider fails.
+ */
+export async function runAi<T>(fn: (model: LanguageModel) => Promise<T>): Promise<T> {
+	const providers = availableProviders();
+	if (!providers.length) throw new Error('No AI provider API key configured');
+	const primary = aiProvider();
+	let lastErr: unknown;
+	for (const provider of providers) {
+		try {
+			return await fn(await modelFor(provider, provider === primary));
+		} catch (e) {
+			lastErr = e;
+			console.warn(`[ai] provider "${provider}" failed, trying next:`, (e as Error)?.message ?? e);
+		}
+	}
+	throw lastErr;
 }

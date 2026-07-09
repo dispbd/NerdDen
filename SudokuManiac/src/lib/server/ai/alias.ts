@@ -4,7 +4,7 @@
  */
 
 import { generateText } from 'ai';
-import { aiModel, hasAiKey, parseJsonFromText } from './provider';
+import { runAi, hasAnyAiKey, parseJsonFromText } from './provider';
 
 const DIFFICULTY_PROMPT: Record<string, string> = {
 	beginner: 'simple, common, everyday words that most people know',
@@ -32,7 +32,7 @@ export async function generateAliasWords(
 	difficulty = 'medium',
 	count = 30
 ): Promise<string[]> {
-	if (!hasAiKey()) {
+	if (!hasAnyAiKey()) {
 		return getOfflineFallback(count);
 	}
 
@@ -48,7 +48,7 @@ Return ONLY a JSON object, no markdown, in exactly this shape: { "words": ["word
 
 	let words: string[];
 	try {
-		const { text } = await generateText({ model: await aiModel(), prompt });
+		const { text } = await runAi((model) => generateText({ model, prompt }));
 		const data = parseJsonFromText(text) as { words?: unknown[] };
 		words = Array.isArray(data.words) ? data.words.map((w) => String(w)) : [];
 	} catch (e) {
