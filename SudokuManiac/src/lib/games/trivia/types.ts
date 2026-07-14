@@ -3,6 +3,9 @@
 /** Time budget per question, in seconds (drives the UI timer ring + scoring). */
 export const QUESTION_SECONDS = 20;
 
+/** Party mode: seconds the correct answer is shown before advancing (reveal window). */
+export const REVEAL_SECONDS = 5;
+
 /** A fully-specified question as produced by AI / stored in the DB. */
 export interface TriviaQuestion {
 	question: string;

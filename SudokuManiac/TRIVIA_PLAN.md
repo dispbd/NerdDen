@@ -153,10 +153,24 @@ messages (en/ru/de/es) compiled via the inlang CLI.
   build. → part of the Phase-T1 PR.
 - **T2 — Solo UI**: create + generating screen, play screen (timer/streak/feedback),
   solo results, Home tile + BottomNav + i18n. Typecheck + build. → PR, checkpoint.
-- **T3 — Party mode** (separate branch, later): reuse Alias WebSocket rooms — lobby
-  with invite code, host starts, synchronized question broadcast, live scoreboard,
-  party leaderboard result (winner card + final standings + Rematch). Planned
-  separately once Solo is merged.
+- **T3 — Party mode** (branch `game/trivia-party`): **DB polling, not WebSockets.**
+  The Alias WS handler is orphaned (never mounted) and the app deploys on
+  `adapter-vercel` (serverless — no persistent sockets), so Party syncs through the
+  DB: clients poll `GET /api/trivia/party/[code]` (~1.5s) and the server advances the
+  question timeline **lazily** on each request (no background job needed).
+  - Tables: `trivia_parties` (code, setId, status, currentIndex, questionStartedAt,
+    questionCount) + `trivia_party_players` (token, name, isHost, score/streak
+    aggregates, lastAnsweredIndex). No answers table — `lastAnsweredIndex` guards
+    double-answers; player-row aggregates drive the leaderboard.
+  - Timeline: per question `answering` (QUESTION_SECONDS) → `reveal` (REVEAL_SECONDS);
+    server advances `questionStartedAt` by one cycle when due, → `finished` after the
+    last. Players identified by a client-generated `playerToken` (localStorage).
+  - Endpoints: `POST /api/trivia/party` (create+generate), `/[code]/join`,
+    `/[code]/start` (host), `GET /[code]` (poll), `/[code]/answer`.
+  - UI: `/trivia/party/[code]` — lobby (code + player list + host Start), playing
+    (question + options + timer + live standings), reveal (correct answer + deltas),
+    finished (winner card + final standings + Rematch / New topic). Create screen
+    enables the Party button.
 
 ## Out of scope / future
 - Question images, categories browser, saved/replayable quizzes library, daily quiz,

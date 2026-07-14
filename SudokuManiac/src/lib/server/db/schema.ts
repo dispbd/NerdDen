@@ -589,3 +589,63 @@ export const triviaSessionsRelations = relations(triviaSessions, ({ one }) => ({
 	user: one(user, { fields: [triviaSessions.userId], references: [user.id] }),
 	set: one(triviaSets, { fields: [triviaSessions.setId], references: [triviaSets.id] })
 }));
+
+// ─── Trivia — Party (multiplayer via DB polling) ────────────────────────────
+
+/** A multiplayer quiz room. State is advanced lazily on each poll/answer. */
+export const triviaParties = pgTable('trivia_parties', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	/** Short human-readable join code (e.g. "ABC123") */
+	code: text('code').notNull().unique(),
+	setId: uuid('set_id')
+		.notNull()
+		.references(() => triviaSets.id, { onDelete: 'cascade' }),
+	status: text('status', { enum: ['lobby', 'playing', 'finished'] })
+		.notNull()
+		.default('lobby'),
+	/** Index of the current question while playing */
+	currentIndex: integer('current_index').notNull().default(0),
+	/** When the current question's answer window started (drives the shared timeline) */
+	questionStartedAt: timestamp('question_started_at'),
+	/** Denormalized from the set, so the poll doesn't need a join */
+	questionCount: integer('question_count').notNull().default(10),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+/** A participant in a party. Identified by a client-generated token (guests allowed). */
+export const triviaPartyPlayers = pgTable(
+	'trivia_party_players',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		partyId: uuid('party_id')
+			.notNull()
+			.references(() => triviaParties.id, { onDelete: 'cascade' }),
+		/** Client-generated secret used to act as this player */
+		token: text('token').notNull(),
+		/** null for guests */
+		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+		name: text('name').notNull(),
+		isHost: boolean('is_host').notNull().default(false),
+		score: integer('score').notNull().default(0),
+		correctCount: integer('correct_count').notNull().default(0),
+		currentStreak: integer('current_streak').notNull().default(0),
+		bestStreak: integer('best_streak').notNull().default(0),
+		/** Highest question index this player has answered (guards double-answers) */
+		lastAnsweredIndex: integer('last_answered_index').notNull().default(-1),
+		joinedAt: timestamp('joined_at').defaultNow().notNull()
+	},
+	(table) => [
+		unique('trivia_party_players_token').on(table.partyId, table.token),
+		index('trivia_party_players_partyId_idx').on(table.partyId)
+	]
+);
+
+export const triviaPartiesRelations = relations(triviaParties, ({ one, many }) => ({
+	set: one(triviaSets, { fields: [triviaParties.setId], references: [triviaSets.id] }),
+	players: many(triviaPartyPlayers)
+}));
+
+export const triviaPartyPlayersRelations = relations(triviaPartyPlayers, ({ one }) => ({
+	party: one(triviaParties, { fields: [triviaPartyPlayers.partyId], references: [triviaParties.id] }),
+	user: one(user, { fields: [triviaPartyPlayers.userId], references: [user.id] })
+}));
