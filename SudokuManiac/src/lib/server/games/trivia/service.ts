@@ -49,16 +49,17 @@ export interface TriviaClientData {
  * Generate a quiz and start a session for it.
  * Returns the new session id (the id used in the /trivia/[id] route).
  */
-export async function createTriviaGame(
+/**
+ * Generate a quiz and persist it as a set + questions. Shared by solo and party.
+ * Returns the set id and how many questions were actually created.
+ */
+export async function createSetWithQuestions(
 	topic: string,
 	language: string,
 	difficulty: string,
-	count: number,
-	userId: string | null
-): Promise<{ sessionId: string; setId: string }> {
+	count: number
+): Promise<{ setId: string; questionCount: number }> {
 	const questions = await generateTriviaQuestions(topic, language, difficulty, count);
-	const aiGenerated = questions.length > 0;
-
 	const title = `${topic.charAt(0).toUpperCase() + topic.slice(1)} Quiz`;
 
 	const [set] = await db
@@ -69,7 +70,7 @@ export async function createTriviaGame(
 			language,
 			difficulty: difficulty as Difficulty,
 			questionCount: questions.length,
-			aiGenerated
+			aiGenerated: questions.length > 0
 		})
 		.returning({ id: triviaSets.id });
 
@@ -84,12 +85,24 @@ export async function createTriviaGame(
 		}))
 	);
 
+	return { setId: set.id, questionCount: questions.length };
+}
+
+export async function createTriviaGame(
+	topic: string,
+	language: string,
+	difficulty: string,
+	count: number,
+	userId: string | null
+): Promise<{ sessionId: string; setId: string }> {
+	const { setId } = await createSetWithQuestions(topic, language, difficulty, count);
+
 	const [session] = await db
 		.insert(triviaSessions)
-		.values({ setId: set.id, userId })
+		.values({ setId, userId })
 		.returning({ id: triviaSessions.id });
 
-	return { sessionId: session.id, setId: set.id };
+	return { sessionId: session.id, setId };
 }
 
 /** Load a session + its set with questions (answers stripped) for the client. */
