@@ -50,7 +50,7 @@ Rules:
 - Exactly four options per question, only one correct.
 - Make the three wrong options plausible but clearly incorrect.
 - Avoid opinion-based or ambiguous questions; each must have one objectively correct answer.
-- Keep each explanation to one short sentence stating why the answer is correct.
+- For each explanation, write ONE lively, self-contained sentence that adds an interesting fact or context about the correct answer. State it directly as a fact — do NOT begin with "Because" (or its ${langLabel} equivalent) and do NOT merely restate the question.
 Return ONLY a JSON object, no markdown, in exactly this shape:
 { "questions": [ { "question": "...", "options": ["...","...","...","..."], "correctIndex": 0, "explanation": "..." } ] }`;
 
