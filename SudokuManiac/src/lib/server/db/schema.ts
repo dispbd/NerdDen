@@ -38,7 +38,7 @@ export const gameSessions = pgTable(
 		id: uuid('id').defaultRandom().primaryKey(),
 		/** Nullable — guests can play without signing in */
 		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
-		gameType: text('game_type', { enum: ['sudoku', 'crossword', 'alias'] }).notNull(),
+		gameType: text('game_type', { enum: ['sudoku', 'crossword', 'alias', 'trivia'] }).notNull(),
 		difficulty: text('difficulty', {
 			enum: ['beginner', 'easy', 'medium', 'hard', 'expert', 'extreme']
 		}).notNull(),
@@ -474,7 +474,7 @@ export const challenges = pgTable(
 		kind: text('kind', { enum: ['challenge', 'share'] })
 			.notNull()
 			.default('challenge'),
-		gameType: text('game_type', { enum: ['sudoku', 'crossword', 'alias'] }).notNull(),
+		gameType: text('game_type', { enum: ['sudoku', 'crossword', 'alias', 'trivia'] }).notNull(),
 		/** Free-form label shown in the rail, e.g. "Sudoku Hard" or "Biology" */
 		label: text('label').notNull().default(''),
 		/** Optional reference to the puzzle involved (crosswordId / gameSessionId / …) */
@@ -493,4 +493,99 @@ export const challenges = pgTable(
 export const challengesRelations = relations(challenges, ({ one }) => ({
 	from: one(user, { fields: [challenges.fromUserId], references: [user.id] }),
 	to: one(user, { fields: [challenges.toUserId], references: [user.id] })
+}));
+
+// ─── Trivia ─────────────────────────────────────────────────────────────────
+
+/** A generated quiz — the question bank for a topic. */
+export const triviaSets = pgTable('trivia_sets', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	/** Human-readable title, e.g. "Ancient Rome Quiz" */
+	title: text('title').notNull(),
+	/** Topic used for AI generation */
+	topic: text('topic').notNull(),
+	/** Language code: "en" | "ru" | "de" | "es" */
+	language: text('language').notNull().default('en'),
+	difficulty: text('difficulty', {
+		enum: ['beginner', 'easy', 'medium', 'hard', 'expert', 'extreme']
+	})
+		.notNull()
+		.default('medium'),
+	/** Number of questions (5 / 10 / 20) */
+	questionCount: integer('question_count').notNull().default(10),
+	/** True when questions were produced by AI (vs. offline fallback) */
+	aiGenerated: boolean('ai_generated').notNull().default(false),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+/**
+ * A single quiz question. Kept in its own table so `correctIndex` and
+ * `explanation` never have to be shipped to the client before the player answers
+ * (mirrors the crossword "answers stripped" approach).
+ */
+export const triviaQuestions = pgTable(
+	'trivia_questions',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		setId: uuid('set_id')
+			.notNull()
+			.references(() => triviaSets.id, { onDelete: 'cascade' }),
+		/** 0-based position within the set */
+		orderIndex: integer('order_index').notNull(),
+		question: text('question').notNull(),
+		/** Exactly four answer options */
+		options: jsonb('options').notNull(),
+		/** Index (0–3) of the correct option — never sent to the client pre-answer */
+		correctIndex: integer('correct_index').notNull(),
+		/** Shown in the feedback card after answering */
+		explanation: text('explanation').notNull().default('')
+	},
+	(table) => [unique('trivia_questions_set_order').on(table.setId, table.orderIndex)]
+);
+
+/** One player's run through a trivia set. Score/streak are server-authoritative. */
+export const triviaSessions = pgTable(
+	'trivia_sessions',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		/** Nullable — guests can play without signing in */
+		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+		setId: uuid('set_id')
+			.notNull()
+			.references(() => triviaSets.id, { onDelete: 'cascade' }),
+		status: text('status', { enum: ['in_progress', 'completed', 'abandoned'] })
+			.notNull()
+			.default('in_progress'),
+		/** Index of the next unanswered question */
+		currentIndex: integer('current_index').notNull().default(0),
+		/** Accumulated points */
+		score: integer('score').notNull().default(0),
+		correctCount: integer('correct_count').notNull().default(0),
+		currentStreak: integer('current_streak').notNull().default(0),
+		bestStreak: integer('best_streak').notNull().default(0),
+		/** Per-question log: `[{ index, chosen, correct, points, msLeft }]` */
+		answers: jsonb('answers').notNull().default([]),
+		/** Seconds elapsed */
+		timeSpent: integer('time_spent').notNull().default(0),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		completedAt: timestamp('completed_at')
+	},
+	(table) => [
+		index('trivia_sessions_userId_idx').on(table.userId),
+		index('trivia_sessions_setId_idx').on(table.setId)
+	]
+);
+
+export const triviaSetsRelations = relations(triviaSets, ({ many }) => ({
+	questions: many(triviaQuestions),
+	sessions: many(triviaSessions)
+}));
+
+export const triviaQuestionsRelations = relations(triviaQuestions, ({ one }) => ({
+	set: one(triviaSets, { fields: [triviaQuestions.setId], references: [triviaSets.id] })
+}));
+
+export const triviaSessionsRelations = relations(triviaSessions, ({ one }) => ({
+	user: one(user, { fields: [triviaSessions.userId], references: [user.id] }),
+	set: one(triviaSets, { fields: [triviaSessions.setId], references: [triviaSets.id] })
 }));
