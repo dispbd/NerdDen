@@ -1,4 +1,7 @@
-/** Shared Trivia types (safe to import on client and server). */
+/** Shared Trivia types + constants (safe to import on client and server). */
+
+/** Time budget per question, in seconds (drives the UI timer ring + scoring). */
+export const QUESTION_SECONDS = 20;
 
 /** A fully-specified question as produced by AI / stored in the DB. */
 export interface TriviaQuestion {

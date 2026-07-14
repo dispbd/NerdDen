@@ -7,8 +7,8 @@
  * known question duration so it can't be gamed.
  */
 
-/** Time budget per question, in seconds (drives the UI timer ring). */
-export const QUESTION_SECONDS = 20;
+import { QUESTION_SECONDS } from '$lib/games/trivia/types';
+
 const QUESTION_MS = QUESTION_SECONDS * 1000;
 
 const BASE = 50;
