@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let topic = $state('');
 	let language = $state('en');
@@ -15,12 +16,13 @@
 	let creating = $state(false);
 	let errorMsg = $state('');
 
-	const SUGGESTIONS = ['Ancient Rome', 'Space', 'Cinema', 'Music'];
 	const LANGS = ['en', 'ru', 'de'];
 	const DIFFS = ['easy', 'medium', 'hard'];
 	const COUNTS = [5, 10, 20];
 
-	const diffLabel = (v: string) => v.charAt(0).toUpperCase() + v.slice(1);
+	const suggestions = $derived([m.trivia_sugg_1(), m.trivia_sugg_2(), m.trivia_sugg_3(), m.trivia_sugg_4()]);
+	const diffLabel = (v: string) =>
+		v === 'easy' ? m.trivia_diff_easy() : v === 'hard' ? m.trivia_diff_hard() : m.trivia_diff_medium();
 
 	async function generate() {
 		if (!topic.trim() || creating) return;
@@ -42,7 +44,7 @@
 	}
 </script>
 
-<svelte:head><title>Trivia — NerdDen</title></svelte:head>
+<svelte:head><title>{m.game_trivia()} — NerdDen</title></svelte:head>
 
 {#snippet chipRow(label: string, options: (string | number)[], value: string | number, set: (v: never) => void, accent: string, fmt: (v: string | number) => string)}
 	<div class="flex-1">
@@ -62,18 +64,18 @@
 <trivia-create class="mx-auto flex w-full max-w-2xl flex-col gap-6 px-1 py-4">
 	<div class="flex items-center gap-3">
 		<img src="/mascot-trivia.png" alt="" class="size-9" />
-		<h1 class="m-0 text-3xl">New quiz</h1>
+		<h1 class="m-0 text-3xl">{m.trivia_new_quiz()}</h1>
 	</div>
 
 	<!-- topic -->
 	<div>
-		<div class="field-label mb-2.5">Topic</div>
+		<div class="field-label mb-2.5">{m.trivia_topic()}</div>
 		<div class="card-kraft flex items-center gap-2.5 px-4 py-2.5" style="border-radius:13px 10px 12px 11px">
 			<span class="text-lg">🔎</span>
-			<input bind:value={topic} placeholder="Ancient Rome" maxlength="80" onkeydown={(e) => e.key === 'Enter' && generate()} class="w-full bg-transparent font-hand text-2xl font-bold text-ink outline-none" />
+			<input bind:value={topic} placeholder={m.trivia_topic_ph()} maxlength="80" onkeydown={(e) => e.key === 'Enter' && generate()} class="w-full bg-transparent font-hand text-2xl font-bold text-ink outline-none" />
 		</div>
 		<div class="mt-2.5 flex flex-wrap gap-2">
-			{#each SUGGESTIONS as s (s)}
+			{#each suggestions as s (s)}
 				<button onclick={() => (topic = s)} class="rounded-full border-[1.5px] border-ink bg-surface px-3 py-1 font-hand text-base font-bold text-ink">{s}</button>
 			{/each}
 		</div>
@@ -81,32 +83,28 @@
 
 	<!-- difficulty / language -->
 	<div class="flex gap-4">
-		{@render chipRow('Difficulty', DIFFS, difficulty, (v) => (difficulty = v), 'var(--color-terracotta)', (v) => diffLabel(String(v)))}
-		{@render chipRow('Language', LANGS, language, (v) => (language = v), 'var(--color-forest)', (v) => String(v).toUpperCase())}
+		{@render chipRow(m.trivia_difficulty(), DIFFS, difficulty, (v) => (difficulty = v), 'var(--color-terracotta)', (v) => diffLabel(String(v)))}
+		{@render chipRow(m.trivia_language(), LANGS, language, (v) => (language = v), 'var(--color-forest)', (v) => String(v).toUpperCase())}
 	</div>
 
 	<!-- questions / mode -->
 	<div class="flex gap-4">
-		{@render chipRow('Questions', COUNTS, count, (v) => (count = v), 'var(--color-navy)', (v) => String(v))}
+		{@render chipRow(m.trivia_questions(), COUNTS, count, (v) => (count = v), 'var(--color-navy)', (v) => String(v))}
 		<div class="flex-1">
-			<div class="field-label mb-2.5">Mode</div>
+			<div class="field-label mb-2.5">{m.trivia_mode()}</div>
 			<div class="flex gap-1.5">
 				<button
 					onclick={() => (mode = 'solo')}
 					class="kraft-radius-sm flex-1 border-[1.5px] border-ink py-1.5 font-hand text-base font-bold {mode === 'solo' ? 'bg-forest text-surface-2 shadow-btn-sm' : 'bg-transparent text-ink'}"
-				>Solo</button>
-				<button
-					disabled
-					title="Party mode is coming soon"
-					class="chip kraft-radius-sm flex-1 py-1.5 text-base"
-				>Party ·&nbsp;soon</button>
+				>{m.trivia_solo()}</button>
+				<button disabled class="chip kraft-radius-sm flex-1 py-1.5 text-base">{m.trivia_party_soon()}</button>
 			</div>
 		</div>
 	</div>
 
 	{#if errorMsg}<p class="m-0 text-sm text-terracotta-ink">{errorMsg}</p>{/if}
 
-	<button onclick={generate} disabled={!topic.trim()} class="btn-primary kraft-radius w-full py-3 text-2xl disabled:opacity-50">Generate quiz</button>
+	<button onclick={generate} disabled={!topic.trim()} class="btn-primary kraft-radius w-full py-3 text-2xl disabled:opacity-50">{m.trivia_generate()}</button>
 </trivia-create>
 
 <!-- generating overlay -->
@@ -125,8 +123,8 @@
 				<span class="size-2.5 animate-pulse rounded-full bg-terracotta" style="animation-delay:.2s"></span>
 				<span class="size-2.5 animate-pulse rounded-full bg-terracotta" style="animation-delay:.4s"></span>
 			</div>
-			<div class="font-display text-2xl font-bold text-ink">The Fox writes questions…</div>
-			<div class="text-sm text-ink-soft">{topic} · <span class="capitalize">{difficulty}</span> · {count} questions</div>
+			<div class="font-display text-2xl font-bold text-ink">{m.trivia_fox_writing()}</div>
+			<div class="text-sm text-ink-soft">{m.trivia_gen_summary({ topic, difficulty: diffLabel(difficulty), count })}</div>
 		</div>
 	</div>
 {/if}

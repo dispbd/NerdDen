@@ -8,6 +8,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { m } from '$lib/paraglide/messages.js';
 	import type { PageData } from './$types';
 	import { QUESTION_SECONDS } from '$lib/games/trivia/types';
 	import type { AnswerResult } from '$lib/games/trivia/types';
@@ -143,13 +144,23 @@
 	}
 
 	async function share() {
+		if (!summary) return;
+		const text = m.trivia_share_text({
+			correct: summary.correctCount,
+			total: summary.questionCount,
+			score: summary.score,
+			topic: set.topic
+		});
 		try {
-			await navigator.clipboard.writeText(`${location.origin}/trivia`);
+			await navigator.clipboard.writeText(`${text} ${location.origin}/trivia`);
 			copied = true;
 		} catch {
 			/* clipboard unavailable */
 		}
 	}
+
+	const diffLabel = (v: string) =>
+		v === 'easy' ? m.trivia_diff_easy() : v === 'hard' ? m.trivia_diff_hard() : v === 'medium' ? m.trivia_diff_medium() : v;
 
 	function segColor(i: number): string {
 		const m = marks[i];
@@ -169,12 +180,21 @@
 
 	const headline = $derived.by(() => {
 		const s = summary;
-		if (!s || s.questionCount === 0) return 'Quiz over';
+		if (!s || s.questionCount === 0) return m.trivia_res_over();
 		const r = s.correctCount / s.questionCount;
-		if (r >= 0.9) return 'Sharp mind!';
-		if (r >= 0.7) return 'Well played!';
-		if (r >= 0.4) return 'Not bad!';
-		return 'Keep at it!';
+		if (r >= 0.9) return m.trivia_res_sharp();
+		if (r >= 0.7) return m.trivia_res_well();
+		if (r >= 0.4) return m.trivia_res_notbad();
+		return m.trivia_res_keep();
+	});
+
+	const noteLine = $derived.by(() => {
+		const s = summary;
+		if (!s) return '';
+		if (s.correctCount === s.questionCount && s.questionCount > 0)
+			return m.trivia_note_flawless({ xp: s.xpEarned });
+		if (s.bestStreak >= 5) return m.trivia_note_streak({ xp: s.xpEarned, n: s.bestStreak });
+		return m.trivia_note_plain({ xp: s.xpEarned });
 	});
 </script>
 
@@ -184,7 +204,7 @@
 	{#if phase !== 'results'}
 		<!-- header: exit + progress + counter -->
 		<div class="mb-4 flex items-center gap-2.5">
-			<a href="/trivia" aria-label="Exit quiz" class="btn-secondary kraft-radius-sm px-3 py-1 text-lg no-underline">✕</a>
+			<a href="/trivia" aria-label={m.trivia_exit()} class="btn-secondary kraft-radius-sm px-3 py-1 text-lg no-underline">✕</a>
 			<div class="flex flex-1 gap-1">
 				{#each marks as _m, i (i)}
 					<span class="h-[7px] flex-1 rounded-full border border-ink/25" style="background:{segColor(i)}"></span>
@@ -200,7 +220,7 @@
 					<img src="/mascot-trivia.png" alt="" class="size-8" />
 				</div>
 				<div>
-					<div class="field-label">Streak</div>
+					<div class="field-label">{m.trivia_streak()}</div>
 					<div class="font-hand text-xl font-bold leading-none text-terracotta">×{streak}</div>
 				</div>
 			</div>
@@ -222,7 +242,7 @@
 
 		<!-- question -->
 		<div class="card-kraft kraft-radius mb-4 p-5">
-			<div class="label-caps mb-2.5">Question {idx + 1}</div>
+			<div class="label-caps mb-2.5">{m.trivia_question_n({ n: idx + 1 })}</div>
 			<div class="font-display text-[22px] font-bold leading-tight text-ink">{current.question}</div>
 		</div>
 
@@ -260,13 +280,13 @@
 				</div>
 				<div>
 					<div class="mb-1 font-hand text-xl font-bold leading-none text-surface-2">
-						{#if result.correct}Correct! +{result.points} pts{:else}Not quite — it's {current.options[result.correctIndex]}{/if}
+						{#if result.correct}{m.trivia_correct({ points: result.points })}{:else}{m.trivia_wrong({ answer: current.options[result.correctIndex] })}{/if}
 					</div>
 					<div class="text-[13px] leading-snug text-surface-2/90">{result.explanation}</div>
 				</div>
 			</div>
 			<button onclick={next} class="btn-primary kraft-radius mt-3.5 w-full py-2.5 text-xl">
-				{idx + 1 >= total ? 'See results ›' : 'Next question ›'}
+				{idx + 1 >= total ? m.trivia_see_results() : m.trivia_next()}
 			</button>
 		{/if}
 	{:else if summary}
@@ -276,33 +296,31 @@
 				<img src="/mascot-trivia.png" alt="" class="size-24" />
 			</div>
 			<div class="font-display text-3xl font-bold text-ink">{headline}</div>
-			<div class="mt-1 mb-5 font-medium text-ink-soft capitalize">{set.topic} · {set.difficulty}</div>
+			<div class="mt-1 mb-5 font-medium text-ink-soft">{set.topic} · {diffLabel(set.difficulty)}</div>
 
 			<div class="mb-4 flex gap-2.5">
 				<div class="flex-1 rounded-[14px] border-[1.5px] border-ink bg-forest py-3.5">
 					<div class="font-hand text-3xl font-bold leading-none text-surface-2">{summary.correctCount}/{summary.questionCount}</div>
-					<div class="mt-1 text-[10px] font-medium text-surface-2/90">correct</div>
+					<div class="mt-1 text-[10px] font-medium text-surface-2/90">{m.trivia_correct_label()}</div>
 				</div>
 				<div class="flex-1 rounded-[14px] border-[1.5px] border-ink bg-surface py-3.5">
 					<div class="font-hand text-3xl font-bold leading-none text-ink">{summary.score}</div>
-					<div class="mt-1 text-[10px] font-medium text-muted">points</div>
+					<div class="mt-1 text-[10px] font-medium text-muted">{m.trivia_points_label()}</div>
 				</div>
 				<div class="flex-1 rounded-[14px] border-[1.5px] border-ink bg-surface py-3.5">
 					<div class="font-hand text-3xl font-bold leading-none text-terracotta">×{summary.bestStreak}</div>
-					<div class="mt-1 text-[10px] font-medium text-muted">best streak</div>
+					<div class="mt-1 text-[10px] font-medium text-muted">{m.trivia_best_streak()}</div>
 				</div>
 			</div>
 
 			<div class="card-kraft kraft-radius mb-4 flex items-center gap-2.5 px-4 py-3 text-left">
 				<span class="text-base">💡</span>
-				<div class="text-[13px] leading-snug text-ink-soft">
-					You earned <b class="text-ink">+{summary.xpEarned} XP</b>{#if summary.correctCount === summary.questionCount && summary.questionCount > 0} and a <b class="text-ink">flawless run</b>{:else if summary.bestStreak >= 5} and a <b class="text-ink">{summary.bestStreak}-answer streak</b>{/if}.
-				</div>
+				<div class="text-[13px] leading-snug text-ink-soft">{noteLine}</div>
 			</div>
 
 			<div class="flex gap-2.5">
-				<button onclick={() => goto('/trivia')} class="btn-primary kraft-radius flex-1 py-2.5 text-xl">New topic</button>
-				<button onclick={share} class="btn-secondary kraft-radius flex-1 py-2.5 text-xl">{copied ? 'Copied!' : 'Share ↗'}</button>
+				<button onclick={() => goto('/trivia')} class="btn-primary kraft-radius flex-1 py-2.5 text-xl">{m.trivia_new_topic()}</button>
+				<button onclick={share} class="btn-secondary kraft-radius flex-1 py-2.5 text-xl">{copied ? m.trivia_copied() : m.trivia_share()}</button>
 			</div>
 		</div>
 	{/if}
