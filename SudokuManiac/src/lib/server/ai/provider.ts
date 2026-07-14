@@ -9,13 +9,14 @@
  *   OPENAI_API_KEY | GOOGLE_GENERATIVE_AI_API_KEY | ANTHROPIC_API_KEY |
  *   GROQ_API_KEY   | MISTRAL_API_KEY
  *
- * Only `@ai-sdk/openai` ships in package.json. To use another provider, install it:
- *   pnpm add @ai-sdk/google      # Gemini (has a free tier)
- *   pnpm add @ai-sdk/groq        # Groq   (free tier, fast)
- *   pnpm add @ai-sdk/anthropic   # Claude (paid)
- *   pnpm add @ai-sdk/mistral     # Mistral (free tier)
- * The dynamic imports below are marked @vite-ignore so an uninstalled provider only
- * errors if it is actually selected — the build never breaks.
+ * Bundled providers: openai, google (Gemini — free tier), groq (free tier, fast),
+ * mistral (free tier). `anthropic` (paid) is optional — install `@ai-sdk/anthropic`
+ * to enable it; its import is @vite-ignore'd so the build never breaks without it.
+ *
+ * Free-tier keys:
+ *   Gemini  → https://aistudio.google.com/apikey        (GOOGLE_GENERATIVE_AI_API_KEY)
+ *   Groq    → https://console.groq.com/keys             (GROQ_API_KEY)
+ *   Mistral → https://console.mistral.ai/api-keys       (MISTRAL_API_KEY)
  */
 import { env } from '$env/dynamic/private';
 import type { LanguageModel } from 'ai';
@@ -38,6 +39,20 @@ const KEY_ENV: Record<AiProvider, string> = {
 	mistral: 'MISTRAL_API_KEY'
 };
 
+/**
+ * Parse a JSON object out of a model's text reply. Provider/model support for
+ * structured output (json_schema) varies, so generators use generateText + this
+ * helper instead of generateObject — works on every provider. Strips ``` fences
+ * and any prose around the first {...} block. Throws if no valid JSON is found.
+ */
+export function parseJsonFromText(text: string): unknown {
+	const cleaned = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+	const start = cleaned.indexOf('{');
+	const end = cleaned.lastIndexOf('}');
+	const slice = start >= 0 && end > start ? cleaned.slice(start, end + 1) : cleaned;
+	return JSON.parse(slice);
+}
+
 export function aiProvider(): AiProvider {
 	const p = (env.AI_PROVIDER ?? 'openai') as AiProvider;
 	return p in DEFAULT_MODEL ? p : 'openai';
@@ -48,10 +63,10 @@ export function hasAiKey(): boolean {
 	return !!env[KEY_ENV[aiProvider()]];
 }
 
-/** Resolve the configured provider + model into an AI SDK LanguageModel. */
-export async function aiModel(): Promise<LanguageModel> {
-	const provider = aiProvider();
-	const model = env.AI_MODEL || DEFAULT_MODEL[provider];
+/** Build a LanguageModel for a specific provider. AI_MODEL only overrides the
+ *  primary provider (allowOverride) — fallbacks use their own default model. */
+async function modelFor(provider: AiProvider, allowOverride: boolean): Promise<LanguageModel> {
+	const model = (allowOverride && env.AI_MODEL) || DEFAULT_MODEL[provider];
 	const apiKey = env[KEY_ENV[provider]];
 
 	switch (provider) {
@@ -60,24 +75,62 @@ export async function aiModel(): Promise<LanguageModel> {
 			return createOpenAI({ apiKey })(model);
 		}
 		case 'google': {
-			// @ts-ignore optional dependency — install @ai-sdk/google to use
-			const { createGoogleGenerativeAI } = await import(/* @vite-ignore */ '@ai-sdk/google');
+			const { createGoogleGenerativeAI } = await import('@ai-sdk/google');
 			return createGoogleGenerativeAI({ apiKey })(model);
 		}
 		case 'anthropic': {
-			// @ts-ignore optional dependency — install @ai-sdk/anthropic to use
+			// Optional (paid) — install @ai-sdk/anthropic to enable; kept out of the bundle.
+			// @ts-ignore optional dependency
 			const { createAnthropic } = await import(/* @vite-ignore */ '@ai-sdk/anthropic');
 			return createAnthropic({ apiKey })(model);
 		}
 		case 'groq': {
-			// @ts-ignore optional dependency — install @ai-sdk/groq to use
-			const { createGroq } = await import(/* @vite-ignore */ '@ai-sdk/groq');
+			const { createGroq } = await import('@ai-sdk/groq');
 			return createGroq({ apiKey })(model);
 		}
 		case 'mistral': {
-			// @ts-ignore optional dependency — install @ai-sdk/mistral to use
-			const { createMistral } = await import(/* @vite-ignore */ '@ai-sdk/mistral');
+			const { createMistral } = await import('@ai-sdk/mistral');
 			return createMistral({ apiKey })(model);
 		}
 	}
+}
+
+/** Resolve the primary configured provider + model into a LanguageModel. */
+export async function aiModel(): Promise<LanguageModel> {
+	return modelFor(aiProvider(), true);
+}
+
+/** Fail-over order: the configured provider first, then the rest (free-first). */
+const FREE_FIRST: AiProvider[] = ['groq', 'google', 'mistral', 'openai', 'anthropic'];
+
+/** Configured providers (those with an API key), primary first. */
+export function availableProviders(): AiProvider[] {
+	const primary = aiProvider();
+	return [primary, ...FREE_FIRST.filter((p) => p !== primary)].filter((p) => !!env[KEY_ENV[p]]);
+}
+
+/** True when at least one provider has a key configured. */
+export function hasAnyAiKey(): boolean {
+	return availableProviders().length > 0;
+}
+
+/**
+ * Run an AI call with automatic provider fail-over: try each configured provider
+ * in order until one succeeds (e.g. Gemini quota exhausted → Groq → Mistral).
+ * Throws the last error only if every provider fails.
+ */
+export async function runAi<T>(fn: (model: LanguageModel) => Promise<T>): Promise<T> {
+	const providers = availableProviders();
+	if (!providers.length) throw new Error('No AI provider API key configured');
+	const primary = aiProvider();
+	let lastErr: unknown;
+	for (const provider of providers) {
+		try {
+			return await fn(await modelFor(provider, provider === primary));
+		} catch (e) {
+			lastErr = e;
+			console.warn(`[ai] provider "${provider}" failed, trying next:`, (e as Error)?.message ?? e);
+		}
+	}
+	throw lastErr;
 }

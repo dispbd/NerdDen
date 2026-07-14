@@ -15,19 +15,14 @@ minimumReleaseAgeExclude:
   - '@better-auth/prisma-adapter@1.6.12'
   - '@better-auth/telemetry@1.6.12'
   - '@eslint/plugin-kit@0.7.2'
-  - ai@6.0.193
+  - ai@6.0.193 || 6.0.196 || 6.0.209
   - better-auth@1.6.12
   - eslint@10.4.1
   - svelte@5.56.0
-  - '@ai-sdk/gateway@3.0.124'
-  - '@sveltejs/kit@2.63.0'
-  - '@sveltejs/load-config@0.1.1'
-  - ai@6.0.196
+  - '@ai-sdk/gateway@3.0.124 || 3.0.134'
+  - '@sveltejs/kit@2.63.0 || 2.67.0'
+  - '@sveltejs/load-config@0.1.1 || 0.2.0'
   - pixi.js@8.19.0
-  - svelte-check@4.6.0
-  - '@ai-sdk/gateway@3.0.134'
-  - '@sveltejs/kit@2.67.0'
-  - '@sveltejs/load-config@0.2.0'
-  - ai@6.0.209
-  - svelte-check@4.7.0
+  - svelte-check@4.6.0 || 4.7.0 || 4.7.2
   - vite@8.1.0
+  - '@sveltejs/vite-plugin-svelte@7.2.0'

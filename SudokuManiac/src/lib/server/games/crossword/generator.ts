@@ -4,31 +4,11 @@
  * then runs them through the grid builder.
  */
 
-import { createOpenAI } from '@ai-sdk/openai';
-import { generateObject } from 'ai';
-import { z } from 'zod';
-import { env } from '$env/dynamic/private';
+import { generateText } from 'ai';
+import { runAi, hasAnyAiKey, parseJsonFromText } from '$lib/server/ai/provider';
 import { buildCrossword } from '$lib/server/games/crossword/builder';
 import type { WordEntry } from '$lib/games/crossword/types';
 import type { BuildResult } from '$lib/server/games/crossword/builder';
-
-const WordListSchema = z.object({
-	words: z
-		.array(
-			z.object({
-				word: z
-					.string()
-					.min(3)
-					.max(15)
-					.regex(/^[A-Za-z]+$/, 'Only letters'),
-				clue: z.string().min(5).max(120)
-			})
-		)
-		.min(8)
-		.max(20)
-});
-
-type WordList = z.infer<typeof WordListSchema>;
 
 const DIFFICULTY_CLUE_STYLE: Record<string, string> = {
 	beginner: 'simple, straightforward clues suitable for beginners',
@@ -48,36 +28,35 @@ async function fetchWordList(
 	language: string,
 	difficulty: string
 ): Promise<WordEntry[]> {
-	const openai = createOpenAI({ apiKey: env.OPENAI_API_KEY });
 	const clueStyle = DIFFICULTY_CLUE_STYLE[difficulty] ?? DIFFICULTY_CLUE_STYLE.medium;
 
-	const langLabel =
-		{ en: 'English', ru: 'Russian (transliterated to Latin)', de: 'German', es: 'Spanish' }[
-			language
-		] ?? 'English';
+	const langName =
+		{ en: 'English', ru: 'Russian', de: 'German', es: 'Spanish' }[language] ?? 'English';
+	// The grid only supports A–Z, so non-Latin languages are transliterated.
+	const translitNote =
+		language !== 'en'
+			? ` Transliterate each ${langName} word into Latin A–Z letters (e.g. Russian "КОСМОС" → "KOSMOS"). Keep the clues in ${langName}, written in the native script.`
+			: '';
 
 	const prompt = `You are a crossword puzzle constructor.
-Generate 15 unique words (3–15 letters, only A-Z, no spaces or hyphens) related to the topic "${topic}", in ${langLabel}.
-For each word write ${clueStyle}.
+Generate 15 unique ${langName} words (3–15 letters, only A-Z, no spaces or hyphens) related to the topic "${topic}".${translitNote}
+Write every clue in ${langName}. Clue style: ${clueStyle}.
 Avoid proper nouns unless they are extremely well-known.
-Return valid JSON matching this schema: { words: [{word, clue}] }.`;
+Return ONLY a JSON object, no markdown, in exactly this shape: { "words": [{ "word": "...", "clue": "..." }] }`;
 
-	const { object } = await generateObject({
-		model: openai('gpt-4o-mini'),
-		schema: WordListSchema,
-		prompt
-	});
+	const { text } = await runAi((model) => generateText({ model, prompt }));
+	const data = parseJsonFromText(text) as { words?: { word?: string; clue?: string }[] };
+	const raw = Array.isArray(data.words) ? data.words : [];
 
-	// Deduplicate and filter
+	// Deduplicate and filter to valid crossword entries
 	const seen = new Set<string>();
-	return (object as WordList).words
+	return raw
+		.map((e) => ({ word: String(e.word ?? '').toUpperCase(), clue: String(e.clue ?? '') }))
 		.filter((e) => {
-			const w = e.word.toUpperCase();
-			if (!/^[A-Z]{3,15}$/.test(w) || seen.has(w)) return false;
-			seen.add(w);
+			if (!/^[A-Z]{3,15}$/.test(e.word) || !e.clue || seen.has(e.word)) return false;
+			seen.add(e.word);
 			return true;
-		})
-		.map((e) => ({ word: e.word.toUpperCase(), clue: e.clue }));
+		});
 }
 
 export interface GeneratedCrossword extends BuildResult {
@@ -98,8 +77,14 @@ export async function generateCrossword(
 ): Promise<GeneratedCrossword> {
 	let entries: WordEntry[];
 
-	if (env.OPENAI_API_KEY) {
-		entries = await fetchWordList(topic, language, difficulty);
+	if (hasAnyAiKey()) {
+		try {
+			entries = await fetchWordList(topic, language, difficulty);
+		} catch (e) {
+			// Quota / rate-limit / provider errors → degrade to the offline set instead of a 500.
+			console.error('[crossword] AI word generation failed, using offline fallback:', e);
+			entries = FALLBACK_ENTRIES;
+		}
 	} else {
 		// Offline fallback — generic English words so the feature works without an API key
 		entries = FALLBACK_ENTRIES;

@@ -3,13 +3,8 @@
  * Uses Vercel AI SDK + OpenAI gpt-4o-mini.
  */
 
-import { generateObject } from 'ai';
-import { z } from 'zod';
-import { aiModel, hasAiKey } from './provider';
-
-const WordsSchema = z.object({
-	words: z.array(z.string().min(2).max(40)).min(10).max(60)
-});
+import { generateText } from 'ai';
+import { runAi, hasAnyAiKey, parseJsonFromText } from './provider';
 
 const DIFFICULTY_PROMPT: Record<string, string> = {
 	beginner: 'simple, common, everyday words that most people know',
@@ -37,7 +32,7 @@ export async function generateAliasWords(
 	difficulty = 'medium',
 	count = 30
 ): Promise<string[]> {
-	if (!hasAiKey()) {
+	if (!hasAnyAiKey()) {
 		return getOfflineFallback(count);
 	}
 
@@ -49,17 +44,22 @@ Use ${difficultyDesc}.
 These words will be used in a party game where one player describes the word without saying it.
 Words should be fun, varied, and guessable.
 Do NOT include: proper names of specific people, very offensive content, or words that are impossible to describe.
-Return JSON: { words: ["word1", "word2", ...] }`;
+Return ONLY a JSON object, no markdown, in exactly this shape: { "words": ["word1", "word2", ...] }`;
 
-	const { object } = await generateObject({
-		model: await aiModel(),
-		schema: WordsSchema,
-		prompt
-	});
+	let words: string[];
+	try {
+		const { text } = await runAi((model) => generateText({ model, prompt }));
+		const data = parseJsonFromText(text) as { words?: unknown[] };
+		words = Array.isArray(data.words) ? data.words.map((w) => String(w)) : [];
+	} catch (e) {
+		// Quota / rate-limit / provider / parse errors → fall back to the offline word list.
+		console.error('[alias] AI word generation failed, using offline fallback:', e);
+		return getOfflineFallback(count);
+	}
 
 	// Deduplicate and trim
 	const seen = new Set<string>();
-	return object.words
+	return words
 		.map((w: string) => w.trim())
 		.filter((w: string) => {
 			if (!w || seen.has(w.toLowerCase())) return false;
