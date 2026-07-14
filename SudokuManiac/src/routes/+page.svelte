@@ -159,6 +159,7 @@
 				{@render gameRow('/sudoku-maniac.webp', true, m.game_sudoku(), m.home_sudoku_desc({ solved, best: fmt(bestTime) }), false, '/sudoku', m.home_continue(), '/sudoku', m.home_play(), 'var(--color-terracotta)')}
 				{@render gameRow('/mascot-owl.png', false, m.game_crosswords(), m.home_crossword_desc({ count: data.games?.crossword.libraryCount ?? 0 }), true, '/crossword', m.home_library(), '/crossword', m.home_generate(), 'var(--color-navy)')}
 				{@render gameRow('/mascot-alias.png', false, m.game_alias(), m.home_alias_desc(), false, '/alias', m.home_join_code(), '/alias', m.home_new_room(), 'var(--color-terracotta)')}
+				{@render gameRow('/mascot-trivia.png', false, m.game_trivia(), m.home_trivia_desc(), true, '/trivia', m.home_trivia_new(), '/trivia', m.home_play(), 'var(--color-forest)')}
 				<!-- coming soon -->
 				<div class="flex items-center gap-4 rounded-[14px] border-[1.5px] border-dashed border-[#b6a98c] p-4">
 					<div class="flex size-[60px] flex-none items-center justify-center rounded-[15px] border-[1.5px] border-dashed border-[#b6a98c] text-2xl" style="background:{MASCOT_BG}">✨</div>
