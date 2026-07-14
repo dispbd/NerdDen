@@ -14,7 +14,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	const chosen = Number(body.chosen);
 	const msLeft = Number(body.msLeft);
 	if (!Number.isInteger(index) || index < 0) throw error(400, 'invalid index');
-	if (!Number.isInteger(chosen) || chosen < 0 || chosen > 3) throw error(400, 'invalid chosen');
+	// -1 = timed out with no selection (always graded wrong); 0–3 = a chosen option.
+	if (!Number.isInteger(chosen) || chosen < -1 || chosen > 3) throw error(400, 'invalid chosen');
 
 	const result = await submitAnswer(params.id, index, chosen, Number.isFinite(msLeft) ? msLeft : 0);
 	if ('error' in result) {
