@@ -13,6 +13,7 @@
 	let difficulty = $state('medium');
 	let count = $state(10);
 	let mode = $state<'solo' | 'party'>('solo');
+	let playerName = $state('');
 	let creating = $state(false);
 	let errorMsg = $state('');
 
@@ -29,14 +30,29 @@
 		creating = true;
 		errorMsg = '';
 		try {
-			const res = await fetch('/api/trivia', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ topic: topic.trim(), language, difficulty, count, mode })
-			});
-			if (!res.ok) throw new Error(`Error ${res.status}`);
-			const { sessionId } = (await res.json()) as { sessionId: string };
-			await goto(`/trivia/${sessionId}`);
+			if (mode === 'party') {
+				const hostToken = crypto.randomUUID();
+				const hostName = playerName.trim() || 'Host';
+				const res = await fetch('/api/trivia/party', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ topic: topic.trim(), language, difficulty, count, hostName, hostToken })
+				});
+				if (!res.ok) throw new Error(`Error ${res.status}`);
+				const { code } = (await res.json()) as { code: string };
+				localStorage.setItem(`trivia_party_token:${code}`, hostToken);
+				localStorage.setItem('trivia_party_name', hostName);
+				await goto(`/trivia/party/${code}`);
+			} else {
+				const res = await fetch('/api/trivia', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ topic: topic.trim(), language, difficulty, count, mode })
+				});
+				if (!res.ok) throw new Error(`Error ${res.status}`);
+				const { sessionId } = (await res.json()) as { sessionId: string };
+				await goto(`/trivia/${sessionId}`);
+			}
 		} catch (e: unknown) {
 			errorMsg = e instanceof Error ? e.message : 'Failed to generate quiz';
 			creating = false;
@@ -97,10 +113,24 @@
 					onclick={() => (mode = 'solo')}
 					class="kraft-radius-sm flex-1 border-[1.5px] border-ink py-1.5 font-hand text-base font-bold {mode === 'solo' ? 'bg-forest text-surface-2 shadow-btn-sm' : 'bg-transparent text-ink'}"
 				>{m.trivia_solo()}</button>
-				<button disabled class="chip kraft-radius-sm flex-1 py-1.5 text-base">{m.trivia_party_soon()}</button>
+				<button
+					onclick={() => (mode = 'party')}
+					class="kraft-radius-sm flex-1 border-[1.5px] border-ink py-1.5 font-hand text-base font-bold {mode === 'party' ? 'bg-navy text-surface-2 shadow-btn-sm' : 'bg-transparent text-ink'}"
+				>Party</button>
 			</div>
 		</div>
 	</div>
+
+	<!-- host name (party only) -->
+	{#if mode === 'party'}
+		<div>
+			<div class="field-label mb-2.5">{m.trivia_party_host_name()}</div>
+			<div class="card-kraft flex items-center gap-2.5 px-4 py-2.5" style="border-radius:12px 11px 13px 10px">
+				<span class="text-lg">🙂</span>
+				<input bind:value={playerName} placeholder="Alex" maxlength="24" class="w-full bg-transparent font-hand text-2xl font-bold text-ink outline-none" />
+			</div>
+		</div>
+	{/if}
 
 	{#if errorMsg}<p class="m-0 text-sm text-terracotta-ink">{errorMsg}</p>{/if}
 
