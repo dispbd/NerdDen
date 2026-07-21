@@ -234,6 +234,8 @@
 	"trivia_party_over": "Quiz over",
 	"trivia_party_correct_line": "{correct}/{total} correct",
 	"trivia_party_rematch": "Rematch",
+	"trivia_party_rematching": "Making a new quiz…",
+	"trivia_party_rematch_wait": "The host can start a rematch.",
 	"trivia_party_started": "The game already started — you're spectating.",
 	"home_join_code": "Join code",
 	"home_new_room": "New room",

@@ -234,6 +234,8 @@
 	"trivia_party_over": "Квиз окончен",
 	"trivia_party_correct_line": "{correct}/{total} верных",
 	"trivia_party_rematch": "Реванш",
+	"trivia_party_rematching": "Готовим новый квиз…",
+	"trivia_party_rematch_wait": "Хост может начать реванш.",
 	"trivia_party_started": "Игра уже началась — ты наблюдаешь.",
 	"home_join_code": "По коду",
 	"home_new_room": "Новая комната",

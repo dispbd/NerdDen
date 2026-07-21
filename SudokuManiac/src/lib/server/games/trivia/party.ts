@@ -117,6 +117,48 @@ export async function startParty(
 }
 
 /**
+ * Rematch: keep the room, code and players — generate a fresh quiz on the same
+ * settings, reset every player's score, and drop back to the lobby so the host can
+ * start round two (and latecomers can still join).
+ */
+export async function rematchParty(
+	code: string,
+	token: string
+): Promise<{ ok: true } | { error: string }> {
+	const [party] = await db.select().from(triviaParties).where(eq(triviaParties.code, code));
+	if (!party) return { error: 'not_found' };
+	if (party.status !== 'finished') return { error: 'not_finished' };
+
+	const [player] = await db
+		.select({ isHost: triviaPartyPlayers.isHost })
+		.from(triviaPartyPlayers)
+		.where(and(eq(triviaPartyPlayers.partyId, party.id), eq(triviaPartyPlayers.token, token)));
+	if (!player?.isHost) return { error: 'not_host' };
+
+	const [oldSet] = await db.select().from(triviaSets).where(eq(triviaSets.id, party.setId));
+	if (!oldSet) return { error: 'no_set' };
+
+	const { setId, questionCount } = await createSetWithQuestions(
+		oldSet.topic,
+		oldSet.language,
+		oldSet.difficulty,
+		oldSet.questionCount
+	);
+
+	await db
+		.update(triviaParties)
+		.set({ setId, questionCount, status: 'lobby', currentIndex: 0, questionStartedAt: null })
+		.where(eq(triviaParties.id, party.id));
+
+	await db
+		.update(triviaPartyPlayers)
+		.set({ score: 0, correctCount: 0, currentStreak: 0, bestStreak: 0, lastAnsweredIndex: -1 })
+		.where(eq(triviaPartyPlayers.partyId, party.id));
+
+	return { ok: true };
+}
+
+/**
  * Load a party by code and advance its timeline if due, persisting any change.
  * Returns the fresh row (post-advance) or null.
  */
