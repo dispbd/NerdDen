@@ -138,11 +138,19 @@ export async function rematchParty(
 	const [oldSet] = await db.select().from(triviaSets).where(eq(triviaSets.id, party.setId));
 	if (!oldSet) return { error: 'no_set' };
 
+	// Same topic+difficulty otherwise regenerates nearly the same quiz, so the round
+	// just played is passed as an exclusion list — a rematch must ask new questions.
+	const previous = await db
+		.select({ question: triviaQuestions.question })
+		.from(triviaQuestions)
+		.where(eq(triviaQuestions.setId, party.setId));
+
 	const { setId, questionCount } = await createSetWithQuestions(
 		oldSet.topic,
 		oldSet.language,
 		oldSet.difficulty,
-		oldSet.questionCount
+		oldSet.questionCount,
+		previous.map((q) => q.question)
 	);
 
 	await db

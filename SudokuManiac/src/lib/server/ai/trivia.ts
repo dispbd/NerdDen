@@ -34,19 +34,27 @@ export async function generateTriviaQuestions(
 	topic: string,
 	language = 'en',
 	difficulty = 'medium',
-	count = 10
+	count = 10,
+	/** Question texts to avoid — used by rematch so round two isn't a replay. */
+	avoid: string[] = []
 ): Promise<TriviaQuestion[]> {
 	if (!hasAnyAiKey()) {
-		return offlineFallback(count);
+		return offlineFallback(count, avoid);
 	}
 
 	const difficultyDesc = DIFFICULTY_PROMPT[difficulty] ?? DIFFICULTY_PROMPT.medium;
 	const langLabel = LANG_LABEL[language] ?? 'English';
 
+	// Same topic + difficulty otherwise yields near-identical sets (a rematch would
+	// replay the same quiz), so previously asked questions are excluded explicitly.
+	const avoidBlock = avoid.length
+		? `\nThese questions were already asked — do NOT repeat them or ask a reworded version of the same fact. Cover different aspects of the topic instead:\n${avoid.map((q) => `- ${q}`).join('\n')}\n`
+		: '';
+
 	const prompt = `Generate ${count} multiple-choice trivia questions about "${topic}".
 Difficulty: ${difficultyDesc}.
 Write the question text, all four options, and the explanation entirely in ${langLabel}.
-Rules:
+${avoidBlock}Rules:
 - Exactly four options per question, only one correct.
 - Make the three wrong options plausible but clearly incorrect.
 - Avoid opinion-based or ambiguous questions; each must have one objectively correct answer.
@@ -58,14 +66,28 @@ Return ONLY a JSON object, no markdown, in exactly this shape:
 		const { text } = await runAi((model) => generateText({ model, prompt }));
 		const data = parseJsonFromText(text) as { questions?: unknown[] };
 		const raw = Array.isArray(data.questions) ? data.questions : [];
-		const questions = raw.map(normalize).filter((q): q is TriviaQuestion => q !== null);
-		if (!questions.length) return offlineFallback(count);
+		let questions = raw.map(normalize).filter((q): q is TriviaQuestion => q !== null);
+
+		// Belt and braces: the model can still echo an excluded question back.
+		if (avoid.length) {
+			const seen = new Set(avoid.map(normalizeText));
+			const fresh = questions.filter((q) => !seen.has(normalizeText(q.question)));
+			// Only enforce when enough survive — half a quiz is worse than a repeat.
+			if (fresh.length >= Math.ceil(count / 2)) questions = fresh;
+		}
+
+		if (!questions.length) return offlineFallback(count, avoid);
 		return questions.slice(0, count).map(shuffleOptions);
 	} catch (e) {
 		// Quota / rate-limit / provider / parse errors → offline fallback (no 500).
 		console.error('[trivia] AI question generation failed, using offline fallback:', e);
-		return offlineFallback(count);
+		return offlineFallback(count, avoid);
 	}
+}
+
+/** Loose comparison key for question text (case/punctuation/whitespace-insensitive). */
+function normalizeText(s: string): string {
+	return s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 }
 
 /** Validate + coerce one raw AI item into a TriviaQuestion, or null if invalid. */
@@ -217,7 +239,14 @@ const FALLBACK_QUESTIONS: TriviaQuestion[] = [
 	}
 ];
 
-function offlineFallback(count: number): TriviaQuestion[] {
+function offlineFallback(count: number, avoid: string[] = []): TriviaQuestion[] {
 	const shuffled = [...FALLBACK_QUESTIONS].sort(() => Math.random() - 0.5);
-	return shuffled.slice(0, Math.min(count, shuffled.length)).map(shuffleOptions);
+	// Prefer unseen questions, but never return an empty quiz if the bank runs out.
+	let pool = shuffled;
+	if (avoid.length) {
+		const seen = new Set(avoid.map(normalizeText));
+		const fresh = shuffled.filter((q) => !seen.has(normalizeText(q.question)));
+		if (fresh.length) pool = fresh;
+	}
+	return pool.slice(0, Math.min(count, pool.length)).map(shuffleOptions);
 }
