@@ -21,6 +21,7 @@
 	let errorMsg = $state('');
 	let myChoice = $state<number | null>(null);
 	let answeredIndex = $state(-1);
+	let rematching = $state(false);
 	let now = $state(Date.now());
 
 	let clockOffset = 0; // serverNow - localNow
@@ -69,6 +70,11 @@
 			if (s.currentIndex !== seenIndex) {
 				seenIndex = s.currentIndex;
 				myChoice = null; // new question — clear my local pick
+			}
+			// Back in the lobby (fresh room or a rematch) — drop last round's local state.
+			if (s.status === 'lobby') {
+				answeredIndex = -1;
+				rematching = false;
 			}
 			party = s;
 		} catch {
@@ -125,6 +131,23 @@
 			await poll();
 		} catch {
 			/* poll will reconcile */
+		}
+	}
+
+	/** Host only: same room + players, brand-new quiz, scores reset → back to lobby. */
+	async function rematch() {
+		if (rematching) return;
+		rematching = true;
+		try {
+			const res = await fetch(`/api/trivia/party/${code}/rematch`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token })
+			});
+			if (!res.ok) throw new Error(`Error ${res.status}`);
+			await poll();
+		} catch {
+			rematching = false; // let the host retry
 		}
 	}
 
@@ -247,9 +270,16 @@
 		</div>
 		{@render standings(m.trivia_party_final())}
 		<div class="mt-4 flex gap-2.5">
-			<button onclick={() => goto('/trivia')} class="btn-primary kraft-radius flex-1 py-2.5 text-xl">{m.trivia_party_rematch()}</button>
+			{#if party.me.isHost}
+				<button onclick={rematch} disabled={rematching} class="btn-primary kraft-radius flex-1 py-2.5 text-xl disabled:opacity-60">
+					{rematching ? m.trivia_party_rematching() : m.trivia_party_rematch()}
+				</button>
+			{/if}
 			<button onclick={() => goto('/trivia')} class="btn-secondary kraft-radius flex-1 py-2.5 text-xl">{m.trivia_new_topic()}</button>
 		</div>
+		{#if !party.me.isHost}
+			<div class="mt-3 text-center text-sm text-muted">{m.trivia_party_rematch_wait()}</div>
+		{/if}
 	{/if}
 </trivia-party>
 
