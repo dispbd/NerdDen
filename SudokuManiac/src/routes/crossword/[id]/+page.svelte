@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import CrosswordBoard from '$lib/components/crossword/CrosswordBoard.svelte';
 	import ClueList from '$lib/components/crossword/ClueList.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 	import type { PageServerData } from './$types';
 	import type { CrosswordClue, Direction } from '$lib/games/crossword/types';
 
@@ -186,7 +187,7 @@
 			clearInterval(timerHandle!);
 		} else {
 			const body = await res.json().catch(() => ({}));
-			errorMsg = (body as { message?: string }).message ?? 'Check your answers and try again.';
+			errorMsg = (body as { message?: string }).message ?? m.cw_check_failed();
 		}
 		submitting = false;
 	}
@@ -225,8 +226,25 @@
 	/** Ask the Owl — surfaces a nudge for the active clue (AI hint is a future upgrade). */
 	function askOwl() {
 		owlNudge = activeClue
-			? `${activeClue.number} ${activeClue.direction} — “${activeClue.clue}” (${activeClue.length} letters).`
-			: 'Select a clue and I’ll give you a nudge.';
+			? m.cw_nudge_text({
+					number: activeClue.number,
+					direction: activeClue.direction === 'across' ? m.cw_across() : m.cw_down(),
+					clue: activeClue.clue,
+					length: activeClue.length
+				})
+			: m.cw_nudge_select();
+	}
+
+	/** Localized difficulty label. */
+	function diffLabel(d: string): string {
+		switch (d) {
+			case 'beginner': return m.difficulty_beginner();
+			case 'easy': return m.difficulty_easy();
+			case 'medium': return m.difficulty_medium();
+			case 'hard': return m.difficulty_hard();
+			case 'extreme': return m.difficulty_extreme();
+			default: return m.difficulty_expert();
+		}
 	}
 
 	// ─── Timer display ─────────────────────────────────────────────────────────
@@ -241,7 +259,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.title} — Crosswords</title>
+	<title>{data.title} — {m.game_crosswords()}</title>
 </svelte:head>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -250,14 +268,14 @@
 	<!-- header -->
 	<div class="flex items-center justify-between gap-3">
 		<div class="flex items-center gap-3 sm:gap-4">
-			<a href="/crossword" class="btn-secondary kraft-radius-sm px-3 py-1 text-lg no-underline">← <span class="hidden sm:inline">Library</span></a>
+			<a href="/crossword" class="btn-secondary kraft-radius-sm px-3 py-1 text-lg no-underline">← <span class="hidden sm:inline">{m.cw_library()}</span></a>
 			<div>
 				<h1 class="m-0 font-display text-xl leading-none font-bold text-ink">{data.title}</h1>
-				<div class="mt-0.5 text-[11px] font-medium text-muted capitalize">{data.difficulty} · {data.width}×{data.height} · {data.language.toUpperCase()}</div>
+				<div class="mt-0.5 text-[11px] font-medium text-muted">{diffLabel(data.difficulty)} · {data.width}×{data.height} · {data.language.toUpperCase()}</div>
 			</div>
 		</div>
 		<div class="flex items-center gap-1.5">
-			<span class="label-caps hidden sm:inline">Time</span>
+			<span class="label-caps hidden sm:inline">{m.cw_time()}</span>
 			<span class="font-hand text-2xl leading-none font-bold text-ink">{timerLabel()}</span>
 		</div>
 	</div>
@@ -265,22 +283,22 @@
 	{#if completed}
 		<div class="card-kraft mx-auto flex w-full max-w-md flex-col items-center gap-3 p-7 text-center" style="border-radius:22px 18px 20px 16px;box-shadow:4px 6px 0 rgba(50,44,36,.18)">
 			<div class="flex size-24 items-center justify-center rounded-[24px] border-[1.5px] border-ink bg-surface-2"><img src="/mascot-owl.png" alt="" class="size-20" /></div>
-			<div class="font-display text-3xl font-bold text-ink">All filled in!</div>
-			<div class="text-sm text-ink-soft">{data.title} · <span class="capitalize">{data.difficulty}</span> · {revealsLeft === 5 ? 'no reveals used' : `${5 - revealsLeft} reveals`}</div>
+			<div class="font-display text-3xl font-bold text-ink">{m.cw_all_filled()}</div>
+			<div class="text-sm text-ink-soft">{data.title} · {diffLabel(data.difficulty)} · {revealsLeft === 5 ? m.cw_no_reveals() : m.cw_reveals_used({ n: 5 - revealsLeft })}</div>
 			<div class="flex w-full gap-2.5">
-				<div class="flex-1 rounded-[12px] border-[1.5px] border-ink bg-surface-2 py-2.5"><div class="font-hand text-2xl leading-none font-bold text-ink">{timerLabel()}</div><div class="mt-0.5 text-[10px] text-muted">time</div></div>
-				<div class="flex-1 rounded-[12px] border-[1.5px] border-ink bg-surface-2 py-2.5"><div class="font-hand text-2xl leading-none font-bold text-terracotta">{revealsLeft}</div><div class="mt-0.5 text-[10px] text-muted">reveals left</div></div>
+				<div class="flex-1 rounded-[12px] border-[1.5px] border-ink bg-surface-2 py-2.5"><div class="font-hand text-2xl leading-none font-bold text-ink">{timerLabel()}</div><div class="mt-0.5 text-[10px] text-muted">{m.cw_time_label()}</div></div>
+				<div class="flex-1 rounded-[12px] border-[1.5px] border-ink bg-surface-2 py-2.5"><div class="font-hand text-2xl leading-none font-bold text-terracotta">{revealsLeft}</div><div class="mt-0.5 text-[10px] text-muted">{m.cw_reveals_left()}</div></div>
 			</div>
 			<div class="flex w-full gap-2.5">
-				<a href="/crossword" class="btn-primary kraft-radius flex-1 py-2.5 text-xl no-underline">New topic</a>
-				<a href="/crossword" class="btn-secondary kraft-radius flex-1 py-2.5 text-center text-xl no-underline">Library</a>
+				<a href="/crossword" class="btn-primary kraft-radius flex-1 py-2.5 text-xl no-underline">{m.cw_new_topic()}</a>
+				<a href="/crossword" class="btn-secondary kraft-radius flex-1 py-2.5 text-center text-xl no-underline">{m.cw_library()}</a>
 			</div>
 		</div>
 	{:else}
 		<!-- active clue banner -->
 		{#if activeClue}
 			<div class="flex w-max max-w-full items-center gap-3 rounded-[13px] bg-navy px-4 py-2.5">
-				<span class="font-hand text-xl leading-none font-bold whitespace-nowrap text-surface-2">{activeClue.number} {activeClue.direction === 'across' ? 'Across' : 'Down'}</span>
+				<span class="font-hand text-xl leading-none font-bold whitespace-nowrap text-surface-2">{activeClue.number} {activeClue.direction === 'across' ? m.cw_across() : m.cw_down()}</span>
 				<span class="h-5 w-px bg-[rgba(251,246,236,.4)]"></span>
 				<span class="text-sm text-surface-2">{activeClue.clue} ({activeClue.length})</span>
 			</div>
@@ -304,11 +322,11 @@
 				</board-wrap>
 				<div class="flex flex-wrap gap-2.5">
 					<button onclick={revealLetter} disabled={revealsLeft <= 0} class="btn-secondary kraft-radius-sm relative bg-surface px-4 py-2 text-lg disabled:opacity-50">
-						💡 Reveal letter
+						💡 {m.cw_reveal_letter()}
 						<span class="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-[1.5px] border-ink bg-mustard px-1 text-[11px] font-bold text-ink" style="font-family:var(--font-sans)">{revealsLeft}</span>
 					</button>
-					<button onclick={revealWord} disabled={revealsLeft <= 0} class="btn-secondary kraft-radius-sm bg-surface px-4 py-2 text-lg disabled:opacity-50">🔑 Reveal word</button>
-					<button onclick={askOwl} class="kraft-radius-sm border-[1.5px] border-ink bg-navy px-4 py-2 font-hand text-lg font-bold text-surface-2 shadow-btn-sm">🦉 Ask the Owl</button>
+					<button onclick={revealWord} disabled={revealsLeft <= 0} class="btn-secondary kraft-radius-sm bg-surface px-4 py-2 text-lg disabled:opacity-50">🔑 {m.cw_reveal_word()}</button>
+					<button onclick={askOwl} class="kraft-radius-sm border-[1.5px] border-ink bg-navy px-4 py-2 font-hand text-lg font-bold text-surface-2 shadow-btn-sm">🦉 {m.cw_ask_owl()}</button>
 				</div>
 			</div>
 
@@ -324,14 +342,14 @@
 				{#if owlNudge}
 					<div class="card-kraft flex items-start gap-3 p-4" style="border-radius:15px 12px 14px 11px">
 						<img src="/mascot-owl.png" alt="" class="size-11 flex-none" />
-						<div><div class="font-hand text-lg leading-none font-bold text-ink">Owl's nudge</div><div class="mt-1 text-[13px] text-ink-soft">{owlNudge}</div></div>
+						<div><div class="font-hand text-lg leading-none font-bold text-ink">{m.cw_owl_nudge()}</div><div class="mt-1 text-[13px] text-ink-soft">{owlNudge}</div></div>
 					</div>
 				{/if}
 
 				{#if errorMsg}<p class="m-0 text-sm text-terracotta-ink">{errorMsg}</p>{/if}
 				<div class="flex gap-2.5">
-					<button onclick={submit} disabled={submitting} class="btn-primary kraft-radius flex-1 py-2.5 text-xl disabled:opacity-60">{submitting ? 'Checking…' : 'Submit'}</button>
-					<button onclick={saveProgress} class="btn-secondary kraft-radius px-5 py-2.5 text-xl">Save</button>
+					<button onclick={submit} disabled={submitting} class="btn-primary kraft-radius flex-1 py-2.5 text-xl disabled:opacity-60">{submitting ? m.cw_checking() : m.cw_submit()}</button>
+					<button onclick={saveProgress} class="btn-secondary kraft-radius px-5 py-2.5 text-xl">{m.cw_save()}</button>
 				</div>
 			</div>
 		</div>
