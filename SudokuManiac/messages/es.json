@@ -234,6 +234,8 @@
 	"trivia_party_over": "Quiz terminado",
 	"trivia_party_correct_line": "{correct}/{total} correctas",
 	"trivia_party_rematch": "Revancha",
+	"trivia_party_rematching": "Creando un nuevo quiz…",
+	"trivia_party_rematch_wait": "El anfitrión puede empezar la revancha.",
 	"trivia_party_started": "El juego ya empezó — estás de espectador.",
 	"home_join_code": "Con código",
 	"home_new_room": "Nueva sala",
