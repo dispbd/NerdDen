@@ -57,9 +57,11 @@ export async function createSetWithQuestions(
 	topic: string,
 	language: string,
 	difficulty: string,
-	count: number
+	count: number,
+	/** Question texts to avoid — a rematch passes the previous round's questions. */
+	avoid: string[] = []
 ): Promise<{ setId: string; questionCount: number }> {
-	const questions = await generateTriviaQuestions(topic, language, difficulty, count);
+	const questions = await generateTriviaQuestions(topic, language, difficulty, count, avoid);
 	const title = `${topic.charAt(0).toUpperCase() + topic.slice(1)} Quiz`;
 
 	const [set] = await db

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import type { CrosswordClue, Direction } from '$lib/games/crossword/types';
 
 	interface Props {
@@ -46,6 +47,6 @@
 			</clue-list>
 		</clue-section>
 	{/snippet}
-	{@render section('Across', across)}
-	{@render section('Down', down)}
+	{@render section(m.cw_across(), across)}
+	{@render section(m.cw_down(), down)}
 </clue-panel>
