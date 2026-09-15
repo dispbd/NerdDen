@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { onMount, onDestroy } from 'svelte';
 	import { createAliasConnection } from '$lib/alias/connection.svelte';
 	import type { PageServerData } from './$types';
@@ -123,10 +124,22 @@
 		room.status === 'lobby' &&
 		room.teams.filter((t) => t.members.length >= 1).length >= 2
 	);
+
+	/** Localized difficulty label. */
+	function diffLabel(d: string): string {
+		switch (d) {
+			case 'beginner': return m.difficulty_beginner();
+			case 'easy': return m.difficulty_easy();
+			case 'medium': return m.difficulty_medium();
+			case 'hard': return m.difficulty_hard();
+			case 'extreme': return m.difficulty_extreme();
+			default: return m.difficulty_expert();
+		}
+	}
 </script>
 
 <svelte:head>
-	<title>{room.topic} — Hat / Alias</title>
+	<title>{room.topic} — {m.nav_hat_alias()}</title>
 </svelte:head>
 
 {#if errorMsg}
@@ -150,16 +163,16 @@
 <main class="mx-auto flex w-full max-w-3xl flex-col gap-5 px-1 py-4">
 	<div class="flex items-center gap-3">
 		<img src="/mascot-alias.png" alt="" class="size-8" />
-		<h1 class="m-0 text-2xl">Room lobby</h1>
+		<h1 class="m-0 text-2xl">{m.alias_lobby()}</h1>
 	</div>
 
 	<!-- room code -->
 	<div class="flex items-center justify-between rounded-[16px] bg-ink p-4">
 		<div>
-			<div class="text-[10px] font-semibold tracking-[.14em] text-[#b3a890] uppercase">Room code</div>
+			<div class="text-[10px] font-semibold tracking-[.14em] text-[#b3a890] uppercase">{m.alias_room_code()}</div>
 			<div class="font-hand text-3xl leading-none font-bold tracking-[3px] text-surface-2">{room.code}</div>
 		</div>
-		<button onclick={() => navigator.clipboard?.writeText(room.code)} class="kraft-radius-sm border-[1.5px] border-[#1c1813] bg-surface-2 px-3.5 py-1.5 font-hand text-base font-bold text-ink">Copy</button>
+		<button onclick={() => navigator.clipboard?.writeText(room.code)} class="kraft-radius-sm border-[1.5px] border-[#1c1813] bg-surface-2 px-3.5 py-1.5 font-hand text-base font-bold text-ink">{m.alias_copy()}</button>
 	</div>
 
 	<!-- teams -->
@@ -169,14 +182,14 @@
 				<div class="mb-3 flex items-center gap-2.5">
 					<span class="size-4 rounded-[5px] border-[1.5px] border-ink" style="background:{team.color}"></span>
 					<span class="font-display text-lg font-bold text-ink">{team.name}</span>
-					<span class="ml-auto text-xs font-medium text-muted">{team.members.length} players</span>
+					<span class="ml-auto text-xs font-medium text-muted">{m.alias_players({ n: team.members.length })}</span>
 				</div>
 				<div class="flex flex-wrap gap-2">
 					{#each team.members as member (member.id)}
 						<span class="rounded-full border-[1.5px] border-ink bg-surface-2 px-3 py-1 font-hand text-base font-bold text-ink">{member.userName}{member.userId === room.hostId ? ' ★' : ''}</span>
 					{/each}
 					{#if myTeam?.id !== team.id}
-						<button onclick={() => conn.joinTeam(team.id)} class="rounded-full border-[1.5px] border-dashed px-3.5 py-1 font-hand text-base font-bold" style="color:{team.color};border-color:{team.color}">+ Join</button>
+						<button onclick={() => conn.joinTeam(team.id)} class="rounded-full border-[1.5px] border-dashed px-3.5 py-1 font-hand text-base font-bold" style="color:{team.color};border-color:{team.color}">+ {m.alias_join()}</button>
 					{/if}
 				</div>
 			</div>
@@ -185,17 +198,17 @@
 
 	<!-- settings summary -->
 	<div class="flex flex-wrap gap-2">
-		{#each [`🎬 ${room.topic}`, room.difficulty, `⏱ ${room.turnDuration}s`, `🎩 ${room.wordCount} words`] as chip (chip)}
-			<span class="rounded-full border border-[#cdbfa6] bg-paper px-3 py-1.5 text-[11px] font-semibold text-ink-soft capitalize">{chip}</span>
+		{#each [`🎬 ${room.topic}`, diffLabel(room.difficulty), `⏱ ${room.turnDuration}s`, `🎩 ${m.alias_n_words({ n: room.wordCount })}`] as chip (chip)}
+			<span class="rounded-full border border-[#cdbfa6] bg-paper px-3 py-1.5 text-[11px] font-semibold text-ink-soft">{chip}</span>
 		{/each}
 	</div>
 
 	{#if isHost}
 		<button onclick={() => conn.startGame()} disabled={!canStart} class="btn-primary kraft-radius w-full py-3 text-2xl disabled:opacity-50">
-			{canStart ? 'Start game' : 'Waiting for players (min 2 teams)'}
+			{canStart ? m.alias_start() : m.alias_waiting_players()}
 		</button>
 	{:else}
-		<p class="m-0 text-center text-muted">Waiting for the host to start…</p>
+		<p class="m-0 text-center text-muted">{m.alias_waiting_host()}</p>
 	{/if}
 </main>
 
@@ -211,7 +224,7 @@
 				</div>
 				{@render ring(58, 5, '#c29a45', '#4a4236', turnDuration ? turnTimeLeft / turnDuration : 0, String(turnTimeLeft))}
 				<div class="text-right">
-					<div class="text-[10px] font-semibold tracking-[.1em] text-[#8a7f6b] uppercase">Left</div>
+					<div class="text-[10px] font-semibold tracking-[.1em] text-[#8a7f6b] uppercase">{m.alias_left()}</div>
 					<div class="font-hand text-2xl leading-none font-bold text-[#5f9670]">{wordsRemaining}</div>
 				</div>
 			</div>
@@ -219,35 +232,35 @@
 			<div class="flex flex-1 items-center justify-center py-6">
 				{#if currentWord}
 					<div class="flex w-full max-w-xs flex-col items-center justify-center rounded-[24px] border-[1.5px] border-[#1c1813] bg-surface-2 px-6 py-10 text-center shadow-[-6px_8px_0_rgba(0,0,0,.25)]">
-						<div class="mb-3.5 text-[11px] font-semibold tracking-[.16em] text-muted-2 uppercase">Explain this</div>
+						<div class="mb-3.5 text-[11px] font-semibold tracking-[.16em] text-muted-2 uppercase">{m.alias_explain_this()}</div>
 						<div class="font-display text-4xl leading-none font-bold text-ink">{currentWord}</div>
-						<div class="mt-3 font-hand text-lg font-bold text-muted">no rhymes · no parts of the word</div>
+						<div class="mt-3 font-hand text-lg font-bold text-muted">{m.alias_no_rhymes()}</div>
 					</div>
 				{:else}
-					<p class="text-lg text-[#8a7f6b]">Waiting for the next word…</p>
+					<p class="text-lg text-[#8a7f6b]">{m.alias_waiting_word()}</p>
 				{/if}
 			</div>
 
 			<div class="flex gap-3.5">
-				<button onclick={() => conn.wordResult('skip')} class="kraft-radius flex-1 border-[1.5px] border-[#1c1813] bg-[#b5462e] py-3 font-hand text-2xl font-bold text-surface-2 shadow-[2px_3px_0_rgba(0,0,0,.45)]">✕ Skip</button>
-				<button onclick={() => conn.wordResult('got_it')} class="kraft-radius flex-[1.3] border-[1.5px] border-[#1c1813] bg-forest py-3 font-hand text-2xl font-bold text-surface-2 shadow-[2px_3px_0_rgba(0,0,0,.45)]">✓ Got it</button>
+				<button onclick={() => conn.wordResult('skip')} class="kraft-radius flex-1 border-[1.5px] border-[#1c1813] bg-[#b5462e] py-3 font-hand text-2xl font-bold text-surface-2 shadow-[2px_3px_0_rgba(0,0,0,.45)]">✕ {m.alias_skip()}</button>
+				<button onclick={() => conn.wordResult('got_it')} class="kraft-radius flex-[1.3] border-[1.5px] border-[#1c1813] bg-forest py-3 font-hand text-2xl font-bold text-surface-2 shadow-[2px_3px_0_rgba(0,0,0,.45)]">✓ {m.alias_got_it()}</button>
 			</div>
-			<div class="mt-3.5 text-center text-[11px] text-[#8a7f6b]">{wordsRemaining} words left in the hat</div>
+			<div class="mt-3.5 text-center text-[11px] text-[#8a7f6b]">{m.alias_words_left_hat({ n: wordsRemaining })}</div>
 		</main>
 	{:else}
 		<!-- Guessers -->
 		<main class="mx-auto flex w-full max-w-sm flex-col items-center gap-4 px-4 py-8 text-center">
 			<div class="flex items-center gap-2">
 				<span class="size-3 rounded-[5px] border-[1.5px] border-ink" style="background:{currentTeam?.color ?? '#c2724f'}"></span>
-				<span class="font-display text-lg font-bold text-ink">{currentTeam?.name ?? '—'} — guess!</span>
+				<span class="font-display text-lg font-bold text-ink">{m.alias_guess({ team: currentTeam?.name ?? '—' })}</span>
 			</div>
 			<div class="flex size-28 items-center justify-center rounded-full border-[1.5px] border-ink bg-surface-2"><img src="/sudoku-maniac.webp" alt="" class="size-16" style="image-rendering:pixelated" /></div>
-			<div class="font-display text-2xl leading-tight font-bold text-ink">{speakerName || 'Speaker'} is explaining</div>
-			<div class="text-sm text-ink-soft">Shout your guesses out loud!</div>
+			<div class="font-display text-2xl leading-tight font-bold text-ink">{m.alias_is_explaining({ name: speakerName || m.alias_speaker() })}</div>
+			<div class="text-sm text-ink-soft">{m.alias_shout()}</div>
 			<div class="text-ink">{@render ring(150, 9, '#c2724f', '#ddd3bf', turnDuration ? turnTimeLeft / turnDuration : 0, timerLabel)}</div>
 			<div class="flex w-full gap-3">
-				<div class="flex-1 rounded-[13px] border-[1.5px] border-ink bg-surface py-3"><div class="font-hand text-3xl leading-none font-bold text-forest">{(currentTeam?.score ?? 0)}</div><div class="mt-1 text-[11px] text-muted">team score</div></div>
-				<div class="flex-1 rounded-[13px] border-[1.5px] border-ink bg-surface py-3"><div class="font-hand text-3xl leading-none font-bold text-ink">{wordsRemaining}</div><div class="mt-1 text-[11px] text-muted">words left</div></div>
+				<div class="flex-1 rounded-[13px] border-[1.5px] border-ink bg-surface py-3"><div class="font-hand text-3xl leading-none font-bold text-forest">{(currentTeam?.score ?? 0)}</div><div class="mt-1 text-[11px] text-muted">{m.alias_team_score()}</div></div>
+				<div class="flex-1 rounded-[13px] border-[1.5px] border-ink bg-surface py-3"><div class="font-hand text-3xl leading-none font-bold text-ink">{wordsRemaining}</div><div class="mt-1 text-[11px] text-muted">{m.alias_words_left()}</div></div>
 			</div>
 		</main>
 	{/if}
@@ -257,7 +270,7 @@
 <main class="mx-auto flex w-full max-w-md flex-col items-center gap-4 px-4 py-10 text-center">
 	<div class="text-3xl">🏆</div>
 	<div class="flex size-28 items-center justify-center rounded-[26px] border-[1.5px] border-ink bg-surface-2"><img src="/mascot-alias.png" alt="" class="size-24" /></div>
-	<div class="font-display text-3xl font-bold text-ink">{winner} win!</div>
+	<div class="font-display text-3xl font-bold text-ink">{m.alias_wins({ team: winner })}</div>
 	<div class="flex w-full flex-col gap-2.5">
 		{#each standings as team, i (team.teamId)}
 			<div class="flex items-center gap-3 rounded-[12px] border-[1.5px] px-4 py-3 {i === 0 ? 'border-terracotta bg-[rgba(194,114,79,.16)]' : 'border-ink bg-surface'}">
@@ -268,8 +281,8 @@
 		{/each}
 	</div>
 	<div class="flex w-full gap-2.5">
-		<a href="/alias" class="btn-primary kraft-radius flex-1 py-2.5 text-center text-xl no-underline">Rematch</a>
-		<a href="/alias" class="btn-secondary kraft-radius flex-1 py-2.5 text-center text-xl no-underline">New room</a>
+		<a href="/alias" class="btn-primary kraft-radius flex-1 py-2.5 text-center text-xl no-underline">{m.alias_rematch()}</a>
+		<a href="/alias" class="btn-secondary kraft-radius flex-1 py-2.5 text-center text-xl no-underline">{m.alias_new_room_btn()}</a>
 	</div>
 </main>
 {/if}
