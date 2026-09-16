@@ -15,33 +15,16 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { aliasRooms, aliasTeamMembers, aliasTeams } from '$lib/server/db/schema';
 import { getRoomWithTeams, joinTeam, startGame, startTurn, recordWordResult, endTurn } from './rooms';
-import type { AliasRoom, GameState, Team, TeamMember, WordResult } from '$lib/alias/protocol';
+import type {
+	AliasPlayState,
+	AliasRoom,
+	GameState,
+	Team,
+	TeamMember,
+	WordResult
+} from '$lib/alias/protocol';
 
-/** Role-aware snapshot handed to a polling client. */
-export interface AliasPlayState {
-	id: string;
-	code: string;
-	status: 'lobby' | 'playing' | 'finished';
-	topic: string;
-	difficulty: string;
-	language: string;
-	turnDuration: number;
-	teams: Team[];
-	/** Server clock (ms epoch) so clients can correct for skew */
-	serverNow: number;
-	/** When the current turn expires (ms epoch), or null outside a turn */
-	turnEndsAt: number | null;
-	currentTeamId: string | null;
-	speakerName: string | null;
-	/** True when the polling client is the current speaker */
-	speakerIsMe: boolean;
-	wordsRemaining: number;
-	/** The word to explain — sent ONLY to the current speaker */
-	currentWord: string | null;
-	/** Results recorded so far in the current turn (everyone sees these) */
-	turnResults: GameState['turnResults'];
-	me: { joined: boolean; isHost: boolean; teamId: string | null };
-}
+export type { AliasPlayState };
 
 type RoomRow = { gameState: unknown; turnEndsAt: Date | null };
 
@@ -155,11 +138,13 @@ export async function getAliasState(
 	return {
 		id: room.id,
 		code: room.code,
+		hostId: room.hostId,
 		status: room.status,
 		topic: room.topic,
 		difficulty: room.difficulty,
 		language: room.language,
 		turnDuration: room.turnDuration,
+		wordCount: room.wordCount,
 		teams: room.teams,
 		serverNow: Date.now(),
 		turnEndsAt: turnEndsAt?.getTime() ?? null,
