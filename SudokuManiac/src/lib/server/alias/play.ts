@@ -11,9 +11,9 @@
  * endTurn) are reused as-is; only storage and turn expiry changed.
  */
 
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { aliasRooms, aliasTeamMembers } from '$lib/server/db/schema';
+import { aliasRooms, aliasTeamMembers, aliasTeams } from '$lib/server/db/schema';
 import { getRoomWithTeams, joinTeam, startGame, startTurn, recordWordResult, endTurn } from './rooms';
 import type { AliasRoom, GameState, Team, TeamMember, WordResult } from '$lib/alias/protocol';
 
@@ -57,21 +57,36 @@ async function persist(roomId: string, state: GameState | null, turnEndsAt: Date
 	await db.update(aliasRooms).set({ gameState: state, turnEndsAt }).where(eq(aliasRooms.id, roomId));
 }
 
-/** The member acting for this request (token first, signed-in user as fallback). */
-function findMe(room: AliasRoom, token: string | null, userId: string | null): TeamMember | null {
-	for (const team of room.teams) {
-		for (const member of team.members) {
-			const m = member as TeamMember & { token?: string | null };
-			if (token && m.token === token) return member;
-			if (!token && userId && member.userId === userId) return member;
-		}
+/**
+ * The member acting for this request (token first, signed-in user as fallback).
+ * Resolved straight from the DB on purpose: member tokens must never travel to
+ * clients inside the room payload, or any player could impersonate the speaker.
+ */
+async function findMe(
+	roomId: string,
+	token: string | null,
+	userId: string | null
+): Promise<{ id: string; userId: string | null } | null> {
+	if (token) {
+		const [row] = await db
+			.select({ id: aliasTeamMembers.id, userId: aliasTeamMembers.userId })
+			.from(aliasTeamMembers)
+			.where(and(eq(aliasTeamMembers.roomId, roomId), eq(aliasTeamMembers.token, token)));
+		if (row) return row;
+	}
+	if (userId) {
+		const [row] = await db
+			.select({ id: aliasTeamMembers.id, userId: aliasTeamMembers.userId })
+			.from(aliasTeamMembers)
+			.where(and(eq(aliasTeamMembers.roomId, roomId), eq(aliasTeamMembers.userId, userId)));
+		return row ?? null;
 	}
 	return null;
 }
 
-function teamOf(room: AliasRoom, member: TeamMember | null): Team | null {
-	if (!member) return null;
-	return room.teams.find((t) => t.members.some((m) => m.id === member.id)) ?? null;
+function teamOf(room: AliasRoom, memberId: string | null): Team | null {
+	if (!memberId) return null;
+	return room.teams.find((t) => t.members.some((m) => m.id === memberId)) ?? null;
 }
 
 /** Whose turn it is to speak, given the current state. */
@@ -130,8 +145,8 @@ export async function getAliasState(
 	if (!loaded) return null;
 	const { room, state, turnEndsAt } = loaded;
 
-	const me = findMe(room, token, userId);
-	const myTeam = teamOf(room, me);
+	const me = await findMe(room.id, token, userId);
+	const myTeam = teamOf(room, me?.id ?? null);
 	const { team, speaker } = state
 		? speakerOf(room, state)
 		: { team: null, speaker: null };
@@ -154,7 +169,13 @@ export async function getAliasState(
 		wordsRemaining: state ? state.hat.length + (state.currentWord ? 1 : 0) : 0,
 		currentWord: speakerIsMe ? (state?.currentWord?.word ?? null) : null,
 		turnResults: state?.turnResults ?? [],
-		me: { joined: !!me, isHost: !!me && room.hostId === me.userId, teamId: myTeam?.id ?? null }
+		// isHost mirrors exactly who startAliasGame will accept: the room's host,
+		// or any player when the room was opened by a guest (hostId is null).
+		me: {
+			joined: !!me,
+			isHost: !!me && (room.hostId === null || room.hostId === me.userId),
+			teamId: myTeam?.id ?? null
+		}
 	};
 }
 
@@ -172,7 +193,7 @@ export async function joinAliasTeam(
 	if (!room.teams.some((t) => t.id === teamId)) return { error: 'no_team' };
 
 	// Drop any previous membership held by this token (team switching).
-	const existing = findMe(room, token, null);
+	const existing = await findMe(roomId, token, null);
 	if (existing) await db.delete(aliasTeamMembers).where(eq(aliasTeamMembers.id, existing.id));
 
 	const member = await joinTeam(roomId, teamId, userId, userName.slice(0, 24) || 'Player');
@@ -193,7 +214,7 @@ export async function startAliasGame(
 	if (!room) return { error: 'not_found' };
 	if (room.status !== 'lobby') return { error: 'already_started' };
 
-	const me = findMe(room, token, userId);
+	const me = await findMe(room.id, token, userId);
 	if (!me) return { error: 'not_a_player' };
 	// A guest-hosted room has no hostId, so any player may start it.
 	if (room.hostId && room.hostId !== me.userId) return { error: 'not_host' };
@@ -219,11 +240,17 @@ export async function submitWordResult(
 	let { turnEndsAt } = loaded;
 	if (!state || room.status !== 'playing') return { error: 'not_playing' };
 
-	const me = findMe(room, token, userId);
-	const { speaker } = speakerOf(room, state);
+	const me = await findMe(room.id, token, userId);
+	const { team, speaker } = speakerOf(room, state);
 	if (!me || !speaker || me.id !== speaker.id) return { error: 'not_speaker' };
 
-	const { next } = recordWordResult(state, room.teams, result);
+	const { next, teamScore } = recordWordResult(state, room.teams, result);
+
+	// recordWordResult increments the score on the Team object, which is rebuilt on
+	// every request — persist it or the point is lost when this handler returns.
+	if (team) {
+		await db.update(aliasTeams).set({ score: teamScore }).where(eq(aliasTeams.id, team.id));
+	}
 
 	if (!next) {
 		// Hat is empty — the turn (and possibly the game) ends right away.
