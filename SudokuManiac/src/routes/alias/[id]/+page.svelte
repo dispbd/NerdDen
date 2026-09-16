@@ -1,128 +1,75 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { createAliasConnection } from '$lib/alias/connection.svelte';
+	import { createAliasPolling } from '$lib/alias/polling.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 	import type { PageServerData } from './$types';
-	import type {
-		AliasRoom,
-		AliasGameStarted,
-		AliasTurnStarted,
-		AliasNextWord,
-		AliasTurnEnded,
-		AliasGameEnded
-	} from '$lib/alias/protocol';
 
 	let { data }: { data: PageServerData } = $props();
 
-	// ─── View state ────────────────────────────────────────────────────────────
+	const conn = createAliasPolling();
+
+	onMount(() => conn.connect(data.room.id));
+	onDestroy(() => conn.disconnect());
+
+	// Everything below is derived from the polled snapshot; the server-loaded room
+	// is only a placeholder for the first paint before the first poll lands.
+	const play = $derived(conn.state);
+	const room = $derived(play ?? data.room);
 
 	type View = 'lobby' | 'game' | 'results';
-	let view = $state<View>('lobby');
-
-	// Game state
-	let currentWord = $state<string | null>(null);
-	let currentWordId = $state<string | null>(null);
-	let isSpeaker = $state(false);
-	let speakerName = $state('');
-	let currentTeamId = $state<string | null>(null);
-	let wordsRemaining = $state(0);
-	let turnTimeLeft = $state(0);
-	let turnDuration = $derived(data.room.turnDuration);
-	let timerHandle: ReturnType<typeof setInterval> | null = null;
-	let lastTurnResults = $state<{ teamId: string; wordsGuessed: number; scores: { teamId: string; score: number }[] } | null>(null);
-	let standings = $state<{ teamId: string; name: string; score: number }[]>([]);
-	let winner = $state('');
-	let errorMsg = $state('');
-
-	// ─── WS connection ─────────────────────────────────────────────────────────
-
-	const conn = createAliasConnection({
-		onRoomState: (_room: AliasRoom) => {
-			// room is reactive via conn.state.room
-		},
-		onGameStarted: (e: AliasGameStarted) => {
-			view = 'game';
-			wordsRemaining = e.wordsInHat;
-			currentTeamId = e.firstTeamId;
-		},
-		onTurnStarted: (e: AliasTurnStarted) => {
-			currentTeamId = e.teamId;
-			speakerName = e.speakerName;
-			isSpeaker = e.speakerId === data.currentUserId;
-			wordsRemaining = e.wordsRemaining;
-			turnDuration = e.turnDuration;
-			startTimer(e.turnDuration);
-			if (!isSpeaker) currentWord = null;
-		},
-		onNextWord: (e: AliasNextWord) => {
-			currentWord = e.word;
-			currentWordId = e.wordId;
-		},
-		onWordResult: (e) => {
-			wordsRemaining = e.wordsRemaining;
-		},
-		onTurnEnded: (e: AliasTurnEnded) => {
-			clearTimer();
-			lastTurnResults = { teamId: e.teamId, wordsGuessed: e.wordsGuessed, scores: e.scores };
-			currentWord = null;
-			isSpeaker = false;
-		},
-		onGameEnded: (e: AliasGameEnded) => {
-			clearTimer();
-			standings = e.standings;
-			winner = e.winner;
-			view = 'results';
-		},
-		onError: (msg: string) => {
-			errorMsg = msg;
-			setTimeout(() => (errorMsg = ''), 4000);
-		}
-	});
-
-	// ─── Timer ─────────────────────────────────────────────────────────────────
-
-	function startTimer(duration: number) {
-		clearTimer();
-		turnTimeLeft = duration;
-		timerHandle = setInterval(() => {
-			if (turnTimeLeft > 0) turnTimeLeft--;
-		}, 1000);
-	}
-
-	function clearTimer() {
-		if (timerHandle) {
-			clearInterval(timerHandle);
-			timerHandle = null;
-		}
-	}
-
-	const timerLabel = $derived(
-		`${Math.floor(turnTimeLeft / 60).toString().padStart(2, '0')}:${(turnTimeLeft % 60).toString().padStart(2, '0')}`
+	const view = $derived<View>(
+		room.status === 'lobby' ? 'lobby' : room.status === 'finished' ? 'results' : 'game'
 	);
 
-	// ─── Lifecycle ─────────────────────────────────────────────────────────────
+	const isHost = $derived(play?.me.isHost ?? room.hostId === data.currentUserId);
+	const isSpeaker = $derived(play?.speakerIsMe ?? false);
+	const currentWord = $derived(play?.currentWord ?? null);
+	const speakerName = $derived(play?.speakerName ?? '');
+	const currentTeamId = $derived(play?.currentTeamId ?? null);
+	const wordsRemaining = $derived(play?.wordsRemaining ?? 0);
+	const turnDuration = $derived(room.turnDuration);
+	const turnTimeLeft = $derived(conn.turnTimeLeft);
+	const errorMsg = $derived(conn.error);
 
-	onMount(() => {
-		conn.connect(data.room.id);
-	});
-
-	onDestroy(() => {
-		conn.disconnect();
-		clearTimer();
-	});
-
-	// ─── Helpers ───────────────────────────────────────────────────────────────
-
-	const room = $derived(conn.state.room ?? data.room);
-	const isHost = $derived(room.hostId === data.currentUserId);
 	const currentTeam = $derived(room.teams.find((t) => t.id === currentTeamId));
 	const myTeam = $derived(
-		room.teams.find((t) => t.members.some((m) => m.userId === data.currentUserId))
+		play
+			? room.teams.find((t) => t.id === play.me.teamId)
+			: room.teams.find((t) => t.members.some((mm) => mm.userId === data.currentUserId))
 	);
 	const canStart = $derived(
-		isHost &&
-		room.status === 'lobby' &&
-		room.teams.filter((t) => t.members.length >= 1).length >= 2
+		isHost && room.status === 'lobby' && room.teams.filter((t) => t.members.length >= 1).length >= 2
 	);
+
+	const standings = $derived(
+		[...room.teams]
+			.sort((a, b) => b.score - a.score)
+			.map((t) => ({ teamId: t.id, name: t.name, score: t.score }))
+	);
+	const winner = $derived(standings[0]?.name ?? '');
+
+	const timerLabel = $derived(
+		`${Math.floor(turnTimeLeft / 60)
+			.toString()
+			.padStart(2, '0')}:${(turnTimeLeft % 60).toString().padStart(2, '0')}`
+	);
+
+	/** Display name used when taking a seat (guests may override it locally). */
+	function playerName(): string {
+		return localStorage.getItem('alias_player_name') || data.currentUserName || 'Player';
+	}
+
+	/** Localized difficulty label. */
+	function diffLabel(d: string): string {
+		switch (d) {
+			case 'beginner': return m.difficulty_beginner();
+			case 'easy': return m.difficulty_easy();
+			case 'medium': return m.difficulty_medium();
+			case 'hard': return m.difficulty_hard();
+			case 'extreme': return m.difficulty_extreme();
+			default: return m.difficulty_expert();
+		}
+	}
 </script>
 
 <svelte:head>
@@ -176,7 +123,7 @@
 						<span class="rounded-full border-[1.5px] border-ink bg-surface-2 px-3 py-1 font-hand text-base font-bold text-ink">{member.userName}{member.userId === room.hostId ? ' ★' : ''}</span>
 					{/each}
 					{#if myTeam?.id !== team.id}
-						<button onclick={() => conn.joinTeam(team.id)} class="rounded-full border-[1.5px] border-dashed px-3.5 py-1 font-hand text-base font-bold" style="color:{team.color};border-color:{team.color}">+ Join</button>
+						<button onclick={() => conn.joinTeam(team.id, playerName())} class="rounded-full border-[1.5px] border-dashed px-3.5 py-1 font-hand text-base font-bold" style="color:{team.color};border-color:{team.color}">+ Join</button>
 					{/if}
 				</div>
 			</div>
