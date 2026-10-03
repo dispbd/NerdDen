@@ -48,7 +48,7 @@ Return ONLY a JSON object, no markdown, in exactly this shape: { "words": ["word
 
 	let words: string[];
 	try {
-		const { text } = await runAi((model) => generateText({ model, prompt }));
+		const { text } = await runAi((model, call) => generateText({ model, prompt, ...call }));
 		const data = parseJsonFromText(text) as { words?: unknown[] };
 		words = Array.isArray(data.words) ? data.words.map((w) => String(w)) : [];
 	} catch (e) {
