@@ -12,6 +12,7 @@ import {
 	cleanGrid,
 	componentSizes,
 	despeckle,
+	gradeDifficulty,
 	lineIsFree,
 	prepareCandidate,
 	repairWithReveals
@@ -221,5 +222,15 @@ describe('prepareCandidate', () => {
 		for (let y = 0; y < 10; y += 2) for (let x = 0; x < 10; x += 2) confetti[y][x] = 1;
 		const res = prepareCandidate(confetti);
 		expect(res.ok).toBe(false);
+	});
+});
+
+describe('gradeDifficulty', () => {
+	it('uses per-size bands — the same depth is easier on a bigger board', () => {
+		expect(gradeDifficulty(2, 10)).toBe('easy');
+		expect(gradeDifficulty(4, 10)).toBe('medium');
+		expect(gradeDifficulty(7, 10)).toBe('hard');
+		expect(gradeDifficulty(4, 5)).toBe('medium');
+		expect(gradeDifficulty(4, 15)).toBe('easy');
 	});
 });

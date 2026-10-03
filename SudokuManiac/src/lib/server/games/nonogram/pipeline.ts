@@ -14,24 +14,16 @@ import {
 	UNKNOWN,
 	computeClues,
 	propagate,
+	solveDepth,
 	type CellState,
 	type Clue,
 	type Grid,
 	type PropagationResult
 } from '$lib/games/nonogram/solver';
+import type { NonogramDifficulty, Reveal } from '$lib/games/nonogram/types';
 
-/**
- * A cell revealed to the player before they start. Tri-state on purpose: when
- * propagation stalls, the revealed cell is EMPTY about half the time, and dropping
- * those would ship a puzzle that is not uniquely solvable from its own data.
- */
-export interface Reveal {
-	x: number;
-	y: number;
-	state: 'filled' | 'empty';
-}
-
-export type Difficulty = 'easy' | 'medium' | 'hard';
+export type { Reveal };
+export type Difficulty = NonogramDifficulty;
 
 export interface Puzzle {
 	grid: Grid;
@@ -39,7 +31,7 @@ export interface Puzzle {
 	colClues: Clue[];
 	reveals: Reveal[];
 	difficulty: Difficulty;
-	stats: { sweeps: number; firstSweepDetermined: number; cellsChanged: number };
+	stats: { depth: number; firstRoundCoverage: number; sweeps: number; cellsChanged: number };
 }
 
 export type Rejection =
@@ -260,17 +252,35 @@ function pickRevealCell(state: CellState[][]): { x: number; y: number } {
 	return best;
 }
 
-/** Map propagation effort to a difficulty band. Thresholds are tuned in N2 on real art. */
-export function gradeDifficulty(sweeps: number): Difficulty {
-	if (sweeps <= 3) return 'easy';
-	if (sweeps <= 5) return 'medium';
+/**
+ * Map solve depth (see `solveDepth`) to a difficulty band, per board size — bigger
+ * boards naturally take more rounds. Calibrated on the curated bank so that every
+ * size has pictures in every band (asserted in curated.test.ts).
+ */
+const DEPTH_BANDS: Record<number, { easyMax: number; mediumMax: number }> = {
+	5: { easyMax: 3, mediumMax: 4 },
+	10: { easyMax: 3, mediumMax: 5 },
+	15: { easyMax: 4, mediumMax: 5 }
+};
+
+export function gradeDifficulty(depth: number, size: number): Difficulty {
+	const bands = DEPTH_BANDS[size] ?? DEPTH_BANDS[15];
+	if (depth <= bands.easyMax) return 'easy';
+	if (depth <= bands.mediumMax) return 'medium';
 	return 'hard';
+}
+
+/** Solve depth of a puzzle as it ships: clues plus its reveals. */
+export function depthOf(grid: Grid, rowClues: Clue[], colClues: Clue[], reveals: Reveal[]) {
+	const initial: CellState[][] = grid.map((row) => row.map(() => UNKNOWN));
+	for (const r of reveals) initial[r.y][r.x] = r.state === 'filled' ? FILLED : EMPTY;
+	return solveDepth(rowClues, colClues, initial);
 }
 
 /**
  * Turn a drawn grid into a shippable puzzle, or say why not.
- * Puzzles solved within the first sweep need no cross-line reasoning at all and are
- * rejected as trivial alongside the free-line gate.
+ * A puzzle the first synchronous round solves outright needs no cross-line reasoning
+ * at all and is rejected as trivial, alongside the free-line gate.
  */
 export function prepareCandidate(
 	raw: Grid,
@@ -287,7 +297,8 @@ export function prepareCandidate(
 	const repaired = repairWithReveals(clean.grid, rowClues, colClues, opts.maxReveals ?? 3);
 	if (!repaired) return { ok: false, reason: 'unsolvable_without_guessing' };
 	const { reveals, result } = repaired;
-	if (result.sweeps <= 1 && reveals.length === 0) return { ok: false, reason: 'trivial' };
+	const depth = depthOf(clean.grid, rowClues, colClues, reveals);
+	if (depth.rounds <= 1 && reveals.length === 0) return { ok: false, reason: 'trivial' };
 
 	return {
 		ok: true,
@@ -296,10 +307,11 @@ export function prepareCandidate(
 			rowClues,
 			colClues,
 			reveals,
-			difficulty: gradeDifficulty(result.sweeps),
+			difficulty: gradeDifficulty(depth.rounds, n),
 			stats: {
+				depth: depth.rounds,
+				firstRoundCoverage: depth.firstRoundCoverage,
 				sweeps: result.sweeps,
-				firstSweepDetermined: result.firstSweepDetermined,
 				cellsChanged: clean.cellsChanged
 			}
 		}

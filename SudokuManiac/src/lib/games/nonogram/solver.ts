@@ -221,6 +221,57 @@ function countDetermined(state: readonly (readonly CellState[])[]): number {
 	return n;
 }
 
+export interface SolveDepth {
+	/** Synchronous rounds that made progress before the fixpoint. */
+	rounds: number;
+	/** Share of cells (0–1) determined by the first round alone. */
+	firstRoundCoverage: number;
+	state: CellState[][];
+}
+
+/**
+ * How many layers of cross-line deduction a puzzle needs — the difficulty metric.
+ *
+ * Each round solves every line against the state as it was at the start of the
+ * round. `propagate`'s sweep count can't serve here: within a sweep later lines build
+ * on earlier ones, which compresses the reasoning chain (measured on the curated
+ * bank, sweeps barely spread 2–6 across very different pictures). Same fixpoint as
+ * `propagate` — the operator is monotone — so this says nothing new about uniqueness.
+ */
+export function solveDepth(
+	rowClues: readonly Clue[],
+	colClues: readonly Clue[],
+	initial?: readonly (readonly CellState[])[]
+): SolveDepth {
+	const h = rowClues.length;
+	const w = colClues.length;
+	let state: CellState[][] = Array.from({ length: h }, (_, y) =>
+		Array.from({ length: w }, (_, x) => (initial ? initial[y][x] : UNKNOWN))
+	);
+	let rounds = 0;
+	let firstRoundCoverage = 0;
+	for (;;) {
+		const next = state.map((row) => row.slice());
+		for (let y = 0; y < h; y++) {
+			const res = solveLine(state[y], rowClues[y]);
+			if (res.ok) res.line.forEach((v, x) => v !== UNKNOWN && (next[y][x] = v));
+		}
+		for (let x = 0; x < w; x++) {
+			const res = solveLine(
+				state.map((row) => row[x]),
+				colClues[x]
+			);
+			if (res.ok) res.line.forEach((v, y) => v !== UNKNOWN && (next[y][x] = v));
+		}
+		const changed = next.some((row, y) => row.some((v, x) => v !== state[y][x]));
+		state = next;
+		if (!changed) break;
+		rounds++;
+		if (rounds === 1) firstRoundCoverage = countDetermined(state) / (h * w || 1);
+	}
+	return { rounds, firstRoundCoverage, state };
+}
+
 /** Does the player's line satisfy its clue exactly? Drives gutter dimming in the UI. */
 export function lineSatisfies(filled: readonly boolean[], clue: readonly number[]): boolean {
 	const runs = cluesOf(filled.map((f) => (f ? 1 : 0)));

@@ -7,6 +7,7 @@ import {
 	computeClues,
 	lineSatisfies,
 	propagate,
+	solveDepth,
 	solveLine,
 	type CellState,
 	type Grid
@@ -265,5 +266,43 @@ describe('lineSatisfies', () => {
 		expect(lineSatisfies([true, true, false, true], [2, 1])).toBe(true);
 		expect(lineSatisfies([true, true, true, false], [2, 1])).toBe(false);
 		expect(lineSatisfies([false, false], [])).toBe(true);
+	});
+});
+
+describe('solveDepth', () => {
+	it('reaches the same fixpoint as propagate', () => {
+		const rand = rng(31);
+		for (let t = 0; t < 200; t++) {
+			const n = 5 + Math.floor(rand() * 6);
+			const { rowClues, colClues } = computeClues(randomGrid(rand, n, 0.5));
+			expect(solveDepth(rowClues, colClues).state).toEqual(propagate(rowClues, colClues).state);
+		}
+	});
+
+	it('needs one round when every line is fixed by its own clue', () => {
+		const { rowClues, colClues } = computeClues([
+			[1, 1, 1],
+			[0, 0, 0],
+			[1, 1, 1]
+		]);
+		const d = solveDepth(rowClues, colClues);
+		expect(d.rounds).toBe(1);
+		expect(d.firstRoundCoverage).toBe(1);
+	});
+
+	it('counts multi-round chains on puzzles propagation can solve', () => {
+		const rand = rng(41);
+		let solved = 0;
+		let deepest = 0;
+		for (let t = 0; t < 300; t++) {
+			const { rowClues, colClues } = computeClues(randomGrid(rand, 8, 0.55));
+			if (propagate(rowClues, colClues).status !== 'solved') continue;
+			solved++;
+			const { rounds } = solveDepth(rowClues, colClues);
+			expect(rounds).toBeGreaterThanOrEqual(1);
+			deepest = Math.max(deepest, rounds);
+		}
+		expect(solved).toBeGreaterThan(10);
+		expect(deepest).toBeGreaterThanOrEqual(3);
 	});
 });
