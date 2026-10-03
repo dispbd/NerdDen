@@ -250,7 +250,7 @@ export function solveDepth(
 	let state: CellState[][] = Array.from({ length: h }, (_, y) =>
 		Array.from({ length: w }, (_, x) => (initial ? initial[y][x] : UNKNOWN))
 	);
-	const roundOf = state.map((row) => row.map((c) => (c === UNKNOWN ? -1 : 0)));
+	const roundOf: number[][] = state.map((row) => row.map((c) => (c === UNKNOWN ? -1 : 0)));
 	let rounds = 0;
 	let firstRoundCoverage = 0;
 	for (;;) {
