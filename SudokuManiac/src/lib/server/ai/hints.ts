@@ -30,7 +30,12 @@ Point out which row/column/box to focus on and why. Do NOT reveal more than one 
 export async function getAiHint(puzzle: Grid, playerGrid: Grid): Promise<string> {
 	const { text } = await runAi(
 		(model, call) =>
-			generateText({ model, prompt: buildPrompt(puzzle, playerGrid), maxOutputTokens: 150, ...call }),
+			generateText({
+				model,
+				prompt: buildPrompt(puzzle, playerGrid),
+				maxOutputTokens: 150,
+				...call
+			}),
 		// The player is waiting on a button press — fail fast rather than use the default budget.
 		{ deadlineMs: 10_000, attemptMs: 6_000 }
 	);
