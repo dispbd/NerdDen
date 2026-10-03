@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { m } from '$lib/paraglide/messages.js';
 	import type { PageServerData } from './$types';
 
 	let { data }: { data: PageServerData } = $props();
@@ -21,18 +22,18 @@
 	// Client-side library filters (visual + local filtering on the loaded list).
 	let filterDiff = $state<'all' | 'easy' | 'medium' | 'expert'>('all');
 
-	const DIFFS: { id: 'easy' | 'medium' | 'expert'; label: string; hint: string }[] = [
-		{ id: 'easy', label: 'Easy', hint: 'Simple, direct definitions' },
-		{ id: 'medium', label: 'Medium', hint: 'Definitions + gentle wordplay' },
-		{ id: 'expert', label: 'Expert', hint: 'Cryptic clue conventions' }
-	];
+	const DIFFS = $derived<{ id: 'easy' | 'medium' | 'expert'; label: string; hint: string }[]>([
+		{ id: 'easy', label: m.difficulty_easy(), hint: m.cw_hint_easy() },
+		{ id: 'medium', label: m.difficulty_medium(), hint: m.cw_hint_medium() },
+		{ id: 'expert', label: m.difficulty_expert(), hint: m.cw_hint_expert() }
+	]);
 	const LANGS = [
 		{ id: 'en', label: 'EN' },
 		{ id: 'ru', label: 'RU' },
 		{ id: 'de', label: 'DE' },
 		{ id: 'es', label: 'ES' }
 	];
-	const SUGGESTIONS = ['Space', 'World capitals', '90s music', 'Biology', 'Greek mythology'];
+	const SUGGESTIONS = $derived([m.cw_sugg_1(), m.cw_sugg_2(), m.cw_sugg_3(), m.cw_sugg_4(), m.cw_sugg_5()]);
 
 	const filtered = $derived(
 		filterDiff === 'all'
@@ -54,6 +55,19 @@
 		if (t) topic = t;
 	});
 
+	/** Localized label for a difficulty value (or the "all" filter). */
+	function filterLabel(f: string): string {
+		switch (f) {
+			case 'all': return m.cw_filter_all();
+			case 'beginner': return m.difficulty_beginner();
+			case 'easy': return m.difficulty_easy();
+			case 'medium': return m.difficulty_medium();
+			case 'hard': return m.difficulty_hard();
+			case 'extreme': return m.difficulty_extreme();
+			default: return m.difficulty_expert();
+		}
+	}
+
 	async function generate() {
 		if (!topic.trim()) return;
 		generating = true;
@@ -71,13 +85,13 @@
 			const crossword = await res.json();
 			await goto(`/crossword/${crossword.id}`);
 		} catch (e: unknown) {
-			errorMsg = e instanceof Error ? e.message : 'Generation failed';
+			errorMsg = e instanceof Error ? e.message : m.cw_gen_failed();
 			generating = false;
 		}
 	}
 </script>
 
-<svelte:head><title>Crosswords — NerdDen</title></svelte:head>
+<svelte:head><title>{m.game_crosswords()} — NerdDen</title></svelte:head>
 
 <crossword-library class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-1 py-2">
 	<!-- hero + quick generate -->
@@ -87,24 +101,24 @@
 				<img src="/mascot-owl.png" alt="" class="size-16" />
 			</div>
 			<div>
-				<h1 class="m-0 text-4xl">Crosswords</h1>
-				<p class="m-0 mt-1 max-w-sm text-[15px] text-ink-soft">Pick a ready puzzle below — or let the Owl spin up a fresh one on any topic.</p>
+				<h1 class="m-0 text-4xl">{m.game_crosswords()}</h1>
+				<p class="m-0 mt-1 max-w-sm text-[15px] text-ink-soft">{m.cw_subtitle()}</p>
 			</div>
 		</div>
 
 		<!-- AI generate bar -->
 		<div class="flex items-center gap-3.5 rounded-[16px] bg-ink p-4 lg:w-[560px] lg:flex-none">
 			<div class="flex-1">
-				<div class="mb-2 text-[11px] font-semibold tracking-[.12em] text-[#b3a890] uppercase">Generate with AI</div>
+				<div class="mb-2 text-[11px] font-semibold tracking-[.12em] text-[#b3a890] uppercase">{m.cw_generate_ai()}</div>
 				<div class="flex items-center gap-2.5">
 					<div class="flex flex-1 items-center gap-2 rounded-[11px] border-[1.5px] border-[#1c1813] bg-surface-2 px-3 py-2">
 						<span>🔎</span>
-						<input bind:value={topic} placeholder="Greek mythology" onkeydown={(e) => e.key === 'Enter' && generate()} class="w-full bg-transparent font-hand text-lg font-bold text-ink outline-none" />
+						<input bind:value={topic} placeholder={m.cw_topic_ph()} onkeydown={(e) => e.key === 'Enter' && generate()} class="w-full bg-transparent font-hand text-lg font-bold text-ink outline-none" />
 					</div>
-					<button onclick={generate} disabled={!topic.trim()} class="btn-primary kraft-radius-sm px-5 py-2 text-lg disabled:opacity-50" style="box-shadow:2px 3px 0 rgba(0,0,0,.5)">Generate</button>
+					<button onclick={generate} disabled={!topic.trim()} class="btn-primary kraft-radius-sm px-5 py-2 text-lg disabled:opacity-50" style="box-shadow:2px 3px 0 rgba(0,0,0,.5)">{m.home_generate()}</button>
 				</div>
 				<div class="mt-2.5 flex flex-wrap items-center gap-2">
-					<span class="text-[11px] font-medium text-[#9b917f]">Try:</span>
+					<span class="text-[11px] font-medium text-[#9b917f]">{m.cw_try()}</span>
 					{#each SUGGESTIONS.slice(0, 3) as s (s)}
 						<button onclick={() => (topic = s)} class="text-[11px] font-semibold text-[#d9c7a6] underline underline-offset-2">{s}</button>
 					{/each}
@@ -119,7 +133,7 @@
 	<!-- full create controls (difficulty · clue style + language) -->
 	<div class="flex flex-wrap items-center gap-x-6 gap-y-3">
 		<div class="flex items-center gap-2">
-			<span class="field-label">Difficulty · clue style</span>
+			<span class="field-label">{m.cw_diff_clue_style()}</span>
 			{#each DIFFS as d (d.id)}
 				<button
 					onclick={() => (difficulty = d.id)}
@@ -130,7 +144,7 @@
 		</div>
 		<div class="h-6 w-px bg-[#cdbfa6]"></div>
 		<div class="flex items-center gap-1.5">
-			<span class="field-label">Lang</span>
+			<span class="field-label">{m.cw_lang()}</span>
 			{#each LANGS as l (l.id)}
 				<button
 					onclick={() => (language = l.id)}
@@ -145,12 +159,12 @@
 	<!-- library filter + grid -->
 	{#if data.recentCrosswords.length > 0}
 		<div class="flex items-center gap-2">
-			<span class="field-label">Filter</span>
+			<span class="field-label">{m.cw_filter()}</span>
 			{#each ['all', 'easy', 'medium', 'expert'] as f (f)}
 				<button
 					onclick={() => (filterDiff = f as typeof filterDiff)}
 					class="kraft-radius-sm border-[1.5px] border-ink px-3 py-1 font-hand text-base font-bold capitalize {filterDiff === f ? 'bg-navy text-surface-2 shadow-btn-sm' : 'bg-transparent text-ink'}"
-				>{f}</button>
+				>{filterLabel(f)}</button>
 			{/each}
 		</div>
 
@@ -168,7 +182,7 @@
 					</div>
 					<div class="text-xs font-medium text-muted">{cw.width}×{cw.height} · {cw.language.toUpperCase()}</div>
 					<div class="mt-auto flex items-center justify-between pt-1">
-						<span class="rounded-full px-2 py-0.5 text-[11px] font-semibold text-surface-2 capitalize" style="background:{DIFF_ACCENT[cw.difficulty] ?? 'var(--color-terracotta)'}">{cw.difficulty}</span>
+						<span class="rounded-full px-2 py-0.5 text-[11px] font-semibold text-surface-2 capitalize" style="background:{DIFF_ACCENT[cw.difficulty] ?? 'var(--color-terracotta)'}">{filterLabel(cw.difficulty)}</span>
 					</div>
 				</a>
 			{/each}
@@ -184,12 +198,12 @@
 				<span class="absolute inset-0 animate-pulse rounded-full border-2 border-dashed border-[#c2b69c]"></span>
 				<div class="absolute inset-6 flex items-center justify-center rounded-full border-[1.5px] border-ink bg-surface-2"><img src="/mascot-owl.png" alt="" class="size-20 animate-bounce" /></div>
 			</div>
-			<div class="font-display text-2xl font-bold text-ink">The Owl is thinking…</div>
-			<div class="text-sm text-ink-soft">Topic: <b class="text-ink">{topic}</b> · {difficulty} · {language.toUpperCase()}</div>
+			<div class="font-display text-2xl font-bold text-ink">{m.cw_owl_thinking()}</div>
+			<div class="text-sm text-ink-soft">{m.cw_topic_label()}: <b class="text-ink">{topic}</b> · {filterLabel(difficulty)} · {language.toUpperCase()}</div>
 			<div class="flex flex-col gap-2 self-stretch text-left text-[13px]">
-				<div class="flex items-center gap-2.5"><span class="flex size-6 flex-none items-center justify-center rounded-[8px] bg-forest text-xs font-bold text-surface-2">✓</span> Word list ready</div>
-				<div class="flex items-center gap-2.5"><span class="flex size-6 flex-none items-center justify-center rounded-[8px] bg-mustard text-xs font-bold text-ink">…</span> Weaving the grid</div>
-				<div class="flex items-center gap-2.5 opacity-45"><span class="flex size-6 flex-none items-center justify-center rounded-[8px] border-[1.5px] border-[#cdbfa6] bg-track text-xs font-bold text-muted">3</span> Numbering &amp; saving</div>
+				<div class="flex items-center gap-2.5"><span class="flex size-6 flex-none items-center justify-center rounded-[8px] bg-forest text-xs font-bold text-surface-2">✓</span> {m.cw_step_words()}</div>
+				<div class="flex items-center gap-2.5"><span class="flex size-6 flex-none items-center justify-center rounded-[8px] bg-mustard text-xs font-bold text-ink">…</span> {m.cw_step_grid()}</div>
+				<div class="flex items-center gap-2.5 opacity-45"><span class="flex size-6 flex-none items-center justify-center rounded-[8px] border-[1.5px] border-[#cdbfa6] bg-track text-xs font-bold text-muted">3</span> {m.cw_step_number()}</div>
 			</div>
 		</div>
 	</div>
