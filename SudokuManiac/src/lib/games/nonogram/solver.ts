@@ -227,6 +227,8 @@ export interface SolveDepth {
 	/** Share of cells (0–1) determined by the first round alone. */
 	firstRoundCoverage: number;
 	state: CellState[][];
+	/** Round in which each cell was determined (0 = known up front, -1 = never). */
+	roundOf: number[][];
 }
 
 /**
@@ -248,6 +250,7 @@ export function solveDepth(
 	let state: CellState[][] = Array.from({ length: h }, (_, y) =>
 		Array.from({ length: w }, (_, x) => (initial ? initial[y][x] : UNKNOWN))
 	);
+	const roundOf = state.map((row) => row.map((c) => (c === UNKNOWN ? -1 : 0)));
 	let rounds = 0;
 	let firstRoundCoverage = 0;
 	for (;;) {
@@ -263,13 +266,21 @@ export function solveDepth(
 			);
 			if (res.ok) res.line.forEach((v, y) => v !== UNKNOWN && (next[y][x] = v));
 		}
-		const changed = next.some((row, y) => row.some((v, x) => v !== state[y][x]));
+		let changed = false;
+		for (let y = 0; y < h; y++) {
+			for (let x = 0; x < w; x++) {
+				if (next[y][x] !== state[y][x]) {
+					changed = true;
+					roundOf[y][x] = rounds + 1;
+				}
+			}
+		}
 		state = next;
 		if (!changed) break;
 		rounds++;
 		if (rounds === 1) firstRoundCoverage = countDetermined(state) / (h * w || 1);
 	}
-	return { rounds, firstRoundCoverage, state };
+	return { rounds, firstRoundCoverage, state, roundOf };
 }
 
 /** Does the player's line satisfy its clue exactly? Drives gutter dimming in the UI. */

@@ -317,3 +317,72 @@ export function prepareCandidate(
 		}
 	};
 }
+
+const BAND_ORDER: Difficulty[] = ['easy', 'medium', 'hard'];
+
+/** Max extra reveals spent making a puzzle easier — beyond this it stops being the same puzzle. */
+const MAX_EASING_REVEALS = 8;
+
+/**
+ * Bring a puzzle down to the requested difficulty by revealing more cells.
+ *
+ * Each step reveals the cell determined *last* — the end of the longest deduction
+ * chain — which is what shortens the chain. Reveals only add information, so the
+ * puzzle stays uniquely solvable. A puzzle can only be made easier this way, never
+ * harder; returns null when it is already easier than the target or easing runs out.
+ */
+export function easeToDifficulty(puzzle: Puzzle, target: Difficulty): Puzzle | null {
+	const n = puzzle.grid.length;
+	if (BAND_ORDER.indexOf(puzzle.difficulty) < BAND_ORDER.indexOf(target)) return null;
+	const reveals = [...puzzle.reveals];
+	for (let i = 0; i <= MAX_EASING_REVEALS; i++) {
+		const depth = depthOf(puzzle.grid, puzzle.rowClues, puzzle.colClues, reveals);
+		const grade = gradeDifficulty(depth.rounds, n);
+		if (grade === target) {
+			return {
+				...puzzle,
+				reveals,
+				difficulty: grade,
+				stats: {
+					...puzzle.stats,
+					depth: depth.rounds,
+					firstRoundCoverage: depth.firstRoundCoverage
+				}
+			};
+		}
+		if (BAND_ORDER.indexOf(grade) < BAND_ORDER.indexOf(target)) return null; // overshot
+		let latest = { x: -1, y: -1, round: -1 };
+		depth.roundOf.forEach((row, y) =>
+			row.forEach((round, x) => {
+				if (round > latest.round) latest = { x, y, round };
+			})
+		);
+		if (latest.round <= 0) return null;
+		reveals.push({
+			x: latest.x,
+			y: latest.y,
+			state: puzzle.grid[latest.y][latest.x] ? 'filled' : 'empty'
+		});
+	}
+	return null;
+}
+
+/**
+ * Choose among valid candidates for a requested difficulty — without dropping the
+ * player's topic: an exact match wins; otherwise the nearest *harder* candidate is
+ * eased down with reveals; otherwise the hardest available is used. The label is
+ * always the puzzle's real grade, never the requested one.
+ */
+export function pickForDifficulty(candidates: Puzzle[], target: Difficulty): Puzzle | null {
+	if (!candidates.length) return null;
+	const exact = candidates.find((c) => c.difficulty === target);
+	if (exact) return exact;
+	const harder = candidates
+		.filter((c) => BAND_ORDER.indexOf(c.difficulty) > BAND_ORDER.indexOf(target))
+		.sort((a, b) => BAND_ORDER.indexOf(a.difficulty) - BAND_ORDER.indexOf(b.difficulty));
+	for (const c of harder) {
+		const eased = easeToDifficulty(c, target);
+		if (eased) return eased;
+	}
+	return [...candidates].sort((a, b) => b.stats.depth - a.stats.depth)[0];
+}
