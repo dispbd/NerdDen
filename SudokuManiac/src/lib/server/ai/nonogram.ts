@@ -21,6 +21,24 @@ const LANG_LABEL: Record<string, string> = {
 const FILLED = new Set(['#', '1', 'x', 'X', '*', '█', '■', '@']);
 const EMPTY = new Set(['.', '0', '-', ' ', '_', '·', '□']);
 
+/**
+ * Output-token headroom for models that reason before answering. Kept modest on
+ * purpose: Groq's free tier reserves the whole max_tokens against an 8,000
+ * tokens-per-minute limit, so a large cap exhausts the minute in one call. Low
+ * reasoning effort (below) keeps actual reasoning around 350 tokens.
+ */
+const REASONING_HEADROOM = 1500;
+
+/**
+ * Drawing doesn't need deep reasoning. Measured on Groq gpt-oss-120b for one 3×10×10
+ * request: default effort 4,601 reasoning tokens / 10.5 s, low effort 346 / 1.5 s,
+ * both producing valid drawings. Keyed per provider; other providers ignore the keys.
+ */
+const LOW_REASONING = {
+	groq: { reasoningEffort: 'low' },
+	openai: { reasoningEffort: 'low' }
+} as const;
+
 /** How far a drawing may miss the requested size before it is rejected rather than fixed. */
 const SIZE_TOLERANCE = 2;
 
@@ -65,19 +83,26 @@ function buildPrompt(topic: string, size: number, language: string, count: numbe
 	const lang = LANG_LABEL[language] ?? 'English';
 	return `You draw pixel-art pictures for Picross (nonogram) puzzles.
 Draw "${topic}" as ${count} different ${size}x${size} black-and-white silhouettes.
+The goal: someone who sees only the finished silhouette should say "${topic}" straight away.
 Rules:
 - Each drawing is exactly ${size} rows, each exactly ${size} characters: '#' = filled, '.' = empty.
-- Bold and simple: solid filled areas that read as the subject at a glance. Avoid one-pixel lines, isolated pixels and checkerboard texture.
-- Fill roughly 35–60% of the cells. Keep at most a one-cell empty margin.
+- Draw the subject large and centred, using most of the canvas. Keep at most a one-cell empty margin.
+- Include the subject's most recognizable features in the outline — for an animal its ears, tail and legs; for an object its characteristic parts.
+- Bold, solid filled areas. Avoid one-pixel lines, isolated pixels and checkerboard texture.
+- Fill roughly 35–60% of the cells.
 - Make the drawings genuinely different (pose, angle, or which part of the subject is shown).
-Give the picture a short name in ${lang}.
+Name the subject itself in ${lang}, in one to three words (for example "Cat", not "Cat silhouettes").
 Return ONLY a JSON object, no markdown, in exactly this shape:
 { "title": "...", "drawings": [ ["row 1", "row 2", "..."], ["..."] ] }`;
 }
 
 /**
- * Ask the model for candidate drawings. Returns null when no AI key is configured or
- * the call fails / times out — callers fall back to the curated bank, never a 500.
+ * Ask the model for candidate drawings.
+ *
+ * - null: no AI key, or every provider failed / timed out. Retrying is pointless —
+ *   callers go straight to the curated bank.
+ * - `{ grids: [] }`: a reply came back but was unusable (garbled or truncated JSON).
+ *   That is a property of one response, so it is worth the caller's single retry.
  */
 export async function drawNonogram(
 	topic: string,
@@ -87,19 +112,27 @@ export async function drawNonogram(
 	count = 3
 ): Promise<Drawing | null> {
 	if (!hasAnyAiKey()) return null;
+	let text: string;
 	try {
-		const { text } = await runAi(
+		({ text } = await runAi(
 			(model, call) =>
 				generateText({
 					model,
 					prompt: buildPrompt(topic, size, language, count),
-					// ~10 tokens per row per drawing plus JSON overhead; bounding it means a
-					// truncated reply fails fast rather than silently losing every drawing.
-					maxOutputTokens: Math.max(800, count * size * 16 + 300),
+					// ~10 tokens per drawing row plus JSON overhead, plus headroom for models
+					// that reason first (their thinking counts against the same cap). Bounded,
+					// so a runaway reply fails fast instead of running long.
+					maxOutputTokens: Math.max(800, count * size * 16 + 300) + REASONING_HEADROOM,
+					providerOptions: LOW_REASONING,
 					...call
 				}),
 			budget
-		);
+		));
+	} catch (e) {
+		console.error('[nonogram] AI drawing failed, falling back:', (e as Error)?.message ?? e);
+		return null;
+	}
+	try {
 		const data = parseJsonFromText(text) as { title?: unknown; drawings?: unknown };
 		const drawings = Array.isArray(data.drawings) ? data.drawings : [];
 		const grids = drawings
@@ -108,7 +141,10 @@ export async function drawNonogram(
 		const title = typeof data.title === 'string' && data.title.trim() ? data.title.trim() : topic;
 		return { title: title.slice(0, 60), grids };
 	} catch (e) {
-		console.error('[nonogram] AI drawing failed, falling back:', (e as Error)?.message ?? e);
-		return null;
+		console.warn(
+			`[nonogram] unusable AI reply (${text.length} chars):`,
+			(e as Error)?.message ?? e
+		);
+		return { title: topic, grids: [] };
 	}
 }
