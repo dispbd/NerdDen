@@ -1,6 +1,6 @@
 /**
  * AI hint service — generates a step-by-step hint explanation for the current
- * board state using the Vercel AI SDK + OpenAI.
+ * board state using the Vercel AI SDK (provider chosen and failed over by runAi).
  */
 
 import { generateText } from 'ai';
@@ -27,17 +27,31 @@ Analyze the board and provide the next logical move using a concise step-by-step
 Point out which row/column/box to focus on and why. Do NOT reveal more than one digit.`;
 }
 
+/**
+ * Ask the AI tutor for a hint. Throws when no provider produces a complete answer —
+ * callers must not charge the player in that case.
+ */
 export async function getAiHint(puzzle: Grid, playerGrid: Grid): Promise<string> {
 	const { text } = await runAi(
-		(model, call) =>
-			generateText({
+		async (model, call) => {
+			const res = await generateText({
 				model,
 				prompt: buildPrompt(puzzle, playerGrid),
-				maxOutputTokens: 150,
+				// Analysing a board is reasoning-heavy even at low effort: measured 397–936
+				// reasoning tokens for the same board, which share this cap with the answer.
+				// At 150 the hint came back empty; at 1000 one in three was cut mid-sentence.
+				maxOutputTokens: 2500,
 				...call
-			}),
-		// The player is waiting on a button press — fail fast rather than use the default budget.
-		{ deadlineMs: 10_000, attemptMs: 6_000 }
+			});
+			// A truncated or empty answer is a failure of this provider, so throw and let
+			// runAi fail over rather than show the player half a sentence.
+			if (!res.text.trim() || res.finishReason === 'length') {
+				throw new Error(`incomplete hint (finish=${res.finishReason}, ${res.text.length} chars)`);
+			}
+			return res;
+		},
+		// The player is waiting on a button press, but leave room to fail over once.
+		{ deadlineMs: 15_000, attemptMs: 8_000 }
 	);
 
 	return text.trim();

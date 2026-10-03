@@ -6,6 +6,7 @@ vi.mock('$env/dynamic/private', () => ({
 }));
 
 const { runAi } = await import('./provider');
+type AiCall = import('./provider').AiCall;
 
 /** A provider attempt that never settles — like a hung request or an SDK asleep on retry-after. */
 const hang = () => new Promise<never>(() => {});
@@ -40,7 +41,7 @@ describe('runAi deadline', () => {
 	});
 
 	it('passes an abort signal and maxRetries: 0 to every attempt', async () => {
-		let seen: { abortSignal: AbortSignal; maxRetries: number } | undefined;
+		let seen: AiCall | undefined;
 		const p = runAi(
 			async (_model, call) => {
 				seen = call;
@@ -51,6 +52,11 @@ describe('runAi deadline', () => {
 		p.catch(() => {});
 		await vi.advanceTimersByTimeAsync(0);
 		expect(seen?.maxRetries).toBe(0);
+		// Reasoning models run at their lowest effort (see LOW_REASONING in provider.ts).
+		expect(seen?.providerOptions).toMatchObject({
+			groq: { reasoningEffort: 'low' },
+			google: { thinkingConfig: { thinkingLevel: 'low' } }
+		});
 		expect(seen?.abortSignal.aborted).toBe(false);
 		await vi.advanceTimersByTimeAsync(3_000);
 		expect(seen?.abortSignal.aborted).toBe(true);
