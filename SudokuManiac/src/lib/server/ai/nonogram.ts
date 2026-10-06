@@ -8,7 +8,13 @@
  */
 
 import { generateText } from 'ai';
-import { hasAnyAiKey, parseJsonFromText, runAi, type AiBudget } from './provider';
+import {
+	availableProviders,
+	parseJsonFromText,
+	runAi,
+	type AiBudget,
+	type AiProvider
+} from './provider';
 
 const LANG_LABEL: Record<string, string> = {
 	en: 'English',
@@ -16,6 +22,16 @@ const LANG_LABEL: Record<string, string> = {
 	de: 'German',
 	es: 'Spanish'
 };
+
+/**
+ * Only these providers draw. Compared on one prompt (cat, rocket, fish, tree, bicycle;
+ * three drawings each): Gemini's were recognisable — ears, tails, poses — while Groq's
+ * gpt-oss drew the same diamond-shaped blob for every topic. Its blobs still pass the
+ * pipeline (they are uniquely solvable), so letting it draw would ship a "Cat" that
+ * isn't one. When Gemini is unavailable, callers fall back to the curated bank and
+ * say so, rather than show a wrong picture under the player's topic.
+ */
+export const DRAWING_PROVIDERS: readonly AiProvider[] = ['google'];
 
 /** Characters models use for a filled / an empty pixel. Anything else rejects the drawing. */
 const FILLED = new Set(['#', '1', 'x', 'X', '*', '█', '■', '@']);
@@ -89,7 +105,7 @@ Return ONLY a JSON object, no markdown, in exactly this shape:
 /**
  * Ask the model for candidate drawings.
  *
- * - null: no AI key, or every provider failed / timed out. Retrying is pointless —
+ * - null: no drawing provider has a key, or it failed / timed out. Retrying is pointless —
  *   callers go straight to the curated bank.
  * - `{ grids: [] }`: a reply came back but was unusable (garbled or truncated JSON).
  *   That is a property of one response, so it is worth the caller's single retry.
@@ -101,7 +117,7 @@ export async function drawNonogram(
 	budget: AiBudget,
 	count = 3
 ): Promise<Drawing | null> {
-	if (!hasAnyAiKey()) return null;
+	if (!availableProviders().some((p) => DRAWING_PROVIDERS.includes(p))) return null;
 	let text: string;
 	try {
 		({ text } = await runAi(
@@ -115,7 +131,7 @@ export async function drawNonogram(
 					maxOutputTokens: Math.max(800, count * size * 16 + 300) + REASONING_HEADROOM,
 					...call
 				}),
-			budget
+			{ ...budget, providers: DRAWING_PROVIDERS }
 		));
 	} catch (e) {
 		console.error('[nonogram] AI drawing failed, falling back:', (e as Error)?.message ?? e);

@@ -79,3 +79,40 @@ describe('runAi deadline', () => {
 		await expect(p).rejects.toThrow('quota');
 	});
 });
+
+describe('runAi provider restriction', () => {
+	const providerOf = (m: unknown) => String((m as { provider?: string }).provider ?? '');
+
+	it('uses only the listed providers, in the listed order', async () => {
+		const seen: string[] = [];
+		const p = runAi(
+			async (model) => {
+				seen.push(providerOf(model));
+				throw new Error('fail so the next allowed provider is tried');
+			},
+			{ providers: ['mistral', 'groq'] }
+		);
+		await expect(p).rejects.toThrow();
+		expect(seen).toHaveLength(2);
+		expect(seen[0]).toContain('mistral');
+		expect(seen[1]).toContain('groq');
+	});
+
+	it('skips the configured primary when it is not allowed', async () => {
+		let used = '';
+		await runAi(
+			async (model) => {
+				used = providerOf(model);
+				return 'ok';
+			},
+			{ providers: ['mistral'] }
+		);
+		expect(used).toContain('mistral'); // groq is primary here, but not allowed
+	});
+
+	it('fails clearly when no allowed provider has a key', async () => {
+		await expect(runAi(async () => 'never', { providers: ['google'] })).rejects.toThrow(
+			'No key configured for any of: google'
+		);
+	});
+});

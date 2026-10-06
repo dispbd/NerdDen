@@ -68,15 +68,28 @@ export interface GenerateInput {
 	userId: string | null;
 }
 
-export async function generateNonogram(
-	input: GenerateInput
-): Promise<{ id: string; source: NonogramSource }> {
+/**
+ * Why a requested topic wasn't drawn, so the UI can say so instead of silently
+ * handing over a different picture: the drawing model was unreachable, or it drew
+ * nothing usable.
+ */
+export type AiFallback = 'unavailable' | 'unusable';
+
+export interface GenerateResult {
+	id: string;
+	source: NonogramSource;
+	/** Set when a topic was requested but the puzzle came from the bank instead. */
+	aiFallback: AiFallback | null;
+}
+
+export async function generateNonogram(input: GenerateInput): Promise<GenerateResult> {
 	const lang = asLang(input.language);
 	const topic = input.topic.trim().slice(0, 80);
+	let aiFallback: AiFallback | null = null;
 
 	if (topic) {
 		const ai = await drawWithRetry(topic, input.size, input.difficulty, lang);
-		if (ai) {
+		if ('puzzle' in ai) {
 			const id = await persist(ai.puzzle, {
 				title: ai.title,
 				topic,
@@ -84,8 +97,9 @@ export async function generateNonogram(
 				source: 'ai',
 				color: pickColor(topic)
 			});
-			return { id, source: 'ai' };
+			return { id, source: 'ai', aiFallback: null };
 		}
+		aiFallback = ai.failure;
 	}
 
 	const curated = await pickCurated(input.size, input.difficulty, input.userId);
@@ -97,7 +111,7 @@ export async function generateNonogram(
 			source: 'curated',
 			color: curated.picture.color
 		});
-		return { id, source: 'curated' };
+		return { id, source: 'curated', aiFallback };
 	}
 
 	const proc = generateProcedural(input.size, input.difficulty, crypto.randomUUID());
@@ -109,7 +123,7 @@ export async function generateNonogram(
 		source: 'procedural',
 		color: pickColor(toRows(proc.grid).join(''))
 	});
-	return { id, source: 'procedural' };
+	return { id, source: 'procedural', aiFallback };
 }
 
 /**
@@ -122,7 +136,7 @@ async function drawWithRetry(
 	size: number,
 	difficulty: NonogramDifficulty,
 	lang: Lang
-): Promise<{ title: string; puzzle: Puzzle } | null> {
+): Promise<{ title: string; puzzle: Puzzle } | { failure: AiFallback }> {
 	const deadline = Date.now() + AI_TOTAL_MS;
 	for (let attempt = 0; attempt < 2; attempt++) {
 		const remaining = deadline - Date.now();
@@ -131,7 +145,7 @@ async function drawWithRetry(
 			deadlineMs: remaining,
 			attemptMs: Math.min(remaining, 18_000)
 		});
-		if (!drawing) return null; // no key / provider failure → straight to the bank
+		if (!drawing) return { failure: 'unavailable' }; // no key / provider down → straight to the bank
 		const valid: Puzzle[] = [];
 		const reasons: string[] = [];
 		for (const grid of drawing.grids) {
@@ -145,7 +159,7 @@ async function drawWithRetry(
 			`[nonogram] attempt ${attempt + 1}: no usable drawing for "${topic}" (${drawing.grids.length} parsed; rejected: ${reasons.join(', ') || 'none'})`
 		);
 	}
-	return null;
+	return { failure: 'unusable' };
 }
 
 interface GradedPicture {
