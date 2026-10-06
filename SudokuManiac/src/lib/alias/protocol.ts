@@ -193,3 +193,33 @@ export type AliasServerMessage =
 	| AliasGameEnded
 	| AliasError
 	| AliasPong;
+
+// ─── Polling play state (DB-polling transport) ───────────────────────────────
+
+/** Role-aware snapshot returned by GET /api/alias/[id]/state. */
+export interface AliasPlayState {
+	id: string;
+	code: string;
+	hostId: string | null;
+	status: RoomStatus;
+	topic: string;
+	difficulty: string;
+	language: string;
+	turnDuration: number;
+	wordCount: number;
+	teams: Team[];
+	/** Server clock (ms epoch) so clients can correct for skew */
+	serverNow: number;
+	/** When the current turn expires (ms epoch), or null outside a turn */
+	turnEndsAt: number | null;
+	currentTeamId: string | null;
+	speakerName: string | null;
+	/** True when the polling client is the current speaker */
+	speakerIsMe: boolean;
+	wordsRemaining: number;
+	/** The word to explain — sent ONLY to the current speaker */
+	currentWord: string | null;
+	/** Results recorded so far in the current turn (everyone sees these) */
+	turnResults: TurnResult[];
+	me: { joined: boolean; isHost: boolean; teamId: string | null };
+}

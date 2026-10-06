@@ -405,6 +405,14 @@ export const aliasRooms = pgTable('alias_rooms', {
 	turnDuration: integer('turn_duration').notNull().default(60),
 	/** Total words put in the hat */
 	wordCount: integer('word_count').notNull().default(30),
+	/**
+	 * Serialized GameState (hat, usedWords, current indices, turn results).
+	 * Persisted instead of an in-memory Map so the game survives serverless
+	 * cold starts and is shared across instances.
+	 */
+	gameState: jsonb('game_state'),
+	/** When the current turn expires — the timeline is advanced lazily on poll. */
+	turnEndsAt: timestamp('turn_ends_at'),
 	createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
@@ -435,6 +443,8 @@ export const aliasTeamMembers = pgTable(
 		/** null for guests */
 		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
 		userName: text('user_name').notNull(),
+		/** Client-generated id so guests (userId = null) can act as this member */
+		token: text('token'),
 		/** Position in speaker rotation within the team */
 		speakerOrder: integer('speaker_order').notNull().default(0)
 	},
