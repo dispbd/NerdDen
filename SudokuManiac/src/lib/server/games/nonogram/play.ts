@@ -6,13 +6,15 @@
  * (it is now known to be empty). The game is lost at MAX_MISTAKES.
  */
 
-import { MAX_MISTAKES, cellKey, type PlayerGrid, type Reveal } from '$lib/games/nonogram/types';
+import {
+	MAX_MISTAKES,
+	cellKey,
+	type NonogramMove,
+	type PlayerGrid,
+	type Reveal
+} from '$lib/games/nonogram/types';
 
-export interface Move {
-	x: number;
-	y: number;
-	action: 'fill' | 'mark' | 'clear';
-}
+export type Move = NonogramMove;
 
 export type PlayStatus = 'in_progress' | 'completed' | 'failed';
 

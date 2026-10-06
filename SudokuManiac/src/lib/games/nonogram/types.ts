@@ -31,6 +31,13 @@ export type CellMark = 'filled' | 'marked';
 /** Player marks keyed "x,y". */
 export type PlayerGrid = Record<string, CellMark>;
 
+/** One player action on a cell, as the board emits it and the moves endpoint takes it. */
+export interface NonogramMove {
+	x: number;
+	y: number;
+	action: 'fill' | 'mark' | 'clear';
+}
+
 /** A puzzle as the client sees it — clues and reveals, never the solution. */
 export interface ClientNonogram {
 	id: string;
