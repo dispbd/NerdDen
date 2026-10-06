@@ -63,7 +63,7 @@ Return ONLY a JSON object, no markdown, in exactly this shape:
 { "questions": [ { "question": "...", "options": ["...","...","...","..."], "correctIndex": 0, "explanation": "..." } ] }`;
 
 	try {
-		const { text } = await runAi((model) => generateText({ model, prompt }));
+		const { text } = await runAi((model, call) => generateText({ model, prompt, ...call }));
 		const data = parseJsonFromText(text) as { questions?: unknown[] };
 		const raw = Array.isArray(data.questions) ? data.questions : [];
 		let questions = raw.map(normalize).filter((q): q is TriviaQuestion => q !== null);

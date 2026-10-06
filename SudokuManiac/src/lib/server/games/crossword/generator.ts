@@ -44,7 +44,7 @@ Write every clue in ${langName}. Clue style: ${clueStyle}.
 Avoid proper nouns unless they are extremely well-known.
 Return ONLY a JSON object, no markdown, in exactly this shape: { "words": [{ "word": "...", "clue": "..." }] }`;
 
-	const { text } = await runAi((model) => generateText({ model, prompt }));
+	const { text } = await runAi((model, call) => generateText({ model, prompt, ...call }));
 	const data = parseJsonFromText(text) as { words?: { word?: string; clue?: string }[] };
 	const raw = Array.isArray(data.words) ? data.words : [];
 

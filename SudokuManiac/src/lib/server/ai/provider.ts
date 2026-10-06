@@ -19,16 +19,38 @@
  *   Mistral → https://console.mistral.ai/api-keys       (MISTRAL_API_KEY)
  */
 import { env } from '$env/dynamic/private';
-import type { LanguageModel } from 'ai';
+import type { LanguageModel, generateText } from 'ai';
+
+type ProviderOptions = NonNullable<Parameters<typeof generateText>[0]['providerOptions']>;
 
 export type AiProvider = 'openai' | 'google' | 'anthropic' | 'groq' | 'mistral';
 
+/**
+ * Default model per provider. Prefer a provider's moving alias over a pinned version
+ * where one exists: pinned ids get retired. Both previous defaults were — Groq dropped
+ * llama-3.3-70b-versatile and Google gemini-2.0-flash (gemini-2.5-flash is already
+ * closed to new users too) — which silently sent every AI feature to its offline
+ * fallback. Groq has no alias; gpt-oss-120b is its general model today.
+ */
 const DEFAULT_MODEL: Record<AiProvider, string> = {
 	openai: 'gpt-4o-mini',
-	google: 'gemini-2.0-flash',
+	google: 'gemini-flash-latest',
 	anthropic: 'claude-haiku-4-5-20251001',
-	groq: 'llama-3.3-70b-versatile',
+	groq: 'openai/gpt-oss-120b',
 	mistral: 'mistral-small-latest'
+};
+
+/**
+ * Every task here (questions, words, clues, hints, drawings) is short and simple, so
+ * reasoning models run at their lowest effort. Measured on a 5-question trivia request:
+ * Groq gpt-oss-120b 2.1 s → 1.5 s; Gemini flash-latest 48 s at its default thinking →
+ * 5.3 s at "low". Reasoning also draws on the same output-token cap as the answer, so
+ * this keeps tight caps from emptying replies. Keyed per provider; others ignore it.
+ */
+const LOW_REASONING: ProviderOptions = {
+	groq: { reasoningEffort: 'low' },
+	google: { thinkingConfig: { thinkingLevel: 'low' } },
+	openai: { reasoningEffort: 'low' }
 };
 
 const KEY_ENV: Record<AiProvider, string> = {
@@ -46,7 +68,11 @@ const KEY_ENV: Record<AiProvider, string> = {
  * and any prose around the first {...} block. Throws if no valid JSON is found.
  */
 export function parseJsonFromText(text: string): unknown {
-	const cleaned = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+	const cleaned = text
+		.trim()
+		.replace(/^```(?:json)?/i, '')
+		.replace(/```$/, '')
+		.trim();
 	const start = cleaned.indexOf('{');
 	const end = cleaned.lastIndexOf('}');
 	const slice = start >= 0 && end > start ? cleaned.slice(start, end + 1) : cleaned;
@@ -114,23 +140,99 @@ export function hasAnyAiKey(): boolean {
 	return availableProviders().length > 0;
 }
 
+/** Default wall-clock budget for one runAi() call, across every provider tried. */
+export const DEFAULT_AI_DEADLINE_MS = 25_000;
+/** Cap on a single provider attempt, so a hung primary still leaves room to fail over. */
+export const DEFAULT_AI_ATTEMPT_MS = 15_000;
+/** Don't start an attempt with less than this left — it cannot finish in time. */
+const MIN_ATTEMPT_MS = 1_500;
+
+/** Per-attempt options to spread into generateText: `generateText({ model, prompt, ...call })`. */
+export interface AiCall {
+	abortSignal: AbortSignal;
+	maxRetries: number;
+	providerOptions: ProviderOptions;
+}
+
+export interface AiBudget {
+	/** Total budget across all providers (ms). */
+	deadlineMs?: number;
+	/** Cap on any single provider attempt (ms). */
+	attemptMs?: number;
+}
+
 /**
  * Run an AI call with automatic provider fail-over: try each configured provider
  * in order until one succeeds (e.g. Gemini quota exhausted → Groq → Mistral).
- * Throws the last error only if every provider fails.
+ * Throws the last error only if every provider fails or the budget runs out.
+ *
+ * The call is bounded in wall-clock time. Without that, one "AI call" had no upper
+ * limit: the SDK retries twice by default and sleeps for a provider's `retry-after`
+ * (anything under 60 s) before each retry, all inside a single attempt — and that
+ * repeated per provider. On serverless the platform then kills the request before
+ * any caller fallback can run. So each attempt gets an abort signal for its slice of
+ * the budget and `maxRetries: 0`: failing over to the next provider *is* the retry.
  */
-export async function runAi<T>(fn: (model: LanguageModel) => Promise<T>): Promise<T> {
+export async function runAi<T>(
+	fn: (model: LanguageModel, call: AiCall) => Promise<T>,
+	{ deadlineMs = DEFAULT_AI_DEADLINE_MS, attemptMs = DEFAULT_AI_ATTEMPT_MS }: AiBudget = {}
+): Promise<T> {
 	const providers = availableProviders();
 	if (!providers.length) throw new Error('No AI provider API key configured');
 	const primary = aiProvider();
-	let lastErr: unknown;
+	const deadline = Date.now() + deadlineMs;
+	let lastErr: unknown = new Error(`AI budget of ${deadlineMs}ms exhausted`);
+
 	for (const provider of providers) {
+		const remaining = deadline - Date.now();
+		if (remaining < MIN_ATTEMPT_MS) {
+			console.warn(`[ai] budget exhausted, not trying "${provider}" or later providers`);
+			break;
+		}
+		const slice = Math.min(remaining, attemptMs);
+		const controller = new AbortController();
+		const timer = setTimeout(
+			() => controller.abort(new Error(`AI provider "${provider}" timed out after ${slice}ms`)),
+			slice
+		);
 		try {
-			return await fn(await modelFor(provider, provider === primary));
+			const model = await modelFor(provider, provider === primary);
+			return await raceAbort(
+				fn(model, {
+					abortSignal: controller.signal,
+					maxRetries: 0,
+					providerOptions: LOW_REASONING
+				}),
+				controller.signal
+			);
 		} catch (e) {
 			lastErr = e;
 			console.warn(`[ai] provider "${provider}" failed, trying next:`, (e as Error)?.message ?? e);
+		} finally {
+			clearTimeout(timer);
 		}
 	}
 	throw lastErr;
+}
+
+/**
+ * Settle as soon as `signal` aborts, even if the wrapped call ignores the signal —
+ * the budget is a guarantee for the caller, not a request to the provider SDK.
+ */
+function raceAbort<T>(p: Promise<T>, signal: AbortSignal): Promise<T> {
+	if (signal.aborted) return Promise.reject(signal.reason);
+	return new Promise<T>((resolve, reject) => {
+		const onAbort = () => reject(signal.reason);
+		signal.addEventListener('abort', onAbort, { once: true });
+		p.then(
+			(v) => {
+				signal.removeEventListener('abort', onAbort);
+				resolve(v);
+			},
+			(e) => {
+				signal.removeEventListener('abort', onAbort);
+				reject(e);
+			}
+		);
+	});
 }

@@ -1,4 +1,4 @@
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { gameSessions, userStats } from '$lib/server/db/schema';
 import type { Grid } from './generator';
@@ -60,7 +60,11 @@ export async function saveGameSession(params: {
 
 	const [updated] = await db
 		.update(gameSessions)
-		.set({ gridState: params.gridState, timeSpent: params.timeSpent, hintsUsed: params.hintsUsed ?? 0 })
+		.set({
+			gridState: params.gridState,
+			timeSpent: params.timeSpent,
+			hintsUsed: params.hintsUsed ?? 0
+		})
 		.where(where)
 		.returning();
 	return updated ?? null;
@@ -91,14 +95,26 @@ export async function completeGameSession(params: {
 
 	const [completed] = await db
 		.update(gameSessions)
-		.set({ status: 'completed', timeSpent: params.timeSpent, hintsUsed: params.hintsUsed, completedAt: new Date() })
+		.set({
+			status: 'completed',
+			timeSpent: params.timeSpent,
+			hintsUsed: params.hintsUsed,
+			completedAt: new Date()
+		})
 		.where(where)
 		.returning();
 
 	if (!completed) return null;
 
 	if (!completed.userId) {
-		return { session: completed, xpGained: 0, levelUp: false, newLevel: 1, hintsReplenished: 0, newAchievements: [] };
+		return {
+			session: completed,
+			xpGained: 0,
+			levelUp: false,
+			newLevel: 1,
+			hintsReplenished: 0,
+			newAchievements: []
+		};
 	}
 
 	const result = await updateUserStatsOnComplete(completed.userId, {
@@ -166,6 +182,15 @@ export async function spendHint(userId: string): Promise<number | null> {
 	return newCount;
 }
 
+/** Give back hints spent on something that then failed (e.g. the AI tutor was down). */
+export async function refundHints(userId: string, count: number): Promise<void> {
+	if (count <= 0) return;
+	await db
+		.update(userStats)
+		.set({ hintsAvailable: sql`${userStats.hintsAvailable} + ${count}` })
+		.where(eq(userStats.userId, userId));
+}
+
 // ─── Stats helpers ────────────────────────────────────────────────────────────
 
 async function updateUserStatsOnComplete(
@@ -218,16 +243,19 @@ async function updateUserStatsOnComplete(
 			lastPlayedAt: new Date()
 		});
 	} else {
-		await db.update(userStats).set({
-			sudokuPlayed: existing.sudokuPlayed + 1,
-			sudokuSolved: existing.sudokuSolved + 1,
-			sudokuBestTimeSeconds: bestTime,
-			totalXp: newXp,
-			level: newLevel,
-			hintsAvailable: existing.hintsAvailable + HINTS_PER_SOLVE,
-			streakDays: newStreak,
-			lastPlayedAt: new Date()
-		}).where(eq(userStats.userId, userId));
+		await db
+			.update(userStats)
+			.set({
+				sudokuPlayed: existing.sudokuPlayed + 1,
+				sudokuSolved: existing.sudokuSolved + 1,
+				sudokuBestTimeSeconds: bestTime,
+				totalXp: newXp,
+				level: newLevel,
+				hintsAvailable: existing.hintsAvailable + HINTS_PER_SOLVE,
+				streakDays: newStreak,
+				lastPlayedAt: new Date()
+			})
+			.where(eq(userStats.userId, userId));
 	}
 
 	// Award achievements (non-blocking pattern — already applied stats before this)
