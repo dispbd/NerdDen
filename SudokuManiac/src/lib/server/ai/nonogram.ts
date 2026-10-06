@@ -24,20 +24,10 @@ const EMPTY = new Set(['.', '0', '-', ' ', '_', '·', '□']);
 /**
  * Output-token headroom for models that reason before answering. Kept modest on
  * purpose: Groq's free tier reserves the whole max_tokens against an 8,000
- * tokens-per-minute limit, so a large cap exhausts the minute in one call. Low
- * reasoning effort (below) keeps actual reasoning around 350 tokens.
+ * tokens-per-minute limit, so a large cap exhausts the minute in one call. runAi
+ * runs reasoning at low effort, which keeps a drawing's reasoning around 350 tokens.
  */
 const REASONING_HEADROOM = 1500;
-
-/**
- * Drawing doesn't need deep reasoning. Measured on Groq gpt-oss-120b for one 3×10×10
- * request: default effort 4,601 reasoning tokens / 10.5 s, low effort 346 / 1.5 s,
- * both producing valid drawings. Keyed per provider; other providers ignore the keys.
- */
-const LOW_REASONING = {
-	groq: { reasoningEffort: 'low' },
-	openai: { reasoningEffort: 'low' }
-} as const;
 
 /** How far a drawing may miss the requested size before it is rejected rather than fixed. */
 const SIZE_TOLERANCE = 2;
@@ -123,7 +113,6 @@ export async function drawNonogram(
 					// that reason first (their thinking counts against the same cap). Bounded,
 					// so a runaway reply fails fast instead of running long.
 					maxOutputTokens: Math.max(800, count * size * 16 + 300) + REASONING_HEADROOM,
-					providerOptions: LOW_REASONING,
 					...call
 				}),
 			budget
