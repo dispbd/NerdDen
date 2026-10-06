@@ -393,5 +393,6 @@
 	"nono_failed_body": "Tres casillas erróneas: este era el dibujo.",
 	"nono_try_again": "Otra vez",
 	"nono_loading": "Abriendo el cuaderno…",
-	"nono_load_failed": "No se pudo abrir el puzle: recarga la página."
+	"nono_load_failed": "No se pudo abrir el puzle: recarga la página.",
+	"nono_close": "Cerrar"
 }

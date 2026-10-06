@@ -19,7 +19,8 @@
 		'/profile/[id]',
 		'/leaderboard',
 		'/sudoku/competitive',
-		'/sudoku/custom'
+		'/sudoku/custom',
+		'/nonogram/[id]'
 	]);
 	const fullScreen = $derived(FULLSCREEN_ROUTES.has(page.route.id ?? ''));
 

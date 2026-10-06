@@ -393,5 +393,6 @@
 	"nono_failed_body": "Drei falsche Felder — so sah das Bild aus.",
 	"nono_try_again": "Nochmal",
 	"nono_loading": "Skizzenbuch wird geöffnet…",
-	"nono_load_failed": "Das Rätsel ließ sich nicht öffnen — bitte neu laden."
+	"nono_load_failed": "Das Rätsel ließ sich nicht öffnen — bitte neu laden.",
+	"nono_close": "Schließen"
 }
