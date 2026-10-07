@@ -8,7 +8,7 @@
  * The solution grid stays on the server; play goes through `applySessionMoves`.
  */
 
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { nonograms, nonogramSessions, userStats } from '$lib/server/db/schema';
 import { drawNonogram } from '$lib/server/ai/nonogram';
@@ -435,6 +435,16 @@ export async function openSession(
 			s.status === 'in_progress' &&
 			(!s.userId || s.userId === userId)
 		) {
+			// A guest who signs in mid-game keeps going on the same board: the session
+			// becomes theirs, so the solve earns XP and shows as Done in their library.
+			if (!s.userId && userId) {
+				const [claimed] = await db
+					.update(nonogramSessions)
+					.set({ userId })
+					.where(and(eq(nonogramSessions.id, s.id), isNull(nonogramSessions.userId)))
+					.returning();
+				if (claimed) return view(claimed);
+			}
 			return view(s);
 		}
 	}
@@ -459,11 +469,21 @@ export async function openSession(
 
 export type SessionError = 'not_found' | 'forbidden';
 
-async function loadForPlay(sessionId: string, userId: string | null) {
-	const [s] = await db.select().from(nonogramSessions).where(eq(nonogramSessions.id, sessionId));
+/**
+ * Load a session for play inside `tx`, locking its row until the transaction ends.
+ * Concurrent requests on one session (two tabs, a double-submit, a scripted burst)
+ * then apply one after another: no move or mistake is lost, and the solve is
+ * credited exactly once.
+ */
+async function loadForPlay(tx: Tx, sessionId: string, userId: string | null) {
+	const [s] = await tx
+		.select()
+		.from(nonogramSessions)
+		.where(eq(nonogramSessions.id, sessionId))
+		.for('update');
 	if (!s) return { error: 'not_found' as const };
 	if (s.userId && s.userId !== userId) return { error: 'forbidden' as const };
-	const [puzzle] = await db.select().from(nonograms).where(eq(nonograms.id, s.nonogramId));
+	const [puzzle] = await tx.select().from(nonograms).where(eq(nonograms.id, s.nonogramId));
 	if (!puzzle) return { error: 'not_found' as const };
 	return { session: s, puzzle, solution: rowsToGrid(puzzle.grid as string[]) };
 }
@@ -475,17 +495,34 @@ function xpFor(size: number, difficulty: NonogramDifficulty): number {
 	return Math.round(base * mult);
 }
 
+/**
+ * Add XP to a player's stats, creating the row for a player who has none yet (a new
+ * account that never solved a Sudoku), and keep `level` in step — the leaderboard
+ * reads it. The SQL mirrors calculateLevel: floor(1 + sqrt(xp / 100)).
+ */
+async function creditXp(tx: Tx, userId: string, xp: number): Promise<void> {
+	await tx
+		.insert(userStats)
+		.values({ userId, totalXp: xp, level: calculateLevel(xp) })
+		.onConflictDoUpdate({
+			target: userStats.userId,
+			set: {
+				totalXp: sql`${userStats.totalXp} + ${xp}`,
+				level: sql`floor(1 + sqrt((${userStats.totalXp} + ${xp}) / 100.0))::int`
+			}
+		});
+}
+
+/** Credit the solve if this request is the one that completed the puzzle. */
 async function finishIfDone(
+	tx: Tx,
 	before: SessionRow,
 	status: PlayStatus,
 	puzzle: NonogramRow
 ): Promise<number> {
 	if (before.status === 'in_progress' && status === 'completed' && before.userId) {
 		const xp = xpFor(puzzle.size, puzzle.difficulty);
-		await db
-			.update(userStats)
-			.set({ totalXp: sql`${userStats.totalXp} + ${xp}` })
-			.where(eq(userStats.userId, before.userId));
+		await creditXp(tx, before.userId, xp);
 		return xp;
 	}
 	return 0;
@@ -505,42 +542,44 @@ export async function applySessionMoves(
 			solution: string[] | null;
 	  }
 > {
-	const loaded = await loadForPlay(sessionId, userId);
-	if (loaded.error) return { error: loaded.error };
-	const { session, puzzle, solution } = loaded;
+	return db.transaction(async (tx) => {
+		const loaded = await loadForPlay(tx, sessionId, userId);
+		if (loaded.error) return { error: loaded.error };
+		const { session, puzzle, solution } = loaded;
 
-	const out = applyMoves(
-		solution,
-		puzzle.reveals as Reveal[],
-		{
-			playerGrid: session.playerGrid as PlayerGrid,
-			mistakes: session.mistakes,
-			status: session.status
-		},
-		moves
-	);
-	const ended = out.status !== 'in_progress';
-	const [updated] = await db
-		.update(nonogramSessions)
-		.set({
-			playerGrid: out.playerGrid,
-			mistakes: out.mistakes,
-			status: out.status,
-			...(timeSpent !== undefined
-				? { timeSpent: Math.max(session.timeSpent, Math.floor(timeSpent)) }
-				: {}),
-			...(ended && session.status === 'in_progress' ? { completedAt: new Date() } : {})
-		})
-		.where(eq(nonogramSessions.id, sessionId))
-		.returning();
-	const xpEarned = await finishIfDone(session, out.status, puzzle);
-	return {
-		session: view(updated),
-		wrong: out.wrong,
-		xpEarned,
-		// The picture is shown once the game is over — won or lost.
-		solution: ended ? (puzzle.grid as string[]) : null
-	};
+		const out = applyMoves(
+			solution,
+			puzzle.reveals as Reveal[],
+			{
+				playerGrid: session.playerGrid as PlayerGrid,
+				mistakes: session.mistakes,
+				status: session.status
+			},
+			moves
+		);
+		const ended = out.status !== 'in_progress';
+		const [updated] = await tx
+			.update(nonogramSessions)
+			.set({
+				playerGrid: out.playerGrid,
+				mistakes: out.mistakes,
+				status: out.status,
+				...(timeSpent !== undefined
+					? { timeSpent: Math.max(session.timeSpent, Math.floor(timeSpent)) }
+					: {}),
+				...(ended && session.status === 'in_progress' ? { completedAt: new Date() } : {})
+			})
+			.where(eq(nonogramSessions.id, sessionId))
+			.returning();
+		const xpEarned = await finishIfDone(tx, session, out.status, puzzle);
+		return {
+			session: view(updated),
+			wrong: out.wrong,
+			xpEarned,
+			// The picture is shown once the game is over — won or lost.
+			solution: ended ? (puzzle.grid as string[]) : null
+		};
+	});
 }
 
 export async function useSessionHint(
@@ -555,45 +594,47 @@ export async function useSessionHint(
 			solution: string[] | null;
 	  }
 > {
-	const loaded = await loadForPlay(sessionId, userId);
-	if (loaded.error) return { error: loaded.error };
-	const { session, puzzle, solution } = loaded;
-	if (session.status !== 'in_progress') return { error: 'not_in_progress' };
-	if (session.hintsUsed >= HINTS_PER_GAME) return { error: 'no_hints' };
+	return db.transaction(async (tx) => {
+		const loaded = await loadForPlay(tx, sessionId, userId);
+		if (loaded.error) return { error: loaded.error };
+		const { session, puzzle, solution } = loaded;
+		if (session.status !== 'in_progress') return { error: 'not_in_progress' as const };
+		if (session.hintsUsed >= HINTS_PER_GAME) return { error: 'no_hints' as const };
 
-	const reveals = puzzle.reveals as Reveal[];
-	const cell = pickHintCell(solution, reveals, session.playerGrid as PlayerGrid);
-	const out = cell
-		? applyMoves(
-				solution,
-				reveals,
-				{
+		const reveals = puzzle.reveals as Reveal[];
+		const cell = pickHintCell(solution, reveals, session.playerGrid as PlayerGrid);
+		const out = cell
+			? applyMoves(
+					solution,
+					reveals,
+					{
+						playerGrid: session.playerGrid as PlayerGrid,
+						mistakes: session.mistakes,
+						status: session.status
+					},
+					[{ ...cell, action: 'fill' }]
+				)
+			: {
 					playerGrid: session.playerGrid as PlayerGrid,
 					mistakes: session.mistakes,
 					status: session.status
-				},
-				[{ ...cell, action: 'fill' }]
-			)
-		: {
-				playerGrid: session.playerGrid as PlayerGrid,
-				mistakes: session.mistakes,
-				status: session.status
-			};
-	const [updated] = await db
-		.update(nonogramSessions)
-		.set({
-			playerGrid: out.playerGrid,
-			status: out.status,
-			hintsUsed: session.hintsUsed + 1,
-			...(out.status !== 'in_progress' ? { completedAt: new Date() } : {})
-		})
-		.where(eq(nonogramSessions.id, sessionId))
-		.returning();
-	const xpEarned = await finishIfDone(session, out.status, puzzle);
-	return {
-		session: view(updated),
-		cell,
-		xpEarned,
-		solution: out.status !== 'in_progress' ? (puzzle.grid as string[]) : null
-	};
+				};
+		const [updated] = await tx
+			.update(nonogramSessions)
+			.set({
+				playerGrid: out.playerGrid,
+				status: out.status,
+				hintsUsed: session.hintsUsed + 1,
+				...(out.status !== 'in_progress' ? { completedAt: new Date() } : {})
+			})
+			.where(eq(nonogramSessions.id, sessionId))
+			.returning();
+		const xpEarned = await finishIfDone(tx, session, out.status, puzzle);
+		return {
+			session: view(updated),
+			cell,
+			xpEarned,
+			solution: out.status !== 'in_progress' ? (puzzle.grid as string[]) : null
+		};
+	});
 }
