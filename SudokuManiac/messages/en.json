@@ -359,7 +359,7 @@
 	"nono_step_clues": "Computing number clues",
 	"nono_step_unique": "Checking unique solution",
 	"nono_gen_failed": "The Cat dropped the brush — please try again.",
-	"nono_fallback_unavailable": "The Cat’s paints are busy right now — here’s a picture from the collection instead.",
+	"nono_fallback_unavailable": "The Cat can’t paint right now — here’s a picture from the collection instead.",
 	"nono_fallback_unusable": "The Cat couldn’t turn that into a clean picture — here’s one from the collection instead.",
 	"nono_library": "Library",
 	"nono_mistakes": "Mistakes",

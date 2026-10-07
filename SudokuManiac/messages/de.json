@@ -359,7 +359,7 @@
 	"nono_step_clues": "Zahlenhinweise berechnen",
 	"nono_step_unique": "Eindeutige Lösung prüfen",
 	"nono_gen_failed": "Der Katze ist der Pinsel runtergefallen — versuch es nochmal.",
-	"nono_fallback_unavailable": "Die Farben der Katze sind gerade belegt — hier ist ein Bild aus der Sammlung.",
+	"nono_fallback_unavailable": "Die Katze kann gerade nicht malen — hier ist ein Bild aus der Sammlung.",
 	"nono_fallback_unusable": "Daraus konnte die Katze kein sauberes Bild machen — hier ist eins aus der Sammlung.",
 	"nono_library": "Bibliothek",
 	"nono_mistakes": "Fehler",

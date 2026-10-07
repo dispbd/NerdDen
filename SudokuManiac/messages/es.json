@@ -359,7 +359,7 @@
 	"nono_step_clues": "Calculando las pistas",
 	"nono_step_unique": "Comprobando que la solución es única",
 	"nono_gen_failed": "Al Gato se le cayó el pincel: inténtalo de nuevo.",
-	"nono_fallback_unavailable": "Las pinturas del Gato están ocupadas: aquí tienes un dibujo de la colección.",
+	"nono_fallback_unavailable": "El Gato no puede pintar ahora: aquí tienes un dibujo de la colección.",
 	"nono_fallback_unusable": "El Gato no logró un dibujo limpio con eso: aquí tienes uno de la colección.",
 	"nono_library": "Biblioteca",
 	"nono_mistakes": "Errores",
