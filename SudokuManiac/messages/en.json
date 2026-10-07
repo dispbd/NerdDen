@@ -242,7 +242,7 @@
 	"home_soon_title": "More games",
 	"home_soon_desc": "Next AI-powered games — coming soon",
 	"home_notify_me": "Notify me",
-	"home_mascots_unlocked": "{n} / 3 unlocked",
+	"home_mascots_unlocked": "{n} / {total} unlocked",
 	"home_mascots_hint": "Win in each game to unlock its mascot.",
 	"home_friends": "Friends",
 	"home_challenged": "challenged you",

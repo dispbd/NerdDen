@@ -189,7 +189,7 @@
 				<div class="card-kraft p-[18px]" style="border-radius:14px 16px 12px 15px">
 					<div class="mb-3.5 flex items-center justify-between">
 						<span class="label-caps">{m.profile_mascots()}</span>
-						<span class="text-[11px] font-medium text-muted">{m.home_mascots_unlocked({ n: data.mascots?.unlockedCount ?? (guest ? (solved > 0 ? 1 : 0) : 0) })}</span>
+						<span class="text-[11px] font-medium text-muted">{m.home_mascots_unlocked({ total: 4, n: data.mascots?.unlockedCount ?? (guest ? (solved > 0 ? 1 : 0) : 0) })}</span>
 					</div>
 					<div class="flex gap-2.5">
 						{@render mascotTile('/sudoku-maniac.webp', m.mascot_maniac(), data.mascots?.maniac ?? solved > 0, true)}

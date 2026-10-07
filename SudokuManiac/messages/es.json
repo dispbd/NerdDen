@@ -242,7 +242,7 @@
 	"home_soon_title": "Más juegos",
 	"home_soon_desc": "Próximos juegos con IA — pronto",
 	"home_notify_me": "Avísame",
-	"home_mascots_unlocked": "{n} / 3 desbloqueados",
+	"home_mascots_unlocked": "{n} / {total} desbloqueados",
 	"home_mascots_hint": "Gana en cada juego para desbloquear su mascota.",
 	"home_friends": "Amigos",
 	"home_challenged": "te ha retado",

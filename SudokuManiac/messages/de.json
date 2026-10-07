@@ -242,7 +242,7 @@
 	"home_soon_title": "Weitere Spiele",
 	"home_soon_desc": "Nächste AI-Spiele — bald",
 	"home_notify_me": "Benachrichtigen",
-	"home_mascots_unlocked": "{n} / 3 freigeschaltet",
+	"home_mascots_unlocked": "{n} / {total} freigeschaltet",
 	"home_mascots_hint": "Gewinne in jedem Spiel, um sein Maskottchen freizuschalten.",
 	"home_friends": "Freunde",
 	"home_challenged": "hat dich herausgefordert",

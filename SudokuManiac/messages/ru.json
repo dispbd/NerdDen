@@ -242,7 +242,7 @@
 	"home_soon_title": "Ещё игры",
 	"home_soon_desc": "Следующие AI-игры — скоро",
 	"home_notify_me": "Сообщить",
-	"home_mascots_unlocked": "{n} / 3 открыто",
+	"home_mascots_unlocked": "{n} / {total} открыто",
 	"home_mascots_hint": "Побеждай в каждой игре, чтобы открыть её маскота.",
 	"home_friends": "Друзья",
 	"home_challenged": "бросил вам вызов",
