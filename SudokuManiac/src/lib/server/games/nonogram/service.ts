@@ -12,6 +12,7 @@ import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { nonograms, nonogramSessions, userStats } from '$lib/server/db/schema';
 import { drawNonogram } from '$lib/server/ai/nonogram';
+import { calculateLevel } from '$lib/server/games/achievements/engine';
 import { computeClues } from '$lib/games/nonogram/solver';
 import {
 	HINTS_PER_GAME,
@@ -36,7 +37,11 @@ import { generateProcedural } from './procedural';
 import { applyMoves, pickHintCell, progressOf, type Move, type PlayStatus } from './play';
 
 type Lang = 'en' | 'ru' | 'de' | 'es';
-const asLang = (l: string): Lang => (['en', 'ru', 'de', 'es'].includes(l) ? (l as Lang) : 'en');
+export const asLang = (l: string): Lang =>
+	['en', 'ru', 'de', 'es'].includes(l) ? (l as Lang) : 'en';
+
+/** A transaction handle, for the session updates that must not interleave. */
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Total AI time across the first call and its single retry — well under maxDuration. */
 const AI_TOTAL_MS = 40_000;
@@ -258,7 +263,11 @@ async function persist(puzzle: Puzzle, meta: Meta): Promise<string> {
 	return row.id;
 }
 
-/** Curated and procedural pictures repeat — reuse the stored row instead of duplicating it. */
+/**
+ * Curated and procedural pictures repeat — reuse the stored row instead of duplicating
+ * it. Whatever language asked first, one row serves everyone: their titles are
+ * localised when read (see `titleIn`), so the library shows no same-picture twins.
+ */
 async function persistOrReuse(puzzle: Puzzle, meta: Meta): Promise<string> {
 	const rows = toRows(puzzle.grid);
 	const [existing] = await db
@@ -267,7 +276,6 @@ async function persistOrReuse(puzzle: Puzzle, meta: Meta): Promise<string> {
 		.where(
 			and(
 				eq(nonograms.source, meta.source),
-				eq(nonograms.language, meta.language),
 				sql`${nonograms.grid} = ${JSON.stringify(rows)}::jsonb`,
 				sql`${nonograms.reveals} = ${JSON.stringify(puzzle.reveals)}::jsonb`
 			)
@@ -280,10 +288,29 @@ async function persistOrReuse(puzzle: Puzzle, meta: Meta): Promise<string> {
 
 type NonogramRow = typeof nonograms.$inferSelect;
 
-function toClient(row: NonogramRow): ClientNonogram {
+const CURATED_TITLES = new Map(
+	Object.values(CURATED)
+		.flat()
+		.map((p) => [p.rows.join('/'), p.title] as const)
+);
+
+/**
+ * The title in the reader's language. Curated pictures carry all four, and a
+ * procedural shape is "Mystery shape" in any language; an AI title stays as drawn —
+ * it names the topic the player typed.
+ */
+function titleIn(row: NonogramRow, lang: Lang): string {
+	if (row.source === 'curated') {
+		return CURATED_TITLES.get((row.grid as string[]).join('/'))?.[lang] ?? row.title;
+	}
+	if (row.source === 'procedural') return MYSTERY[lang];
+	return row.title;
+}
+
+function toClient(row: NonogramRow, lang: Lang): ClientNonogram {
 	return {
 		id: row.id,
-		title: row.title,
+		title: titleIn(row, lang),
 		size: row.size as NonogramSize,
 		difficulty: row.difficulty,
 		source: row.source,
@@ -294,20 +321,29 @@ function toClient(row: NonogramRow): ClientNonogram {
 	};
 }
 
-export async function getClientNonogram(id: string): Promise<ClientNonogram | null> {
+export async function getClientNonogram(
+	id: string,
+	language: string
+): Promise<ClientNonogram | null> {
 	const [row] = await db.select().from(nonograms).where(eq(nonograms.id, id));
-	return row ? toClient(row) : null;
+	return row ? toClient(row, asLang(language)) : null;
 }
 
-/** Recent puzzles, with this player's status. The picture is revealed only once solved. */
+/**
+ * Recent puzzles, with this player's status. The picture is revealed only once solved,
+ * and stays revealed ("Done") if the player starts it over.
+ */
 export async function listNonograms(
 	userId: string | null,
+	language: string,
 	limit = 24
 ): Promise<NonogramLibraryItem[]> {
+	const lang = asLang(language);
 	const rows = await db.select().from(nonograms).orderBy(desc(nonograms.createdAt)).limit(limit);
 	if (!rows.length) return [];
 
 	const latest = new Map<string, typeof nonogramSessions.$inferSelect>();
+	const solved = new Set<string>();
 	if (userId) {
 		const sessions = await db
 			.select()
@@ -322,22 +358,30 @@ export async function listNonograms(
 				)
 			)
 			.orderBy(desc(nonogramSessions.createdAt));
-		for (const s of sessions) if (!latest.has(s.nonogramId)) latest.set(s.nonogramId, s);
+		for (const s of sessions) {
+			if (!latest.has(s.nonogramId)) latest.set(s.nonogramId, s);
+			if (s.status === 'completed') solved.add(s.nonogramId);
+		}
 	}
 
 	return rows.map((row) => {
 		const s = latest.get(row.id);
+		const done = solved.has(row.id);
 		const solution = rowsToGrid(row.grid as string[]);
 		return {
 			id: row.id,
-			title: row.title,
+			title: titleIn(row, lang),
 			size: row.size as NonogramSize,
 			difficulty: row.difficulty,
 			source: row.source,
 			color: row.color,
-			status: s ? s.status : 'new',
-			progress: s ? progressOf(solution, row.reveals as Reveal[], s.playerGrid as PlayerGrid) : 0,
-			solution: s?.status === 'completed' ? (row.grid as string[]) : null
+			status: done ? 'completed' : s ? s.status : 'new',
+			progress: done
+				? 100
+				: s
+					? progressOf(solution, row.reveals as Reveal[], s.playerGrid as PlayerGrid)
+					: 0,
+			solution: done ? (row.grid as string[]) : null
 		};
 	});
 }

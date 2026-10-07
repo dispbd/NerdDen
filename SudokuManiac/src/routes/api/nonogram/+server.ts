@@ -6,6 +6,7 @@ import { json, error } from '@sveltejs/kit';
 import type { Config } from '@sveltejs/adapter-vercel';
 import type { RequestHandler } from './$types';
 import { generateNonogram, listNonograms } from '$lib/server/games/nonogram/service';
+import { getLocale } from '$lib/paraglide/runtime';
 import {
 	NONOGRAM_DIFFICULTIES,
 	NONOGRAM_SIZES,
@@ -21,7 +22,7 @@ import {
 export const config: Config = { maxDuration: 60 };
 
 export const GET: RequestHandler = async ({ locals }) => {
-	return json({ items: await listNonograms(locals.user?.id ?? null) });
+	return json({ items: await listNonograms(locals.user?.id ?? null, getLocale()) });
 };
 
 export const POST: RequestHandler = async ({ request, locals }) => {
