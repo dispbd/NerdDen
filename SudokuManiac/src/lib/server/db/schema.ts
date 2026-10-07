@@ -38,7 +38,7 @@ export const gameSessions = pgTable(
 		id: uuid('id').defaultRandom().primaryKey(),
 		/** Nullable — guests can play without signing in */
 		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
-		gameType: text('game_type', { enum: ['sudoku', 'crossword', 'alias', 'trivia'] }).notNull(),
+		gameType: text('game_type', { enum: ['sudoku', 'crossword', 'alias', 'trivia', 'nonogram'] }).notNull(),
 		difficulty: text('difficulty', {
 			enum: ['beginner', 'easy', 'medium', 'hard', 'expert', 'extreme']
 		}).notNull(),
@@ -484,7 +484,7 @@ export const challenges = pgTable(
 		kind: text('kind', { enum: ['challenge', 'share'] })
 			.notNull()
 			.default('challenge'),
-		gameType: text('game_type', { enum: ['sudoku', 'crossword', 'alias', 'trivia'] }).notNull(),
+		gameType: text('game_type', { enum: ['sudoku', 'crossword', 'alias', 'trivia', 'nonogram'] }).notNull(),
 		/** Free-form label shown in the rail, e.g. "Sudoku Hard" or "Biology" */
 		label: text('label').notNull().default(''),
 		/** Optional reference to the puzzle involved (crosswordId / gameSessionId / …) */
@@ -658,4 +658,74 @@ export const triviaPartiesRelations = relations(triviaParties, ({ one, many }) =
 export const triviaPartyPlayersRelations = relations(triviaPartyPlayers, ({ one }) => ({
 	party: one(triviaParties, { fields: [triviaPartyPlayers.partyId], references: [triviaParties.id] }),
 	user: one(user, { fields: [triviaPartyPlayers.userId], references: [user.id] })
+}));
+
+// ─── Nonograms ────────────────────────────────────────────────────────────────
+
+/**
+ * A nonogram puzzle. The solution grid is server-only: clients get the clues and the
+ * reveals, and every fill is checked server-side (mistakes are counted there).
+ */
+export const nonograms = pgTable(
+	'nonograms',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		/** The picture's name — never an AI title for a picture cleanup changed beyond it */
+		title: text('title').notNull(),
+		/** Requested theme (empty for curated/procedural pulls) */
+		topic: text('topic').notNull().default(''),
+		language: text('language').notNull().default('en'),
+		/** Side length: 5, 10 or 15 */
+		size: integer('size').notNull(),
+		difficulty: text('difficulty', { enum: ['easy', 'medium', 'hard'] }).notNull(),
+		/** Solution as row strings of '#' (filled) and '.' (empty) */
+		grid: jsonb('grid').notNull(),
+		rowClues: jsonb('row_clues').notNull(),
+		colClues: jsonb('col_clues').notNull(),
+		/** Cells shown to the player up front: `{ x, y, state: 'filled' | 'empty' }[]` */
+		reveals: jsonb('reveals').notNull().default([]),
+		/** Where the picture came from — drives honest labelling in the library */
+		source: text('source', { enum: ['ai', 'curated', 'procedural'] }).notNull(),
+		/** Colour the solved picture is drawn in (library thumbnail + victory) */
+		color: text('color').notNull().default('#3E5C76'),
+		/** Propagation metrics: sweeps, first-sweep coverage, cleanup changes */
+		solverStats: jsonb('solver_stats'),
+		createdAt: timestamp('created_at').defaultNow().notNull()
+	},
+	(table) => [index('nonograms_size_idx').on(table.size)]
+);
+
+export const nonogramSessions = pgTable(
+	'nonogram_sessions',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+		nonogramId: uuid('nonogram_id')
+			.notNull()
+			.references(() => nonograms.id, { onDelete: 'cascade' }),
+		status: text('status', { enum: ['in_progress', 'completed', 'failed'] })
+			.notNull()
+			.default('in_progress'),
+		/** Player marks keyed "x,y": 'filled' | 'marked' (a cross the player put down) */
+		playerGrid: jsonb('player_grid').notNull().default({}),
+		/** Wrong fills so far — the game is lost at the limit */
+		mistakes: integer('mistakes').notNull().default(0),
+		hintsUsed: integer('hints_used').notNull().default(0),
+		timeSpent: integer('time_spent').notNull().default(0),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		completedAt: timestamp('completed_at')
+	},
+	(table) => [
+		index('nonogram_sessions_userId_idx').on(table.userId),
+		index('nonogram_sessions_nonogramId_idx').on(table.nonogramId)
+	]
+);
+
+export const nonogramsRelations = relations(nonograms, ({ many }) => ({
+	sessions: many(nonogramSessions)
+}));
+
+export const nonogramSessionsRelations = relations(nonogramSessions, ({ one }) => ({
+	user: one(user, { fields: [nonogramSessions.userId], references: [user.id] }),
+	nonogram: one(nonograms, { fields: [nonogramSessions.nonogramId], references: [nonograms.id] })
 }));

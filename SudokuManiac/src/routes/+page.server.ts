@@ -11,6 +11,7 @@ import {
 	gameSessions,
 	crosswords,
 	crosswordSessions,
+	nonogramSessions,
 	challenges
 } from '$lib/server/db/schema';
 import { user as userTable } from '$lib/server/db/auth.schema';
@@ -65,7 +66,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		return { isAuthenticated: false, aliasTopic, resetsIn: resetsIn() };
 	}
 
-	const [stats, sudokuSession, cwCountRow, cwActive, cwSolvedRow, daily, challengeRows] =
+	const [stats, sudokuSession, cwCountRow, cwActive, cwSolvedRow, nonoSolvedRow, daily, challengeRows] =
 		await Promise.all([
 			db.query.userStats.findFirst({ where: eq(userStats.userId, uid) }),
 			db.query.gameSessions.findFirst({
@@ -88,6 +89,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 				.select({ n: count() })
 				.from(crosswordSessions)
 				.where(and(eq(crosswordSessions.userId, uid), eq(crosswordSessions.status, 'completed'))),
+			db
+				.select({ n: count() })
+				.from(nonogramSessions)
+				.where(and(eq(nonogramSessions.userId, uid), eq(nonogramSessions.status, 'completed'))),
 			getUserDailyStatus(uid).catch(() => null),
 			incomingChallenges(uid)
 		]);
@@ -100,7 +105,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const mascots = {
 		maniac: solved > 0,
 		owl: (cwSolvedRow[0]?.n ?? 0) > 0,
-		hatter: false // TODO: track per-user Alias wins to unlock the Hatter
+		hatter: false, // TODO: track per-user Alias wins to unlock the Hatter
+		cat: (nonoSolvedRow[0]?.n ?? 0) > 0
 	};
 
 	const sudokuDailyStatus = (daily?.progress?.status ?? 'not_started') as
@@ -139,7 +145,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		},
 		mascots: {
 			...mascots,
-			unlockedCount: [mascots.maniac, mascots.owl, mascots.hatter].filter(Boolean).length
+			unlockedCount: [mascots.maniac, mascots.owl, mascots.hatter, mascots.cat].filter(Boolean).length
 		},
 		challenges: challengeRows,
 		aliasTopic,

@@ -159,6 +159,12 @@ export interface AiBudget {
 	deadlineMs?: number;
 	/** Cap on any single provider attempt (ms). */
 	attemptMs?: number;
+	/**
+	 * Restrict the call to these providers, tried in this order (those without a key
+	 * are skipped). For tasks where models differ in kind, not just speed — e.g.
+	 * nonogram drawings, where only some models produce recognisable pictures.
+	 */
+	providers?: readonly AiProvider[];
 }
 
 /**
@@ -175,10 +181,21 @@ export interface AiBudget {
  */
 export async function runAi<T>(
 	fn: (model: LanguageModel, call: AiCall) => Promise<T>,
-	{ deadlineMs = DEFAULT_AI_DEADLINE_MS, attemptMs = DEFAULT_AI_ATTEMPT_MS }: AiBudget = {}
+	{
+		deadlineMs = DEFAULT_AI_DEADLINE_MS,
+		attemptMs = DEFAULT_AI_ATTEMPT_MS,
+		providers: only
+	}: AiBudget = {}
 ): Promise<T> {
-	const providers = availableProviders();
-	if (!providers.length) throw new Error('No AI provider API key configured');
+	const configured = availableProviders();
+	const providers = only ? only.filter((p) => configured.includes(p)) : configured;
+	if (!providers.length) {
+		throw new Error(
+			only
+				? `No key configured for any of: ${only.join(', ')}`
+				: 'No AI provider API key configured'
+		);
+	}
 	const primary = aiProvider();
 	const deadline = Date.now() + deadlineMs;
 	let lastErr: unknown = new Error(`AI budget of ${deadlineMs}ms exhausted`);
