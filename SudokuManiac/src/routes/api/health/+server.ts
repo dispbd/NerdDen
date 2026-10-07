@@ -37,17 +37,27 @@ async function probe(run: () => Promise<unknown>): Promise<Probe> {
 export const GET: RequestHandler = async () => {
 	let connect: Probe;
 	let schema: Probe | null = null;
+	/** Tables in `public` — 0 means an empty database, not just a missing table. */
+	let tables: number | null = null;
 	try {
 		// Imported here so a missing DATABASE_URL is reported, not a crash on import.
 		const { db } = await import('$lib/server/db');
 		connect = await probe(() => db.execute(sql`select 1`));
-		if (connect.ok) schema = await probe(() => db.execute(sql`select 1 from "user" limit 1`));
+		if (connect.ok) {
+			schema = await probe(() => db.execute(sql`select 1 from "user" limit 1`));
+			const rows = await db
+				.execute(
+					sql`select count(*)::int as n from information_schema.tables where table_schema = 'public'`
+				)
+				.catch(() => null);
+			tables = (rows?.[0] as { n?: number } | undefined)?.n ?? null;
+		}
 	} catch (e) {
 		connect = { ok: false, ms: 0, code: errorCode(e) === 'UNKNOWN' ? 'CONFIG' : errorCode(e) };
 	}
 	const ok = connect.ok && !!schema?.ok;
 	return json(
-		{ ok, db: { connect, schema } },
+		{ ok, db: { connect, schema, tables } },
 		{ status: ok ? 200 : 503, headers: { 'cache-control': 'no-store' } }
 	);
 };
