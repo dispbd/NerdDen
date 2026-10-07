@@ -38,14 +38,18 @@ export function cellView(
  * changes cells in that same state — so dragging a fill across a row never erases the
  * crosses already in it. `null` means the stroke does nothing.
  *
- * Fills are confirmed by the server, so a filled cell is known to be right: neither tool
- * strokes over it (Undo still can). The Mark tool toggles: on a cross it clears crosses.
+ * Fills are confirmed by the server, so a filled cell is known to be right: no stroke
+ * changes it (Undo still can). Starting on one is still the natural way to extend a
+ * run, so such a stroke applies the tool to the empty cells it crosses. The Mark tool
+ * toggles: on a cross it clears crosses. A Fill stroke never starts on a cross.
  */
 export function strokeActionFor(
 	tool: Tool,
 	view: CellView
 ): { action: NonogramMove['action']; target: 'empty' | 'marked' } | null {
-	if (view === 'empty') return { action: tool, target: 'empty' };
+	if (view === 'empty' || view === 'filled' || view === 'revealed-filled') {
+		return { action: tool, target: 'empty' };
+	}
 	if (tool === 'mark' && view === 'marked') return { action: 'clear', target: 'marked' };
 	return null;
 }

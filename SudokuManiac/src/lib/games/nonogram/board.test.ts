@@ -47,10 +47,17 @@ describe('strokeActionFor', () => {
 		expect(strokeActionFor('fill', 'marked')).toBeNull();
 	});
 
-	it('never strokes over a confirmed fill or a reveal', () => {
+	it('extends a run from a filled cell, touching only the empty cells it crosses', () => {
+		// A hint or an earlier stroke filled the first cell; dragging on from it must
+		// still paint the rest of the run (the filled anchor itself is never targeted).
 		for (const tool of ['fill', 'mark'] as const) {
-			expect(strokeActionFor(tool, 'filled')).toBeNull();
-			expect(strokeActionFor(tool, 'revealed-filled')).toBeNull();
+			expect(strokeActionFor(tool, 'filled')).toEqual({ action: tool, target: 'empty' });
+			expect(strokeActionFor(tool, 'revealed-filled')).toEqual({ action: tool, target: 'empty' });
+		}
+	});
+
+	it('does nothing from a given cross', () => {
+		for (const tool of ['fill', 'mark'] as const) {
 			expect(strokeActionFor(tool, 'revealed-empty')).toBeNull();
 		}
 	});
