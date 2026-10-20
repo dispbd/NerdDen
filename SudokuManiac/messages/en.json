@@ -394,5 +394,7 @@
 	"nono_try_again": "Try again",
 	"nono_loading": "Opening the sketchbook…",
 	"nono_load_failed": "Couldn’t open this puzzle — please reload.",
-	"nono_close": "Close"
+	"nono_close": "Close",
+	"nav_trivia": "Trivia",
+	"nav_nonograms": "Nonograms"
 }

@@ -394,5 +394,7 @@
 	"nono_try_again": "Nochmal",
 	"nono_loading": "Skizzenbuch wird geöffnet…",
 	"nono_load_failed": "Das Rätsel ließ sich nicht öffnen — bitte neu laden.",
-	"nono_close": "Schließen"
+	"nono_close": "Schließen",
+	"nav_trivia": "Quiz",
+	"nav_nonograms": "Nonogramme"
 }

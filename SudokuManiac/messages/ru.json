@@ -394,5 +394,7 @@
 	"nono_try_again": "Ещё раз",
 	"nono_loading": "Открываем альбом…",
 	"nono_load_failed": "Не удалось открыть головоломку — обнови страницу.",
-	"nono_close": "Закрыть"
+	"nono_close": "Закрыть",
+	"nav_trivia": "Викторина",
+	"nav_nonograms": "Нонограммы"
 }

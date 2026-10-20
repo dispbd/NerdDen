@@ -8,8 +8,10 @@
 	const NAV_LINKS = $derived([
 		{ href: resolve('/'), label: m.nav_home() },
 		{ href: resolve('/sudoku'), label: m.nav_sudoku() },
-		{ href: resolve('/coming-soon'), label: m.nav_crosswords() },
-		{ href: resolve('/coming-soon'), label: m.nav_hat_alias() },
+		{ href: resolve('/crossword'), label: m.nav_crosswords() },
+		{ href: resolve('/alias'), label: m.nav_hat_alias() },
+		{ href: resolve('/trivia'), label: m.nav_trivia() },
+		{ href: resolve('/nonogram'), label: m.nav_nonograms() },
 		{ href: resolve('/leaderboard'), label: m.nav_leaderboard() }
 	]);
 
@@ -46,7 +48,7 @@
 />
 
 <header
-	class="relative z-30 flex min-h-[66px] items-center justify-between border-b-[1.5px] border-dashed border-dash bg-paper-card px-4 py-3"
+	class="relative z-30 flex min-h-[66px] items-center justify-between gap-4 border-b-[1.5px] border-dashed border-dash bg-paper-card px-4 py-3"
 >
 	<a
 		href={resolve('/')}
@@ -56,8 +58,8 @@
 	</a>
 
 	<!-- Desktop nav -->
-	<nav class="hidden md:block">
-		<ul class="m-0 flex list-none gap-6 p-0">
+	<nav class="hidden lg:block">
+		<ul class="m-0 flex list-none gap-5 p-0">
 			{#each NAV_LINKS as link (link.label)}
 				<li>
 					<a
@@ -74,7 +76,7 @@
 		</ul>
 	</nav>
 
-	<header-auth class="hidden items-center gap-3 md:flex">
+	<header-auth class="hidden items-center gap-3 lg:flex">
 		<!-- Language switcher -->
 		<lang-switcher class="relative">
 			<button
@@ -130,7 +132,7 @@
 		onclick={() => (mobileOpen = !mobileOpen)}
 		aria-label="Menu"
 		aria-expanded={mobileOpen}
-		class="flex h-10 w-10 cursor-pointer flex-col justify-center gap-1.5 border-0 bg-transparent p-2 md:hidden"
+		class="flex h-10 w-10 cursor-pointer flex-col justify-center gap-1.5 border-0 bg-transparent p-2 lg:hidden"
 	>
 		<span class="block h-0.5 w-full bg-ink transition-all {mobileOpen ? 'translate-y-2 rotate-45' : ''}"></span>
 		<span class="block h-0.5 w-full bg-ink transition-all {mobileOpen ? 'opacity-0' : ''}"></span>
@@ -141,7 +143,7 @@
 <!-- Mobile menu drawer -->
 {#if mobileOpen}
 	<mobile-menu
-		class="fixed inset-x-0 top-[66px] z-20 flex flex-col border-b-[1.5px] border-dashed border-dash bg-paper-card shadow-card md:hidden"
+		class="fixed inset-x-0 top-[66px] z-20 flex flex-col border-b-[1.5px] border-dashed border-dash bg-paper-card shadow-card lg:hidden"
 	>
 		<nav class="flex flex-col gap-1 px-4 py-3">
 			{#each NAV_LINKS as link (link.label)}

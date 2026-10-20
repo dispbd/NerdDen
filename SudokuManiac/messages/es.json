@@ -394,5 +394,7 @@
 	"nono_try_again": "Otra vez",
 	"nono_loading": "Abriendo el cuaderno…",
 	"nono_load_failed": "No se pudo abrir el puzle: recarga la página.",
-	"nono_close": "Cerrar"
+	"nono_close": "Cerrar",
+	"nav_trivia": "Trivia",
+	"nav_nonograms": "Nonogramas"
 }
