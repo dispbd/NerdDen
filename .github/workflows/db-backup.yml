@@ -1,0 +1,58 @@
+# Nightly encrypted backup of the production database.
+#
+# Secrets (Settings → Secrets and variables → Actions):
+#   BACKUP_DATABASE_URL  direct / session connection string (not the 6543 pooler)
+#   BACKUP_PASSPHRASE    long random string; keep a copy outside GitHub
+#
+# Backups are workflow artifacts kept 90 days. The repository is public, so each
+# dump is encrypted before upload. Restore: SudokuManiac/docs/database.md.
+#
+# The job fails — and GitHub e-mails the workflow's owner — if the database cannot
+# be reached or comes back without its tables. The daily connection also keeps a
+# free Supabase project from pausing for inactivity.
+name: Database backup
+
+on:
+  schedule:
+    - cron: '17 3 * * *' # 03:17 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: SudokuManiac/scripts
+
+      - name: Check secrets
+        env:
+          DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          missing=0
+          [ -n "$DATABASE_URL" ] || { echo "::error::Secret BACKUP_DATABASE_URL is not set (see SudokuManiac/docs/database.md)"; missing=1; }
+          [ -n "$BACKUP_PASSPHRASE" ] || { echo "::error::Secret BACKUP_PASSPHRASE is not set (see SudokuManiac/docs/database.md)"; missing=1; }
+          exit $missing
+
+      - name: Dump, check and encrypt
+        env:
+          DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: bash SudokuManiac/scripts/db-backup.sh backups
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: backups/*.dump.gpg
+          retention-days: 90
+          if-no-files-found: error

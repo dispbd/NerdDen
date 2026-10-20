@@ -4,10 +4,15 @@ import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { env } from '$env/dynamic/private';
 import { getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
+import { resolveAuthBaseURL } from './auth-url';
 
-const baseURL =
-	env.ORIGIN ||
-	(process.env['VERCEL_URL'] ? `https://${process.env['VERCEL_URL']}` : undefined);
+// On Vercel production this must be the production domain — see auth-url.ts.
+const baseURL = resolveAuthBaseURL({
+	ORIGIN: env.ORIGIN,
+	VERCEL_ENV: process.env['VERCEL_ENV'],
+	VERCEL_PROJECT_PRODUCTION_URL: process.env['VERCEL_PROJECT_PRODUCTION_URL'],
+	VERCEL_URL: process.env['VERCEL_URL']
+});
 
 export const auth = betterAuth({
 	baseURL,
