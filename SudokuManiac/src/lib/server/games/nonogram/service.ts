@@ -10,9 +10,9 @@
 
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { nonograms, nonogramSessions, userStats } from '$lib/server/db/schema';
+import { nonograms, nonogramSessions } from '$lib/server/db/schema';
 import { drawNonogram } from '$lib/server/ai/nonogram';
-import { calculateLevel } from '$lib/server/games/achievements/engine';
+import { creditXp } from '$lib/server/games/xp';
 import { computeClues } from '$lib/games/nonogram/solver';
 import {
 	HINTS_PER_GAME,
@@ -493,24 +493,6 @@ function xpFor(size: number, difficulty: NonogramDifficulty): number {
 	const base = size <= 5 ? 10 : size <= 10 ? 25 : 45;
 	const mult = difficulty === 'hard' ? 2 : difficulty === 'medium' ? 1.5 : 1;
 	return Math.round(base * mult);
-}
-
-/**
- * Add XP to a player's stats, creating the row for a player who has none yet (a new
- * account that never solved a Sudoku), and keep `level` in step — the leaderboard
- * reads it. The SQL mirrors calculateLevel: floor(1 + sqrt(xp / 100)).
- */
-async function creditXp(tx: Tx, userId: string, xp: number): Promise<void> {
-	await tx
-		.insert(userStats)
-		.values({ userId, totalXp: xp, level: calculateLevel(xp) })
-		.onConflictDoUpdate({
-			target: userStats.userId,
-			set: {
-				totalXp: sql`${userStats.totalXp} + ${xp}`,
-				level: sql`floor(1 + sqrt((${userStats.totalXp} + ${xp}) / 100.0))::int`
-			}
-		});
 }
 
 /** Credit the solve if this request is the one that completed the puzzle. */

@@ -8,7 +8,8 @@
 
 import { and, asc, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { triviaSets, triviaQuestions, triviaSessions, userStats } from '$lib/server/db/schema';
+import { triviaSets, triviaQuestions, triviaSessions } from '$lib/server/db/schema';
+import { creditXp } from '$lib/server/games/xp';
 import { generateTriviaQuestions } from '$lib/server/ai/trivia';
 import { scoreAnswer } from './score';
 import type { ClientQuestion, AnswerResult } from '$lib/games/trivia/types';
@@ -240,28 +241,20 @@ export async function completeTriviaGame(
 	const xpEarned = session.correctCount * 10 + (flawless ? 20 : 0);
 
 	if (session.status === 'in_progress') {
-		await db
+		// Only the request that actually moves the session to completed credits XP:
+		// a double-submit or a second tab finds it already completed and gets 0 rows.
+		const completed = await db
 			.update(triviaSessions)
 			.set({
 				status: 'completed',
 				completedAt: new Date(),
 				timeSpent: Math.max(0, Math.floor(timeSpent) || 0)
 			})
-			.where(eq(triviaSessions.id, sessionId));
+			.where(and(eq(triviaSessions.id, sessionId), eq(triviaSessions.status, 'in_progress')))
+			.returning({ id: triviaSessions.id });
 
 		// Credit XP to the signed-in player's stats (guests are skipped).
-		if (session.userId) {
-			const [stats] = await db
-				.select({ totalXp: userStats.totalXp })
-				.from(userStats)
-				.where(eq(userStats.userId, session.userId));
-			if (stats) {
-				await db
-					.update(userStats)
-					.set({ totalXp: stats.totalXp + xpEarned })
-					.where(eq(userStats.userId, session.userId));
-			}
-		}
+		if (completed.length && session.userId) await creditXp(db, session.userId, xpEarned);
 	}
 
 	return {
