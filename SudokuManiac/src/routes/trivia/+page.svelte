@@ -88,7 +88,7 @@
 		<div class="field-label mb-2.5">{m.trivia_topic()}</div>
 		<div class="card-kraft flex items-center gap-2.5 px-4 py-2.5" style="border-radius:13px 10px 12px 11px">
 			<span class="text-lg">🔎</span>
-			<input bind:value={topic} placeholder={m.trivia_topic_ph()} maxlength="80" onkeydown={(e) => e.key === 'Enter' && generate()} class="w-full bg-transparent font-hand text-2xl font-bold text-ink outline-none" />
+			<input bind:value={topic} placeholder={m.trivia_topic_ph()} maxlength="80" onkeydown={(e) => e.key === 'Enter' && generate()} class="kraft-bare-input w-full font-hand text-2xl font-bold text-ink" />
 		</div>
 		<div class="mt-2.5 flex flex-wrap gap-2">
 			{#each suggestions as s (s)}
@@ -127,7 +127,7 @@
 			<div class="field-label mb-2.5">{m.trivia_party_host_name()}</div>
 			<div class="card-kraft flex items-center gap-2.5 px-4 py-2.5" style="border-radius:12px 11px 13px 10px">
 				<span class="text-lg">🙂</span>
-				<input bind:value={playerName} placeholder="Alex" maxlength="24" class="w-full bg-transparent font-hand text-2xl font-bold text-ink outline-none" />
+				<input bind:value={playerName} placeholder="Alex" maxlength="24" class="kraft-bare-input w-full font-hand text-2xl font-bold text-ink" />
 			</div>
 		</div>
 	{/if}

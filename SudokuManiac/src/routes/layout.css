@@ -235,6 +235,22 @@
 		color: var(--color-muted-2);
 	}
 
+	/*
+	 * A text input inside a wrapper that draws the field (the cream topic boxes):
+	 * undo the forms plugin's own border, padding and focus ring, which otherwise
+	 * show up as a grey box inside the wrapper.
+	 */
+	.kraft-bare-input {
+		border: 0;
+		padding: 0;
+		background: transparent;
+		box-shadow: none;
+	}
+	.kraft-bare-input:focus {
+		outline: none;
+		box-shadow: none;
+	}
+
 	/* Field label above an input — tighter than .label-caps */
 	.field-label {
 		font-family: var(--font-sans);

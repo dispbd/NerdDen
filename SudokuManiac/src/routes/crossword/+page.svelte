@@ -113,7 +113,7 @@
 				<div class="flex items-center gap-2.5">
 					<div class="flex flex-1 items-center gap-2 rounded-[11px] border-[1.5px] border-[#1c1813] bg-surface-2 px-3 py-2">
 						<span>🔎</span>
-						<input bind:value={topic} placeholder={m.cw_topic_ph()} onkeydown={(e) => e.key === 'Enter' && generate()} class="w-full bg-transparent font-hand text-lg font-bold text-ink outline-none" />
+						<input bind:value={topic} placeholder={m.cw_topic_ph()} onkeydown={(e) => e.key === 'Enter' && generate()} class="kraft-bare-input w-full font-hand text-lg font-bold text-ink" />
 					</div>
 					<button onclick={generate} disabled={!topic.trim()} class="btn-primary kraft-radius-sm px-5 py-2 text-lg disabled:opacity-50" style="box-shadow:2px 3px 0 rgba(0,0,0,.5)">{m.home_generate()}</button>
 				</div>

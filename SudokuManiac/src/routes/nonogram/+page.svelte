@@ -147,7 +147,7 @@
 							placeholder={m.nono_topic_ph()}
 							aria-label={m.nono_paint_ai()}
 							onkeydown={(e) => e.key === 'Enter' && paint()}
-							class="w-full min-w-0 border-0 bg-transparent p-0 font-hand text-xl font-bold text-ink outline-none focus:ring-0"
+							class="kraft-bare-input w-full min-w-0 font-hand text-xl font-bold text-ink"
 						/>
 					</label>
 					<button

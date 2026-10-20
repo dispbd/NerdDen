@@ -117,7 +117,7 @@
 			<div class="mb-2 text-[10px] font-semibold tracking-[.12em] text-[#b3a890] uppercase">{m.home_generate_anything()}</div>
 			<div class="mb-2.5 flex items-center gap-2 rounded-[11px] border-[1.5px] border-[#1c1813] bg-surface-2 px-3 py-2">
 				<span>🔎</span>
-				<input bind:value={genTopic} placeholder={m.home_topic_placeholder()} class="w-full bg-transparent font-hand text-lg font-bold text-ink outline-none" />
+				<input bind:value={genTopic} placeholder={m.home_topic_placeholder()} class="kraft-bare-input w-full font-hand text-lg font-bold text-ink" />
 			</div>
 			<button onclick={generate} class="btn-primary kraft-radius-sm w-full py-2 text-lg" style="box-shadow:2px 2px 0 rgba(0,0,0,.5)">{m.home_generate_puzzle()}</button>
 		</div>
@@ -180,7 +180,7 @@
 					<div class="mb-3.5 font-hand text-2xl leading-tight font-bold text-surface-2">{m.home_generate_pitch()}</div>
 					<div class="mb-2.5 flex items-center gap-2 rounded-[11px] border-[1.5px] border-[#1c1813] bg-surface-2 px-3 py-2.5">
 						<span>🔎</span>
-						<input bind:value={genTopic} placeholder={m.home_topic_placeholder()} class="w-full bg-transparent font-hand text-lg font-bold text-ink outline-none" />
+						<input bind:value={genTopic} placeholder={m.home_topic_placeholder()} class="kraft-bare-input w-full font-hand text-lg font-bold text-ink" />
 					</div>
 					<button onclick={generate} class="btn-primary kraft-radius-sm w-full py-2.5 text-lg" style="box-shadow:2px 3px 0 rgba(0,0,0,.5)">{m.home_generate()}</button>
 				</div>

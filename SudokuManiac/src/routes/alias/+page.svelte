@@ -89,7 +89,7 @@
 		<div class="field-label mb-2.5">{m.alias_topic()}</div>
 		<div class="card-kraft flex items-center gap-2.5 px-4 py-2.5" style="border-radius:13px 10px 12px 11px">
 			<span class="text-lg">🎩</span>
-			<input bind:value={topic} placeholder={m.alias_topic_ph()} maxlength="80" onkeydown={(e) => e.key === 'Enter' && createRoom()} class="w-full bg-transparent font-hand text-2xl font-bold text-ink outline-none" />
+			<input bind:value={topic} placeholder={m.alias_topic_ph()} maxlength="80" onkeydown={(e) => e.key === 'Enter' && createRoom()} class="kraft-bare-input w-full font-hand text-2xl font-bold text-ink" />
 		</div>
 		<div class="mt-2.5 flex flex-wrap gap-2">
 			{#each SUGGESTIONS as s (s)}
