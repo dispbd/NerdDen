@@ -31,3 +31,7 @@ project.inlang/cache/
 
 *storybook.log
 storybook-static
+
+# Eval runs (raw model answers)
+/evals/results/*
+!/evals/results/baseline-*.jsonl

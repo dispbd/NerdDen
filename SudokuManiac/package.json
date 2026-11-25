@@ -22,6 +22,13 @@
 		"db:studio": "drizzle-kit studio",
 		"storybook": "storybook dev -p 6006",
 		"build-storybook": "storybook build",
+		"eval:hints:dataset": "tsx evals/hints/build-dataset.ts",
+		"eval:hints": "tsx evals/hints/run.ts",
+		"eval:report": "tsx evals/hints/report.ts",
+		"eval:judge": "tsx evals/hints/judge-run.ts",
+		"eval:judge:report": "tsx evals/hints/judge-report.ts",
+		"eval:label": "tsx evals/hints/label-sheet.ts",
+		"eval:calibrate": "tsx evals/hints/calibrate.ts",
 		"auth:schema": "better-auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
 	},
 	"devDependencies": {

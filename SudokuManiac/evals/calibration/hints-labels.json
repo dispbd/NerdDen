@@ -1,0 +1,177 @@
+{
+  "L01": {
+    "proves": "yes",
+    "factsTrue": "no",
+    "moveRead": "yes"
+  },
+  "L02": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L03": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L04": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L05": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L06": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L07": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L08": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L09": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L10": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L11": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L12": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L13": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L14": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L15": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L16": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L17": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L18": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L19": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L20": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "no"
+  },
+  "L21": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L22": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L23": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L24": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L25": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L26": {
+    "moveRead": "yes",
+    "factsTrue": "no",
+    "proves": "yes"
+  },
+  "L27": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L28": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L29": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L30": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L31": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L32": {
+    "moveRead": "yes",
+    "factsTrue": "no",
+    "proves": "yes"
+  },
+  "L33": {
+    "moveRead": "yes",
+    "factsTrue": "no",
+    "proves": "yes"
+  },
+  "L34": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  },
+  "L35": {
+    "moveRead": "yes",
+    "factsTrue": "yes",
+    "proves": "yes"
+  }
+}
