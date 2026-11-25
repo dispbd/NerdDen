@@ -19,65 +19,17 @@
  *   Mistral → https://console.mistral.ai/api-keys       (MISTRAL_API_KEY)
  */
 import { env } from '$env/dynamic/private';
-import type { LanguageModel, generateText } from 'ai';
+import type { LanguageModel } from 'ai';
+import {
+	DEFAULT_MODEL,
+	KEY_ENV,
+	LOW_REASONING,
+	type AiProvider,
+	type ProviderOptions
+} from './config';
 
-type ProviderOptions = NonNullable<Parameters<typeof generateText>[0]['providerOptions']>;
-
-export type AiProvider = 'openai' | 'google' | 'anthropic' | 'groq' | 'mistral';
-
-/**
- * Default model per provider. Prefer a provider's moving alias over a pinned version
- * where one exists: pinned ids get retired. Both previous defaults were — Groq dropped
- * llama-3.3-70b-versatile and Google gemini-2.0-flash (gemini-2.5-flash is already
- * closed to new users too) — which silently sent every AI feature to its offline
- * fallback. Groq has no alias; gpt-oss-120b is its general model today.
- */
-const DEFAULT_MODEL: Record<AiProvider, string> = {
-	openai: 'gpt-4o-mini',
-	google: 'gemini-flash-latest',
-	anthropic: 'claude-haiku-4-5-20251001',
-	groq: 'openai/gpt-oss-120b',
-	mistral: 'mistral-small-latest'
-};
-
-/**
- * Every task here (questions, words, clues, hints, drawings) is short and simple, so
- * reasoning models run at their lowest effort. Measured on a 5-question trivia request:
- * Groq gpt-oss-120b 2.1 s → 1.5 s; Gemini flash-latest 48 s at its default thinking →
- * 5.3 s at "low". Reasoning also draws on the same output-token cap as the answer, so
- * this keeps tight caps from emptying replies. Keyed per provider; others ignore it.
- */
-const LOW_REASONING: ProviderOptions = {
-	groq: { reasoningEffort: 'low' },
-	google: { thinkingConfig: { thinkingLevel: 'low' } },
-	openai: { reasoningEffort: 'low' }
-};
-
-const KEY_ENV: Record<AiProvider, string> = {
-	openai: 'OPENAI_API_KEY',
-	google: 'GOOGLE_GENERATIVE_AI_API_KEY',
-	anthropic: 'ANTHROPIC_API_KEY',
-	groq: 'GROQ_API_KEY',
-	mistral: 'MISTRAL_API_KEY'
-};
-
-/**
- * Parse a JSON object out of a model's text reply. Provider/model support for
- * structured output (json_schema) varies, so generators use generateText + this
- * helper instead of generateObject — works on every provider. Strips ``` fences
- * and any prose around the first {...} block. Throws if no valid JSON is found.
- */
-export function parseJsonFromText(text: string): unknown {
-	const cleaned = text
-		.trim()
-		.replace(/^```(?:json)?/i, '')
-		.replace(/```$/, '')
-		.trim();
-	const start = cleaned.indexOf('{');
-	const end = cleaned.lastIndexOf('}');
-	const slice = start >= 0 && end > start ? cleaned.slice(start, end + 1) : cleaned;
-	return JSON.parse(slice);
-}
+export type { AiProvider } from './config';
+export { parseJsonFromText } from './json';
 
 export function aiProvider(): AiProvider {
 	const p = (env.AI_PROVIDER ?? 'openai') as AiProvider;
